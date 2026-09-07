@@ -7,7 +7,7 @@ export const PublicLayout: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col bg-surface-bg text-dark-bg">
       <Header />
-      <main className="flex-1 w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in">
+      <main className="flex-1 w-full max-w-[96%] mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in">
         <Outlet />
       </main>
       <Footer />

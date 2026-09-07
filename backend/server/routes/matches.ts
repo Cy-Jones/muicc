@@ -6,6 +6,64 @@ import { asyncRouter } from '../middleware/asyncRouter.js';
 
 const router = asyncRouter();
 
+async function updateAllStandings(tx: any) {
+  await tx.prepare(`
+    UPDATE standings
+    SET played = 0, won = 0, drawn = 0, lost = 0, goals_for = 0, goals_against = 0, goal_difference = 0, points = 0
+  `).run();
+
+  const allMatches = await tx.prepare(`
+    SELECT * FROM matches
+    WHERE confirmed_result = 1 AND status = 'FULL_TIME'
+  `).all() as any[];
+
+  for (const m of allMatches) {
+    const teamA = m.team_a_id;
+    const teamB = m.team_b_id;
+    const scoreA = m.score_a;
+    const scoreB = m.score_b;
+
+    let pointsA = 0, pointsB = 0, wonA = 0, wonB = 0, drawnA = 0, drawnB = 0, lostA = 0, lostB = 0;
+    if (scoreA > scoreB) {
+      wonA = 1; pointsA = 3; lostB = 1;
+    } else if (scoreB > scoreA) {
+      wonB = 1; pointsB = 3; lostA = 1;
+    } else {
+      drawnA = 1; pointsA = 1; drawnB = 1; pointsB = 1;
+    }
+
+    await tx.prepare(`
+      UPDATE standings
+      SET played = played + 1, won = won + ?, drawn = drawn + ?, lost = lost + ?,
+          goals_for = goals_for + ?, goals_against = goals_against + ?,
+          goal_difference = goal_difference + ?, points = points + ?
+      WHERE team_id = ?
+    `).run(wonA, drawnA, lostA, scoreA, scoreB, (scoreA - scoreB), pointsA, teamA);
+
+    await tx.prepare(`
+      UPDATE standings
+      SET played = played + 1, won = won + ?, drawn = drawn + ?, lost = lost + ?,
+          goals_for = goals_for + ?, goals_against = goals_against + ?,
+          goal_difference = goal_difference + ?, points = points + ?
+      WHERE team_id = ?
+    `).run(wonB, drawnB, lostB, scoreB, scoreA, (scoreB - scoreA), pointsB, teamB);
+  }
+
+  const groups = await tx.prepare('SELECT id FROM groups').all() as any[];
+  for (const g of groups) {
+    const rankedStandings = await tx.prepare(`
+      SELECT id FROM standings
+      WHERE group_id = ?
+      ORDER BY points DESC, goal_difference DESC, goals_for DESC
+    `).all(g.id) as any[];
+
+    for (const [index, st] of rankedStandings.entries()) {
+      await tx.prepare('UPDATE standings SET position = ? WHERE id = ?').run(index + 1, st.id);
+    }
+  }
+}
+
+
 router.get('/days', async (req, res) => {
   const days = await db.prepare('SELECT * FROM match_days ORDER BY number ASC').all();
   return res.json(days);
@@ -118,6 +176,7 @@ router.post('/admin/save', authenticateAdmin, async (req: AuthenticatedRequest, 
     if (status === 'FULL_TIME') {
       try {
         await db.prepare("UPDATE matches SET confirmed_result = 1 WHERE id = ?").run(id);
+        await updateAllStandings(db);
       } catch (e) {}
     }
 
@@ -191,6 +250,7 @@ router.put('/admin/:id/live-clock', authenticateAdmin, async (req: Authenticated
       SET status = 'FULL_TIME', live_period = 'FULL_TIME', minute_text = 'FT', confirmed_result = 1
       WHERE id = ?
     `).run(matchId);
+    await updateAllStandings(db);
     return res.json({ success: true, message: 'Match Finished! Status set to FULL TIME (FT).' });
   }
 
@@ -230,11 +290,17 @@ router.post('/admin/:id/events', authenticateAdmin, async (req: AuthenticatedReq
 router.put('/admin/:id/status', authenticateAdmin, async (req: AuthenticatedRequest, res: Response) => {
   const { status, score_a, score_b, potm_player_id, minute_text } = req.body;
   
+  const match = await db.prepare('SELECT group_id FROM matches WHERE id = ?').get(req.params.id) as any;
   await db.prepare(`
     UPDATE matches
     SET status = ?, score_a = COALESCE(?, score_a), score_b = COALESCE(?, score_b), potm_player_id = COALESCE(?, potm_player_id), minute_text = COALESCE(?, minute_text)
     WHERE id = ?
   `).run(status, score_a, score_b, potm_player_id, minute_text, req.params.id);
+
+  if (status === 'FULL_TIME' && match && match.group_id) {
+    await db.prepare("UPDATE matches SET confirmed_result = 1 WHERE id = ?").run(req.params.id);
+    await updateAllStandings(db);
+  }
 
   return res.json({ success: true, message: `Match status updated to ${status}.` });
 });
@@ -248,63 +314,7 @@ router.post('/admin/:id/confirm-result', authenticateAdmin, async (req: Authenti
 
     await tx.prepare("UPDATE matches SET status = 'FULL_TIME', confirmed_result = 1 WHERE id = ?").run(matchId);
 
-    if (match.group_id) {
-      const allGroupMatches = await tx.prepare(`
-        SELECT * FROM matches
-        WHERE group_id = ? AND confirmed_result = 1 AND status = 'FULL_TIME'
-      `).all(match.group_id) as any[];
-
-      const groupTeams = await tx.prepare('SELECT team_id FROM group_teams WHERE group_id = ?').all(match.group_id) as any[];
-      for (const gt of groupTeams) {
-        await tx.prepare(`
-          UPDATE standings
-          SET played = 0, won = 0, drawn = 0, lost = 0, goals_for = 0, goals_against = 0, goal_difference = 0, points = 0
-          WHERE group_id = ? AND team_id = ?
-        `).run(match.group_id, gt.team_id);
-      }
-
-      for (const m of allGroupMatches) {
-        const teamA = m.team_a_id;
-        const teamB = m.team_b_id;
-        const scoreA = m.score_a;
-        const scoreB = m.score_b;
-
-        let pointsA = 0, pointsB = 0, wonA = 0, wonB = 0, drawnA = 0, drawnB = 0, lostA = 0, lostB = 0;
-        if (scoreA > scoreB) {
-          wonA = 1; pointsA = 3; lostB = 1;
-        } else if (scoreB > scoreA) {
-          wonB = 1; pointsB = 3; lostA = 1;
-        } else {
-          drawnA = 1; pointsA = 1; drawnB = 1; pointsB = 1;
-        }
-
-        await tx.prepare(`
-          UPDATE standings
-          SET played = played + 1, won = won + ?, drawn = drawn + ?, lost = lost + ?,
-              goals_for = goals_for + ?, goals_against = goals_against + ?,
-              goal_difference = goal_difference + ?, points = points + ?
-          WHERE group_id = ? AND team_id = ?
-        `).run(wonA, drawnA, lostA, scoreA, scoreB, (scoreA - scoreB), pointsA, match.group_id, teamA);
-
-        await tx.prepare(`
-          UPDATE standings
-          SET played = played + 1, won = won + ?, drawn = drawn + ?, lost = lost + ?,
-              goals_for = goals_for + ?, goals_against = goals_against + ?,
-              goal_difference = goal_difference + ?, points = points + ?
-          WHERE group_id = ? AND team_id = ?
-        `).run(wonB, drawnB, lostB, scoreB, scoreA, (scoreB - scoreA), pointsB, match.group_id, teamB);
-      }
-
-      const rankedStandings = await tx.prepare(`
-        SELECT id FROM standings
-        WHERE group_id = ?
-        ORDER BY points DESC, goal_difference DESC, goals_for DESC
-      `).all(match.group_id) as any[];
-
-      for (const [index, st] of rankedStandings.entries()) {
-        await tx.prepare('UPDATE standings SET position = ? WHERE id = ?').run(index + 1, st.id);
-      }
-    }
+    await updateAllStandings(tx);
 
     await tx.prepare(`
       INSERT INTO audit_logs (id, admin_email, action, entity, entity_id, details)

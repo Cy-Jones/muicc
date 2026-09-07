@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api, getAuthToken, removeAuthToken } from '../../lib/api';
 import { getMatchLiveClock } from '../../lib/liveClock';
-import { Star, TwoUsers, ShieldDone, Calendar, Activity, Discovery, Document, Image, Lock, Plus, Delete, Play, TimeCircle, Danger, CloseSquare, Swap, Edit, TickSquare } from 'react-iconly';
+import { Star, TwoUsers, ShieldDone, Calendar, Activity, Discovery, Document, Image, Lock, Plus, Delete, Play, TimeCircle, Danger, CloseSquare, Swap, Edit, TickSquare, Search } from 'react-iconly';
 
 import { NewsModule } from '../../components/admin/NewsModule';
 import { GalleryModule } from '../../components/admin/GalleryModule';
@@ -36,7 +36,7 @@ export const AdminDashboard: React.FC = () => {
   // New Match Form Fields
   const [teamAId, setTeamAId] = useState('');
   const [teamBId, setTeamBId] = useState('');
-  const [stage, setStage] = useState('Group Stage');
+  const [stage, setStage] = useState('GROUP');
   const [groupId, setGroupId] = useState('grp-a');
   const [matchStatus, setMatchStatus] = useState<'SCHEDULED' | 'LIVE' | 'FULL_TIME'>('SCHEDULED');
   const [scoreA, setScoreA] = useState('0');
@@ -45,6 +45,29 @@ export const AdminDashboard: React.FC = () => {
   const [matchDate, setMatchDate] = useState('2026-09-26');
   const [matchTime, setMatchTime] = useState('16:00');
   const [matchVenue, setMatchVenue] = useState('Marwadi University Main Stadium');
+
+  // Status Check Fields
+  const [searchRef, setSearchRef] = useState('');
+  const [searching, setSearching] = useState(false);
+  const [lookupResult, setLookupResult] = useState<any>(null);
+  const [lookupError, setLookupError] = useState('');
+
+  const handleLookup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!searchRef.trim()) return;
+    setSearching(true);
+    setLookupError('');
+    setLookupResult(null);
+    try {
+      const res = await api.checkTeamStatus(searchRef.trim());
+      // The API now returns { type: 'team' | 'player', data: any }
+      setLookupResult(res);
+    } catch (err: any) {
+      setLookupError(err.message || 'Reference code not found.');
+    } finally {
+      setSearching(false);
+    }
+  };
 
   const FLAG_MAP: Record<string, string> = {
     liberia: '/images/flags/lbr.png',
@@ -179,10 +202,21 @@ export const AdminDashboard: React.FC = () => {
   };
 
   const handleConfirmDraw = async () => {
-    if (!window.confirm('Are you sure you want to lock and confirm the tournament draw?')) return;
+    if (!window.confirm('Are you sure you want to lock the draw? This will make it official and visible to the public.')) return;
     try {
       await api.adminConfirmDraw();
-      setMessage('Tournament draw confirmed and officially locked.');
+      setMessage('Draw confirmed and locked successfully.');
+      loadAllAdminData();
+    } catch (err: any) {
+      alert(err.message);
+    }
+  };
+
+  const handleUnlockDraw = async () => {
+    if (!window.confirm('Are you sure you want to unlock the draw? This will allow you to generate a new draw.')) return;
+    try {
+      await api.adminUnlockDraw();
+      setMessage('Draw unlocked successfully.');
       loadAllAdminData();
     } catch (err: any) {
       alert(err.message);
@@ -286,7 +320,7 @@ export const AdminDashboard: React.FC = () => {
             </div>
           )}
           <button onClick={loadAllAdminData} className="p-2 rounded-md bg-surface-border text-dark-bg hover:text-dark-bg hover:bg-surface-border transition border border-surface-border shadow-sm">
-            <Document set="bold" className="w-4 h-4" />
+            <Swap set="bold" className="w-4 h-4" />
           </button>
         </div>
       </div>
@@ -319,6 +353,7 @@ export const AdminDashboard: React.FC = () => {
       ) : (
         <div className="animate-fade-in">
           {activeTab === 'OVERVIEW' && (
+            <>
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
               <div className="bg-surface-card p-5 rounded-xl border border-surface-border shadow-sm flex flex-col">
                 <span className="text-[10px] uppercase font-black text-dark-muted tracking-widest">Teams (Approved)</span>
@@ -341,6 +376,159 @@ export const AdminDashboard: React.FC = () => {
                 <span className="text-3xl font-heading font-black text-dark-bg mt-2">{stats?.predictions || 0}</span>
               </div>
             </div>
+
+            {/* Operations Status & Verification Panel */}
+            {(() => {
+              const pendingTeamsCount = teams.filter(t => t.status === 'PENDING').length;
+              const pendingPlayersCount = players.filter(p => p.status === 'PENDING').length;
+              
+              const approvedTeams = teams.filter(t => t.status === 'APPROVED');
+              const approvedPlayers = players.filter(p => p.status === 'APPROVED');
+              
+              const teamsUnderstaffed = approvedTeams.map(t => {
+                const teamPlayersCount = approvedPlayers.filter(p => p.team_id === t.id || p.team_name === t.name).length;
+                return { ...t, count: teamPlayersCount };
+              }).filter(t => t.count < 11);
+
+              return (
+                <div className="mt-8 space-y-4">
+                  <h3 className="font-heading text-lg font-black text-dark-bg uppercase tracking-widest border-b border-surface-border pb-2">Operations Status</h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Approvals Check */}
+                    {(pendingTeamsCount > 0 || pendingPlayersCount > 0) ? (
+                      <div className="bg-status-warning/10 border border-status-warning/30 p-5 rounded-xl space-y-3">
+                        <div className="flex items-center gap-2 text-status-warning">
+                          <Danger set="bold" className="w-5 h-5" />
+                          <h4 className="font-bold uppercase tracking-widest text-xs">Pending Approvals</h4>
+                        </div>
+                        <p className="text-sm text-dark-bg">You have {pendingTeamsCount > 0 ? `${pendingTeamsCount} team(s)` : ''} {pendingTeamsCount > 0 && pendingPlayersCount > 0 ? 'and' : ''} {pendingPlayersCount > 0 ? `${pendingPlayersCount} player(s)` : ''} awaiting review.</p>
+                        <div className="flex gap-2">
+                          {pendingTeamsCount > 0 && <button onClick={() => setActiveTab('TEAMS')} className="action-btn bg-status-warning/20 text-status-warning hover:bg-status-warning hover:text-black">Review Teams</button>}
+                          {pendingPlayersCount > 0 && <button onClick={() => setActiveTab('PLAYERS')} className="action-btn bg-status-warning/20 text-status-warning hover:bg-status-warning hover:text-black">Review Players</button>}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="bg-status-completed/10 border border-status-completed/30 p-5 rounded-xl flex items-center justify-between">
+                        <div>
+                          <div className="flex items-center gap-2 text-status-completed mb-1">
+                            <ShieldDone set="bold" className="w-5 h-5" />
+                            <h4 className="font-bold uppercase tracking-widest text-xs">Approvals Up to Date</h4>
+                          </div>
+                          <p className="text-xs text-dark-muted">No pending teams or players.</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Roster Check */}
+                    {teamsUnderstaffed.length > 0 ? (
+                      <div className="bg-status-error/10 border border-status-error/30 p-5 rounded-xl space-y-3">
+                        <div className="flex items-center gap-2 text-status-error">
+                          <TwoUsers set="bold" className="w-5 h-5" />
+                          <h4 className="font-bold uppercase tracking-widest text-xs">Roster Warning</h4>
+                        </div>
+                        <p className="text-sm text-dark-bg">{teamsUnderstaffed.length} approved team(s) have fewer than 11 approved players.</p>
+                        <ul className="text-xs text-status-error font-medium space-y-1">
+                          {teamsUnderstaffed.slice(0,3).map(t => <li key={t.id}>• {t.name} ({t.count}/11)</li>)}
+                          {teamsUnderstaffed.length > 3 && <li>• ...and {teamsUnderstaffed.length - 3} more</li>}
+                        </ul>
+                      </div>
+                    ) : (
+                      <div className="bg-status-completed/10 border border-status-completed/30 p-5 rounded-xl flex items-center justify-between">
+                        <div>
+                          <div className="flex items-center gap-2 text-status-completed mb-1">
+                            <TwoUsers set="bold" className="w-5 h-5" />
+                            <h4 className="font-bold uppercase tracking-widest text-xs">Rosters Verified</h4>
+                          </div>
+                          <p className="text-xs text-dark-muted">All approved teams meet the 11-player minimum.</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Draw Check */}
+                    {!isDrawLocked ? (
+                      <div className="bg-blue-500/10 border border-blue-500/30 p-5 rounded-xl space-y-3 md:col-span-2">
+                        <div className="flex items-center gap-2 text-blue-400">
+                          <Star set="bold" className="w-5 h-5" />
+                          <h4 className="font-bold uppercase tracking-widest text-xs">Tournament Draw Action Required</h4>
+                        </div>
+                        <p className="text-sm text-dark-bg">The tournament draw has not been locked. Group assignments and fixtures may be incomplete.</p>
+                        <button onClick={() => setActiveTab('DRAW')} className="action-btn bg-blue-500/20 text-blue-400 hover:bg-blue-500 hover:text-white">Go to Draw Manager</button>
+                      </div>
+                    ) : (
+                      <div className="bg-status-completed/10 border border-status-completed/30 p-5 rounded-xl flex items-center justify-between md:col-span-2">
+                        <div>
+                          <div className="flex items-center gap-2 text-status-completed mb-1">
+                            <Lock set="bold" className="w-5 h-5" />
+                            <h4 className="font-bold uppercase tracking-widest text-xs">Draw Locked</h4>
+                          </div>
+                          <p className="text-xs text-dark-muted">The tournament structure is officially finalized.</p>
+                        </div>
+                        <button onClick={() => setActiveTab('DRAW')} className="action-btn bg-status-completed/20 text-status-completed hover:bg-status-completed hover:text-white">View Draw</button>
+                      </div>
+                    )}
+
+                    {/* Status Check Lookup Tool */}
+                    <div className="bg-surface-card border border-surface-border p-5 rounded-xl md:col-span-2 space-y-4 shadow-sm">
+                      <h4 className="font-heading text-lg font-black text-dark-bg uppercase tracking-widest flex items-center gap-2 border-b border-surface-border pb-2">
+                        <Search set="bold" className="w-5 h-5 text-gold" /> Status Check
+                      </h4>
+                      <p className="text-xs text-dark-muted font-medium">Enter a registration reference code to verify a team and its players.</p>
+                      
+                      <form onSubmit={handleLookup} className="flex gap-3">
+                        <input type="text" required value={searchRef} onChange={(e) => setSearchRef(e.target.value)} placeholder="MIUCC-..." className="admin-input font-mono uppercase tracking-widest flex-1" />
+                        <button type="submit" disabled={searching} className="btn-outline px-6 py-2 text-xs disabled:opacity-50 min-w-[120px]">
+                          {searching ? 'Checking...' : 'Check Status'}
+                        </button>
+                      </form>
+
+                      {lookupError && <p className="text-[10px] text-status-error font-black uppercase tracking-widest bg-status-error/10 p-3 rounded-lg border border-status-error/30 text-center">{lookupError}</p>}
+
+                      {lookupResult && lookupResult.type === 'team' && (
+                        <div className="p-4 rounded-lg bg-surface-bg border border-surface-border flex items-center justify-between shadow-inner">
+                          <div>
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="text-dark-muted font-mono text-[10px]">{lookupResult.data.registration_ref}</span>
+                              <span className={`px-2 py-0.5 rounded-sm text-[9px] font-black uppercase tracking-widest ${
+                                lookupResult.data.status === 'APPROVED' ? 'bg-status-completed/10 text-status-completed border border-status-completed/30' : 'bg-status-warning/10 text-status-warning border border-status-warning/30'
+                              }`}>
+                                {lookupResult.data.status}
+                              </span>
+                            </div>
+                            <p className="font-black text-dark-bg text-sm uppercase tracking-wider">{lookupResult.data.name}</p>
+                            <p className="text-[10px] text-dark-muted uppercase tracking-widest mt-0.5">{lookupResult.data.university} • {lookupResult.data.country}</p>
+                          </div>
+                          <button onClick={() => { setActiveTab('TEAMS'); setSearchRef(''); setLookupResult(null); }} className="action-btn bg-brand/10 text-brand border-brand/30 hover:bg-brand hover:text-black">
+                            Manage Team
+                          </button>
+                        </div>
+                      )}
+
+                      {lookupResult && lookupResult.type === 'player' && (
+                        <div className="p-4 rounded-lg bg-surface-bg border border-surface-border flex items-center justify-between shadow-inner">
+                          <div>
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="text-dark-muted font-mono text-[10px]">{lookupResult.data.player_id}</span>
+                              <span className={`px-2 py-0.5 rounded-sm text-[9px] font-black uppercase tracking-widest ${
+                                lookupResult.data.status === 'APPROVED' ? 'bg-status-completed/10 text-status-completed border border-status-completed/30' : 'bg-status-warning/10 text-status-warning border border-status-warning/30'
+                              }`}>
+                                {lookupResult.data.status}
+                              </span>
+                            </div>
+                            <p className="font-black text-dark-bg text-sm uppercase tracking-wider">{lookupResult.data.full_name}</p>
+                            <p className="text-[10px] text-dark-muted uppercase tracking-widest mt-0.5">{lookupResult.data.position} • {lookupResult.data.team_name} ({lookupResult.data.team_country})</p>
+                          </div>
+                          <button onClick={() => { setActiveTab('PLAYERS'); setSearchRef(''); setLookupResult(null); }} className="action-btn bg-brand/10 text-brand border-brand/30 hover:bg-brand hover:text-black">
+                            Manage Player
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+          </>
           )}
 
           {activeTab === 'MATCHES' && (
@@ -463,7 +651,7 @@ export const AdminDashboard: React.FC = () => {
                         <div><label className="admin-label">Score B</label><input type="number" min="0" value={scoreB} onChange={(e) => setScoreB(e.target.value)} className="admin-input text-center" /></div>
                       </div>
                       <div className="grid grid-cols-2 gap-4">
-                        <div><label className="admin-label">Stage</label><select value={stage} onChange={(e) => setStage(e.target.value)} className="admin-input"><option value="Group Stage">Group Stage</option><option value="Quarter-Final">Quarter-Final</option><option value="Semi-Final">Semi-Final</option><option value="Grand Final">Grand Final</option></select></div>
+                        <div><label className="admin-label">Stage</label><select value={stage} onChange={(e) => setStage(e.target.value)} className="admin-input"><option value="GROUP">Group Stage</option><option value="ROUND_OF_16">Round of 16</option><option value="QUARTER_FINAL">Quarter-Final</option><option value="SEMI_FINAL">Semi-Final</option><option value="THIRD_PLACE">Third Place</option><option value="FINAL">Grand Final</option></select></div>
                         <div><label className="admin-label">Group</label><select value={groupId} onChange={(e) => setGroupId(e.target.value)} className="admin-input"><option value="grp-a">Group A</option><option value="grp-b">Group B</option><option value="grp-c">Group C</option><option value="">None</option></select></div>
                       </div>
                       <div className="grid grid-cols-2 gap-4">
@@ -495,7 +683,10 @@ export const AdminDashboard: React.FC = () => {
                       <button onClick={handleConfirmDraw} className="btn-primary bg-status-completed text-dark-bg px-4 py-2 text-[10px] flex items-center gap-1.5 shadow-none"><Lock set="bold" className="w-3.5 h-3.5" /> Confirm & Lock</button>
                     </>
                   ) : (
-                    <span className="px-3 py-1.5 bg-status-completed/10 text-status-completed border border-status-completed/30 rounded text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5"><Lock set="bold" className="w-3 h-3" /> Draw Locked</span>
+                    <div className="flex items-center gap-3">
+                      <span className="px-3 py-1.5 bg-status-completed/10 text-status-completed border border-status-completed/30 rounded text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5"><Lock set="bold" className="w-3 h-3" /> Draw Locked</span>
+                      <button onClick={handleUnlockDraw} className="btn-outline px-4 py-2 text-[10px] flex items-center gap-1.5 text-status-error hover:border-status-error hover:bg-status-error/10">Unlock Draw</button>
+                    </div>
                   )}
                 </div>
               </div>

@@ -9,11 +9,25 @@ const heroImages = [
   '/images/hero1.jpg'
 ];
 
+const SYSTEM_FLAGS: Record<string, string> = {
+  liberia: '/images/flags/lbr.png',
+  eswatini: '/images/flags/swz.png',
+  tanzania: '/images/flags/tza.png',
+  'south sudan': '/images/flags/ssd.png',
+  zimbabwe: '/images/flags/zwe.png',
+  india: '/images/flags/ind.png',
+  mozambique: '/images/flags/moz.png',
+  nigeria: '/images/flags/nga.png',
+  uganda: '/images/flags/uga.png',
+  zambia: '/images/flags/zmb.png'
+};
+
 export const HomePage: React.FC = () => {
   const [summary, setSummary] = useState<any>(null);
   const [settings, setSettings] = useState<any>(null);
   const [matches, setMatches] = useState<any[]>([]);
   const [sponsors, setSponsors] = useState<any[]>([]);
+  const [systemNations, setSystemNations] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<'live' | 'today' | 'upcoming' | 'results'>('today');
   const [currentHeroIndex, setCurrentHeroIndex] = useState(0);
 
@@ -35,6 +49,7 @@ export const HomePage: React.FC = () => {
         ]);
         setSummary(sumRes);
         setSettings(setRes.settings);
+        if (setRes.nations) setSystemNations(setRes.nations);
         setMatches(matchesRes || []);
         setSponsors(sponRes || []);
       } catch (err) {
@@ -59,10 +74,34 @@ export const HomePage: React.FC = () => {
       case 'upcoming':
         return matches.filter(m => m.status === 'SCHEDULED' && m.date >= todayStr).slice(0, 5);
       case 'results':
-        return matches.filter(m => m.status === 'FULL_TIME').sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 5);
+        return matches.filter(m => m.status === 'FULL_TIME').slice(0, 5);
       default:
-        return [];
+        return matches;
     }
+  };
+
+  const renderTeamFlag = (teamName: string, countryName?: string, logoUrl?: string) => {
+    let flagSrc = logoUrl;
+    if (!flagSrc && systemNations.length > 0) {
+      const dbNation = systemNations.find((n: any) => 
+        (countryName && n.name.toLowerCase() === countryName.toLowerCase()) ||
+        (n.name.toLowerCase() === teamName.toLowerCase())
+      );
+      if (dbNation?.flag_url) flagSrc = dbNation.flag_url;
+    }
+    if (!flagSrc) {
+      const fallbackKey = Object.keys(SYSTEM_FLAGS).find(k => teamName.toLowerCase().includes(k) || (countryName && countryName.toLowerCase().includes(k)));
+      if (fallbackKey) flagSrc = SYSTEM_FLAGS[fallbackKey];
+    }
+    
+    if (flagSrc) {
+      return <img src={flagSrc} alt={teamName} className="w-6 h-6 object-contain hidden sm:block" />;
+    }
+    return (
+      <div className="w-6 h-6 bg-surface-bg border border-surface-border rounded hidden sm:flex items-center justify-center text-[10px] font-bold text-dark-muted">
+        {teamName.substring(0, 2)}
+      </div>
+    );
   };
 
   const filteredMatches = getFilteredMatches();
@@ -71,7 +110,10 @@ export const HomePage: React.FC = () => {
     <div className="w-full flex flex-col items-center">
       
       {/* IMMERSIVE HERO SECTION */}
-      <section className="relative w-full h-[320px] sm:h-[450px] md:h-[550px] flex flex-col items-center justify-center -mt-8 pb-16 md:pb-0">
+      {/* Spacer to push content down since the hero is absolutely positioned */}
+      <div className="w-full h-[420px] sm:h-[550px] md:h-[650px] lg:h-[700px] -mt-8 pb-16 md:pb-0"></div>
+      
+      <section className="absolute left-0 right-0 top-16 sm:top-20 h-[420px] sm:h-[550px] md:h-[650px] lg:h-[700px] flex flex-col items-center justify-center pt-16 md:pt-24 pb-16 md:pb-0 overflow-hidden z-0">
         <div className="absolute inset-0 w-full h-full z-0 overflow-hidden">
           <AnimatePresence>
             <motion.img
@@ -103,7 +145,7 @@ export const HomePage: React.FC = () => {
       </section>
 
       {/* FLOATING INTERACTIVE MATCH PANEL */}
-      <div className="w-full max-w-5xl px-4 z-20 relative -mt-20 md:-mt-24 mb-10 md:mb-16">
+      <div className="w-full max-w-[96%] px-4 z-20 relative -mt-10 md:-mt-16 mb-10 md:mb-16">
           <div className="data-card shadow-card-hover overflow-hidden">
             {/* Panel Tabs */}
             <div className="flex items-center border-b border-surface-border bg-surface-bg overflow-x-auto no-scrollbar">
@@ -139,11 +181,7 @@ export const HomePage: React.FC = () => {
                       <Link to={`/matches`} key={m.id} className="flex items-center justify-between p-3 sm:p-4 hover:bg-surface-hover transition-colors">
                         <div className="flex items-center justify-end gap-2 sm:gap-3 w-[40%]">
                           <span className="text-[11px] sm:text-sm font-bold text-dark-bg text-right truncate">{m.team_a_name}</span>
-                          {m.team_a_logo ? (
-                            <img src={m.team_a_logo} alt="" className="w-6 h-6 object-contain hidden sm:block" />
-                          ) : (
-                            <div className="w-6 h-6 bg-surface-bg border border-surface-border rounded hidden sm:flex items-center justify-center text-[10px] font-bold text-dark-muted">{m.team_a_name.substring(0,2)}</div>
-                          )}
+                          {renderTeamFlag(m.team_a_name, m.team_a_country, m.team_a_logo)}
                         </div>
                         
                         <div className="flex flex-col items-center justify-center w-[20%] px-2">
@@ -162,11 +200,7 @@ export const HomePage: React.FC = () => {
                         </div>
 
                         <div className="flex items-center justify-start gap-3 w-[40%]">
-                          {m.team_b_logo ? (
-                            <img src={m.team_b_logo} alt="" className="w-6 h-6 object-contain hidden sm:block" />
-                          ) : (
-                            <div className="w-6 h-6 bg-surface-bg border border-surface-border rounded hidden sm:flex items-center justify-center text-[10px] font-bold text-dark-muted">{m.team_b_name.substring(0,2)}</div>
-                          )}
+                          {renderTeamFlag(m.team_b_name, m.team_b_country, m.team_b_logo)}
                           <span className="text-[11px] sm:text-sm font-bold text-dark-bg text-left truncate">{m.team_b_name}</span>
                         </div>
                       </Link>
@@ -192,7 +226,7 @@ export const HomePage: React.FC = () => {
         </div>
 
       {/* QUICK STATS SECTION */}
-      <section className="w-full max-w-6xl mx-auto px-4 py-4 md:py-8 grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+      <section className="w-full max-w-[96%] mx-auto px-4 py-4 md:py-8 grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
         <div className="data-card p-4 sm:p-5 flex flex-col items-center text-center">
           <ShieldDone set="bold" className="w-6 h-6 text-brand mb-2 opacity-80" />
           <h3 className="text-2xl font-heading text-dark-bg">{summary?.teamsCount || 0}</h3>
@@ -215,54 +249,144 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* OFFICIAL SPONSORS SECTION */}
-      {Array.isArray(sponsors) && sponsors.filter(s => s.name && s.name.trim() !== '' && s.logo_url && s.logo_url.trim() !== '').length > 0 && (
-        <section className="w-full max-w-5xl mx-auto px-4 py-8">
+      {/* ABOUT THE TOURNAMENT SECTION */}
+      <section className="w-full max-w-[96%] mx-auto px-4 py-8 md:py-12 space-y-12">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="data-card p-6 space-y-2 border-t-2 border-brand text-center">
+            <Location set="bold" className="w-8 h-8 text-brand mx-auto" />
+            <h3 className="font-heading font-bold text-dark-bg text-base">HOST VENUE</h3>
+            <p className="text-xs text-dark-muted">Marwadi University Campus</p>
+          </div>
+
+          <div className="data-card p-6 space-y-2 border-t-2 border-brand text-center">
+            <Calendar set="bold" className="w-8 h-8 text-brand mx-auto" />
+            <h3 className="font-heading font-bold text-dark-bg text-base">OFFICIAL DATES</h3>
+            <p className="text-xs text-dark-muted">26 September – 10 October 2026</p>
+          </div>
+
+          <div className="data-card p-6 space-y-2 border-t-2 border-brand text-center">
+            <Discovery set="bold" className="w-8 h-8 text-brand mx-auto" />
+            <h3 className="font-heading font-bold text-dark-bg text-base">NATIONS</h3>
+            <p className="text-xs text-dark-muted">10 Participating University Nations</p>
+          </div>
+        </div>
+
+        <div className="data-card p-8 space-y-6">
           <div className="text-center mb-6">
-            <h2 className="font-heading text-2xl md:text-3xl font-black uppercase text-dark-bg tracking-tight">
-              OFFICIAL <span className="text-brand text-glow">SPONSORS & PARTNERS</span>
+            <h2 className="font-heading text-2xl md:text-3xl font-black text-dark-bg tracking-tight uppercase">
+              ABOUT <span className="text-brand">THE TOURNAMENT</span>
             </h2>
-            <p className="text-xs text-dark-muted font-bold uppercase tracking-widest mt-1">
-              Proudly supported by our official tournament partners
+          </div>
+          <div className="text-sm text-dark-surface space-y-4 leading-relaxed max-w-3xl mx-auto text-center">
+            <p>
+              The <strong>MUICC '26 Champions Cup</strong> represents the premier collegiate football tournament uniting student athletes across 10 nations: <strong>Liberia, Eswatini, Tanzania, South Sudan, Zimbabwe, India, Mozambique, Nigeria, Uganda, and Zambia</strong>.
+            </p>
+            <p>
+              Hosted at the state-of-the-art facilities of <strong>Marwadi University Campus</strong>, the 14-day tournament showcases group stage competition, knockout rounds, and the championship grand final.
             </p>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-6 items-center">
-            {sponsors.filter(s => s.name && s.name.trim() !== '' && s.logo_url && s.logo_url.trim() !== '').map((s) => {
-              const CardContent = (
-                <div className="data-card p-6 flex flex-col items-center justify-center gap-3 hover:border-brand/50 hover:-translate-y-1 transition-all duration-300 group h-full">
-                  <div className="h-16 w-full flex items-center justify-center relative overflow-hidden">
-                    <img 
-                      src={s.logo_url} 
-                      alt={s.name} 
-                      className="max-h-full max-w-full object-contain filter group-hover:scale-105 transition-transform duration-300"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).style.display = 'none';
-                      }}
-                    />
-                  </div>
-                  <div className="text-center">
-                    <p className="font-heading text-sm font-bold text-dark-bg group-hover:text-brand transition-colors">{s.name}</p>
-                    <span className="inline-block mt-1 text-[9px] font-extrabold uppercase tracking-widest px-2 py-0.5 rounded bg-brand/10 text-brand border border-brand/20">
-                      {s.tier || 'PARTNER'}
-                    </span>
-                  </div>
+          <div className="pt-8 mt-8 border-t border-surface-border">
+            <h3 className="font-heading text-sm font-bold text-brand uppercase tracking-wider mb-6 text-center">Participating Nations</h3>
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
+              {[
+                { name: 'Liberia', code: 'lbr' },
+                { name: 'Eswatini', code: 'swz' },
+                { name: 'Tanzania', code: 'tza' },
+                { name: 'South Sudan', code: 'ssd' },
+                { name: 'Zimbabwe', code: 'zwe' },
+                { name: 'India', code: 'ind' },
+                { name: 'Mozambique', code: 'moz' },
+                { name: 'Nigeria', code: 'nga' },
+                { name: 'Uganda', code: 'uga' },
+                { name: 'Zambia', code: 'zmb' }
+              ].map(nation => (
+                <div key={nation.code} className="flex items-center gap-3 p-3 bg-surface-bg border border-surface-border rounded-lg hover:border-brand/50 transition shadow-sm">
+                  <img 
+                    src={`/images/flags/${nation.code}.png`} 
+                    alt={`${nation.name} Flag`} 
+                    className="w-7 h-5 object-contain rounded-sm shadow-sm" 
+                    onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
+                  />
+                  <span className="text-xs font-bold text-dark-bg leading-tight">{nation.name}</span>
                 </div>
-              );
-
-              return s.website ? (
-                <a key={s.id} href={s.website} target="_blank" rel="noreferrer" className="block h-full">
-                  {CardContent}
-                </a>
-              ) : (
-                <div key={s.id} className="h-full">
-                  {CardContent}
-                </div>
-              );
-            })}
+              ))}
+            </div>
           </div>
-        </section>
-      )}
+        </div>
+      </section>
+
+      {/* OFFICIAL SPONSORS SECTION */}
+      {(() => {
+        const validSponsors = Array.isArray(sponsors) ? sponsors.filter(s => s.name && s.name.trim() !== '' && s.logo_url && s.logo_url.trim() !== '') : [];
+        if (validSponsors.length === 0) return null;
+
+        let gridClass = 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4';
+        let containerClass = 'max-w-[96%]';
+        
+        if (validSponsors.length === 1) {
+          gridClass = 'grid-cols-1';
+          containerClass = 'max-w-xs';
+        } else if (validSponsors.length === 2) {
+          gridClass = 'grid-cols-2';
+          containerClass = 'max-w-lg';
+        } else if (validSponsors.length === 3) {
+          gridClass = 'grid-cols-2 sm:grid-cols-3';
+          containerClass = 'max-w-3xl';
+        }
+
+        return (
+          <section className="w-full max-w-[96%] mx-auto px-4 py-8">
+            <div className="text-center mb-6">
+              <h2 className="font-heading text-2xl md:text-3xl font-black uppercase text-dark-bg tracking-tight">
+                OFFICIAL <span className="text-brand text-glow">SPONSORS & PARTNERS</span>
+              </h2>
+              <p className="text-xs text-dark-muted font-bold uppercase tracking-widest mt-1">
+                Proudly supported by our official tournament partners
+              </p>
+            </div>
+
+            <div className={`mx-auto ${containerClass}`}>
+              <div className={`grid ${gridClass} gap-4 sm:gap-6 items-center`}>
+                {validSponsors.map((s) => {
+                  const CardContent = (
+                    <div className="data-card relative flex flex-col justify-end overflow-hidden hover:border-brand/50 hover:-translate-y-1 transition-all duration-300 group aspect-[4/5] sm:aspect-[3/4]">
+                      <img 
+                        src={s.logo_url} 
+                        alt={s.name} 
+                        className="absolute inset-0 w-full h-full object-cover object-top filter group-hover:scale-105 transition-transform duration-300 z-0"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = 'none';
+                        }}
+                      />
+                      
+                      {/* Fading Gradient Overlay */}
+                      <div className="absolute inset-x-0 bottom-0 h-3/5 z-10 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/70 to-transparent"></div>
+                      
+                      <div className="relative z-20 p-4 text-center flex flex-col items-center w-full">
+                        <p className="font-heading text-sm font-bold text-white group-hover:text-brand transition-colors line-clamp-1 drop-shadow-md">{s.name}</p>
+                        <span className="inline-block mt-1.5 text-[9px] font-extrabold uppercase tracking-widest px-2 py-0.5 rounded bg-brand/10 text-brand border border-brand/20 shadow-sm">
+                          {s.tier || 'PARTNER'}
+                        </span>
+                      </div>
+                    </div>
+                  );
+
+                  return s.website ? (
+                    <a key={s.id} href={s.website} target="_blank" rel="noreferrer" className="block h-full">
+                      {CardContent}
+                    </a>
+                  ) : (
+                    <div key={s.id} className="h-full">
+                      {CardContent}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </section>
+        );
+      })()}
 
       {/* CALL TO ACTION */}
       <section className="w-full max-w-4xl mx-auto px-4 py-12 text-center">

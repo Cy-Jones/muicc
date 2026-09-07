@@ -12,6 +12,11 @@ interface PlayerDraft {
   student_id: string;
   preferred_foot: string;
   photo_url: string;
+  dob: string;
+  course: string;
+  medical_conditions: string;
+  emergency_contact_name: string;
+  emergency_contact_phone: string;
 }
 
 export const TeamRegistrationPage: React.FC = () => {
@@ -23,7 +28,7 @@ export const TeamRegistrationPage: React.FC = () => {
     coach_name: '',
     manager_name: '',
     manager_email: '',
-    manager_phone: '',
+    manager_phone: '+91 ',
     description: '',
     logo_url: ''
   });
@@ -75,7 +80,12 @@ export const TeamRegistrationPage: React.FC = () => {
       nationality: 'Liberia',
       student_id: '',
       preferred_foot: 'Right',
-      photo_url: ''
+      photo_url: '',
+      dob: '',
+      course: '',
+      medical_conditions: '',
+      emergency_contact_name: '',
+      emergency_contact_phone: '+91 '
     }
   ]);
 
@@ -114,7 +124,12 @@ export const TeamRegistrationPage: React.FC = () => {
         nationality: formData.country,
         student_id: '',
         preferred_foot: 'Right',
-        photo_url: ''
+        photo_url: '',
+        dob: '',
+        course: '',
+        medical_conditions: '',
+        emergency_contact_name: '',
+        emergency_contact_phone: '+91 '
       }
     ]);
   };
@@ -257,15 +272,15 @@ export const TeamRegistrationPage: React.FC = () => {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     <div>
-                      <label className="block text-[10px] font-black uppercase tracking-widest text-dark-muted mb-1.5">Team Name</label>
+                      <label className="block text-[10px] font-black uppercase tracking-widest text-dark-muted mb-1.5">Team Name <span className="text-status-error">*</span> <span className="text-[8px] font-medium normal-case">(Required)</span></label>
                       <input type="text" required value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="Liberia Eagles FC" className="input-field" />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-black uppercase tracking-widest text-dark-muted mb-1.5">University / Org</label>
+                      <label className="block text-[10px] font-black uppercase tracking-widest text-dark-muted mb-1.5">University / Org <span className="text-status-error">*</span> <span className="text-[8px] font-medium normal-case">(Required)</span></label>
                       <input type="text" required value={formData.university} onChange={(e) => setFormData({ ...formData, university: e.target.value })} placeholder="Marwadi University" className="input-field" />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-black uppercase tracking-widest text-dark-muted mb-1.5">Country</label>
+                      <label className="block text-[10px] font-black uppercase tracking-widest text-dark-muted mb-1.5">Country <span className="text-status-error">*</span> <span className="text-[8px] font-medium normal-case">(Required)</span></label>
                       <select 
                         required
                         disabled
@@ -278,23 +293,41 @@ export const TeamRegistrationPage: React.FC = () => {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-[10px] font-black uppercase tracking-widest text-dark-muted mb-1.5">Head Coach Name</label>
+                      <label className="block text-[10px] font-black uppercase tracking-widest text-dark-muted mb-1.5">Head Coach Name <span className="text-status-error">*</span> <span className="text-[8px] font-medium normal-case">(Required)</span></label>
                       <input type="text" required value={formData.coach_name} onChange={(e) => setFormData({ ...formData, coach_name: e.target.value })} placeholder="George Weah Jr." className="input-field" />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-black uppercase tracking-widest text-dark-muted mb-1.5">Team Manager Name</label>
+                      <label className="block text-[10px] font-black uppercase tracking-widest text-dark-muted mb-1.5">Team Manager Name <span className="text-status-error">*</span> <span className="text-[8px] font-medium normal-case">(Required)</span></label>
                       <input type="text" required value={formData.manager_name} onChange={(e) => setFormData({ ...formData, manager_name: e.target.value })} placeholder="Samuel Kollie" className="input-field" />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-black uppercase tracking-widest text-dark-muted mb-1.5">Manager Email</label>
+                      <label className="block text-[10px] font-black uppercase tracking-widest text-dark-muted mb-1.5">Manager Email <span className="text-status-error">*</span> <span className="text-[8px] font-medium normal-case">(Required)</span></label>
                       <input type="email" required value={formData.manager_email} onChange={(e) => setFormData({ ...formData, manager_email: e.target.value })} placeholder="manager@university.edu" className="input-field" />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-black uppercase tracking-widest text-dark-muted mb-1.5">Manager Phone</label>
-                      <input type="text" required value={formData.manager_phone} onChange={(e) => setFormData({ ...formData, manager_phone: e.target.value })} placeholder="+231 88 123 4567" className="input-field" />
+                      <label className="block text-[10px] font-black uppercase tracking-widest text-dark-muted mb-1.5">Manager Phone <span className="text-status-error">*</span> <span className="text-[8px] font-medium normal-case">(Required)</span></label>
+                      <input 
+                        type="tel" 
+                        required 
+                        pattern="^\+91 [0-9]{10}$"
+                        maxLength={14}
+                        title="Must be a valid 10-digit Indian phone number"
+                        value={formData.manager_phone} 
+                        onChange={(e) => {
+                          let val = e.target.value;
+                          if (!val.startsWith('+91 ')) {
+                            val = '+91 ' + val.replace(/^\+?9?1?\s*/, '').replace(/\D/g, '').slice(0, 10);
+                          } else {
+                            val = '+91 ' + val.slice(4).replace(/\D/g, '').slice(0, 10);
+                          }
+                          setFormData({ ...formData, manager_phone: val });
+                        }} 
+                        placeholder="+91 9876543210" 
+                        className="input-field" 
+                      />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-black uppercase tracking-widest text-dark-muted mb-1.5">Team Logo URL</label>
+                      <label className="block text-[10px] font-black uppercase tracking-widest text-dark-muted mb-1.5">Team Logo URL <span className="text-[8px] font-medium normal-case text-dark-muted">(Optional)</span></label>
                       <input type="url" value={formData.logo_url} onChange={(e) => setFormData({ ...formData, logo_url: e.target.value })} placeholder="https://..." className="input-field" />
                     </div>
                   </div>
@@ -328,15 +361,15 @@ export const TeamRegistrationPage: React.FC = () => {
 
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                           <div className="sm:col-span-2">
-                            <label className="block text-[9px] font-black uppercase tracking-widest text-dark-muted mb-1.5">Full Athlete Name</label>
+                            <label className="block text-[9px] font-black uppercase tracking-widest text-dark-muted mb-1.5">Full Athlete Name <span className="text-status-error">*</span> <span className="text-[8px] font-medium normal-case">(Required)</span></label>
                             <input type="text" required value={p.full_name} onChange={(e) => handlePlayerChange(idx, 'full_name', e.target.value)} placeholder="Emmanuel Flomo" className="input-field" />
                           </div>
                           <div>
-                            <label className="block text-[9px] font-black uppercase tracking-widest text-dark-muted mb-1.5">Jersey #</label>
+                            <label className="block text-[9px] font-black uppercase tracking-widest text-dark-muted mb-1.5">Jersey # <span className="text-status-error">*</span> <span className="text-[8px] font-medium normal-case">(Required)</span></label>
                             <input type="number" required value={p.jersey_number} onChange={(e) => handlePlayerChange(idx, 'jersey_number', e.target.value)} placeholder="10" className="input-field" />
                           </div>
                           <div>
-                            <label className="block text-[9px] font-black uppercase tracking-widest text-dark-muted mb-1.5">Position</label>
+                            <label className="block text-[9px] font-black uppercase tracking-widest text-dark-muted mb-1.5">Position <span className="text-status-error">*</span> <span className="text-[8px] font-medium normal-case">(Required)</span></label>
                             <select value={p.position} onChange={(e) => handlePlayerChange(idx, 'position', e.target.value)} className="input-field">
                               <option value="Goalkeeper">Goalkeeper</option>
                               <option value="Defender">Defender</option>
@@ -345,12 +378,50 @@ export const TeamRegistrationPage: React.FC = () => {
                             </select>
                           </div>
                           <div>
-                            <label className="block text-[9px] font-black uppercase tracking-widest text-dark-muted mb-1.5">Nationality</label>
+                            <label className="block text-[9px] font-black uppercase tracking-widest text-dark-muted mb-1.5">Nationality <span className="text-status-error">*</span> <span className="text-[8px] font-medium normal-case">(Required)</span></label>
                             <input type="text" required value={p.nationality} onChange={(e) => handlePlayerChange(idx, 'nationality', e.target.value)} placeholder="Liberia" className="input-field" />
                           </div>
                           <div>
-                            <label className="block text-[9px] font-black uppercase tracking-widest text-dark-muted mb-1.5">Student ID (GR#)</label>
-                            <input type="text" value={p.student_id} onChange={(e) => handlePlayerChange(idx, 'student_id', e.target.value)} placeholder="GR-2026-001" className="input-field" />
+                            <label className="block text-[9px] font-black uppercase tracking-widest text-dark-muted mb-1.5">Student ID (GR#) <span className="text-status-error">*</span> <span className="text-[8px] font-medium normal-case">(Required)</span></label>
+                            <input type="text" required value={p.student_id} onChange={(e) => handlePlayerChange(idx, 'student_id', e.target.value)} placeholder="GR-2026-001" className="input-field" />
+                          </div>
+                          <div>
+                            <label className="block text-[9px] font-black uppercase tracking-widest text-dark-muted mb-1.5">Date of Birth <span className="text-status-error">*</span> <span className="text-[8px] font-medium normal-case">(Required)</span></label>
+                            <input type="date" required value={p.dob} onChange={(e) => handlePlayerChange(idx, 'dob', e.target.value)} className="input-field" />
+                          </div>
+                          <div className="sm:col-span-2">
+                            <label className="block text-[9px] font-black uppercase tracking-widest text-dark-muted mb-1.5">Course / Program <span className="text-status-error">*</span> <span className="text-[8px] font-medium normal-case">(Required)</span></label>
+                            <input type="text" required value={p.course} onChange={(e) => handlePlayerChange(idx, 'course', e.target.value)} placeholder="BSc Computer Science" className="input-field" />
+                          </div>
+                          <div className="sm:col-span-3">
+                            <label className="block text-[9px] font-black uppercase tracking-widest text-dark-muted mb-1.5">Medical Conditions / Allergies <span className="text-[8px] font-medium normal-case text-dark-muted">(Optional)</span></label>
+                            <input type="text" value={p.medical_conditions} onChange={(e) => handlePlayerChange(idx, 'medical_conditions', e.target.value)} placeholder="None" className="input-field" />
+                          </div>
+                          <div className="sm:col-span-2">
+                            <label className="block text-[9px] font-black uppercase tracking-widest text-dark-muted mb-1.5">Emergency Contact Name <span className="text-status-error">*</span> <span className="text-[8px] font-medium normal-case">(Required)</span></label>
+                            <input type="text" required value={p.emergency_contact_name} onChange={(e) => handlePlayerChange(idx, 'emergency_contact_name', e.target.value)} placeholder="Jane Doe" className="input-field" />
+                          </div>
+                          <div>
+                            <label className="block text-[9px] font-black uppercase tracking-widest text-dark-muted mb-1.5">Emergency Contact Phone <span className="text-status-error">*</span> <span className="text-[8px] font-medium normal-case">(Required)</span></label>
+                            <input 
+                              type="tel" 
+                              required 
+                              pattern="^\+91 [0-9]{10}$"
+                              maxLength={14}
+                              title="Must be a valid 10-digit Indian phone number"
+                              value={p.emergency_contact_phone} 
+                              onChange={(e) => {
+                                let val = e.target.value;
+                                if (!val.startsWith('+91 ')) {
+                                  val = '+91 ' + val.replace(/^\+?9?1?\s*/, '').replace(/\D/g, '').slice(0, 10);
+                                } else {
+                                  val = '+91 ' + val.slice(4).replace(/\D/g, '').slice(0, 10);
+                                }
+                                handlePlayerChange(idx, 'emergency_contact_phone', val);
+                              }} 
+                              placeholder="+91 9876543210" 
+                              className="input-field" 
+                            />
                           </div>
                         </div>
 
@@ -363,21 +434,17 @@ export const TeamRegistrationPage: React.FC = () => {
                             )}
                           </div>
                           <div className="flex-1 space-y-2 w-full">
-                            <div className="flex flex-wrap items-center gap-3">
-                              <label className="px-4 py-2 bg-gold/10 hover:bg-gold/20 text-gold border border-gold/40 rounded-md text-[10px] font-black tracking-widest uppercase cursor-pointer inline-flex items-center gap-2 transition-colors">
-                                <Upload set="bold" className="w-3.5 h-3.5" /> Upload Photo
-                                <input type="file" accept="image/*" onChange={(e) => handlePhotoFileUpload(idx, e)} className="hidden" />
-                              </label>
-                              {p.photo_url && (
-                                <button type="button" onClick={() => handlePlayerChange(idx, 'photo_url', '')} className="text-[10px] text-status-error/80 hover:text-status-error font-black uppercase tracking-widest transition-colors">
-                                  Clear
-                                </button>
-                              )}
-                            </div>
                             <div className="flex items-center justify-between gap-2">
-                              <div className="flex items-center gap-2 flex-1">
-                                <Image set="bold" className="w-4 h-4 text-dark-muted" />
-                                <input type="text" value={p.photo_url} onChange={(e) => handlePlayerChange(idx, 'photo_url', e.target.value)} placeholder="Or paste image URL" className="input-field py-1.5 text-[10px]" />
+                              <div className="flex flex-wrap items-center gap-3">
+                                <label className="px-4 py-2 bg-gold/10 hover:bg-gold/20 text-gold border border-gold/40 rounded-md text-[10px] font-black tracking-widest uppercase cursor-pointer inline-flex items-center gap-2 transition-colors">
+                                  <Upload set="bold" className="w-3.5 h-3.5" /> Upload Photo
+                                  <input type="file" accept="image/*" onChange={(e) => handlePhotoFileUpload(idx, e)} className="hidden" />
+                                </label>
+                                {p.photo_url && (
+                                  <button type="button" onClick={() => handlePlayerChange(idx, 'photo_url', '')} className="text-[10px] text-status-error/80 hover:text-status-error font-black uppercase tracking-widest transition-colors">
+                                    Clear
+                                  </button>
+                                )}
                               </div>
                               {players.length > 1 && (
                                 <button type="button" onClick={() => handleRemovePlayer(idx)} className="p-1.5 text-status-error hover:bg-status-error/10 rounded transition-colors" title="Delete Player">

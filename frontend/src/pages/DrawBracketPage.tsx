@@ -98,16 +98,7 @@ export const DrawBracketPage: React.FC = () => {
         </div>
 
         <div className="flex flex-col items-start md:items-end gap-3 shrink-0">
-          {token && !isLocked && (
-            <button
-              onClick={handleGenerateRegionalDraw}
-              disabled={generating}
-              className="btn-primary text-xs flex items-center gap-2"
-            >
-              <Plus set="bold" className={`w-3.5 h-3.5 ${generating ? 'animate-spin' : ''}`} />
-              {generating ? 'Running Seeded Draw...' : 'Generate Regional Seeded Draw'}
-            </button>
-          )}
+
 
           {isLocked && (
             <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded bg-surface-bg border border-surface-border text-dark-muted text-xs font-bold uppercase tracking-widest">

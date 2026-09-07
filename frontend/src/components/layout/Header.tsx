@@ -134,7 +134,7 @@ export const Header: React.FC = () => {
         onMouseLeave={() => setIsHovered(false)}
         className="w-full bg-surface-bg border-b border-surface-border h-10 flex items-center justify-center px-4"
       >
-        <div className="w-full max-w-[1400px] flex items-center justify-between mx-auto">
+        <div className="w-full max-w-[96%] flex items-center justify-between mx-auto">
           {/* LEFT: Title */}
           <div className="flex items-center text-[9px] sm:text-xs font-black text-dark-bg tracking-widest uppercase shrink-0 whitespace-nowrap">
             <span>MUICC '26 Countdown</span>
@@ -165,7 +165,7 @@ export const Header: React.FC = () => {
                     {renderTeamFlag(currentMatch.team_a_name, currentMatch.team_a_country, currentMatch.team_a_logo)}
                     <span className="truncate max-w-[60px] sm:max-w-[100px] hidden sm:block">{currentMatch.team_a_name}</span>
                     <span className="text-brand font-black mx-1">
-                      {currentMatch.status === 'SCHEDULED' ? 'vs' : `\${currentMatch.score_a ?? 0} - \${currentMatch.score_b ?? 0}`}
+                      {currentMatch.status === 'SCHEDULED' ? 'vs' : `${currentMatch.score_a ?? 0} - ${currentMatch.score_b ?? 0}`}
                     </span>
                     <span className="truncate max-w-[60px] sm:max-w-[100px] hidden sm:block text-right">{currentMatch.team_b_name}</span>
                     {renderTeamFlag(currentMatch.team_b_name, currentMatch.team_b_country, currentMatch.team_b_logo)}
@@ -195,7 +195,7 @@ export const Header: React.FC = () => {
       </div>
 
       {/* Main Navigation */}
-      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-[96%] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="relative flex justify-between items-center h-16 sm:h-20">
           
           {/* Logo */}

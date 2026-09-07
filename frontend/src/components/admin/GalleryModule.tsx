@@ -181,7 +181,7 @@ export const GalleryModule: React.FC = () => {
                         <img 
                           src={imageUrl.trim()} 
                           alt="Preview" 
-                          className="max-h-full max-w-full object-contain"
+                          className="max-h-full max-w-[96%] object-contain"
                           onError={(e) => {
                             (e.target as HTMLImageElement).style.display = 'none';
                           }}

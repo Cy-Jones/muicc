@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { api } from '../lib/api';
@@ -48,7 +49,7 @@ export const PlayersPage: React.FC = () => {
     const match = cleaned.match(/MIUCC-PLY-[A-Za-z0-9]+/i) || [cleaned];
     const targetId = match[0].toUpperCase();
     setShowScannerModal(false);
-    navigate(`/player/\${targetId}`);
+    navigate(`/player/${targetId}`);
   };
 
   return (
@@ -97,31 +98,75 @@ export const PlayersPage: React.FC = () => {
       ) : players.length === 0 ? (
         <div className="data-card p-12 text-center text-dark-muted border-dashed font-medium">No approved players found matching your criteria.</div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 lg:gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 2xl:grid-cols-6 gap-4 lg:gap-6">
           {players.map((player) => (
-            <div key={player.id} onClick={() => setSelectedPlayer(player)} className="data-card overflow-hidden hover:border-brand/30 hover:shadow-card-hover cursor-pointer transition-all duration-200 group flex flex-col justify-between p-0">
-              <div className="relative aspect-[3/4] bg-surface-bg border-b border-surface-border">
+            <div 
+              key={player.id} 
+              onClick={() => setSelectedPlayer(player)} 
+              className="relative overflow-hidden rounded-xl cursor-pointer shadow-lg border border-[#333] bg-[#0a0a0a] flex flex-col hover:scale-[1.02] transition-transform duration-300 min-h-[350px] md:min-h-[380px] lg:min-h-[400px] 2xl:min-h-[450px]"
+            >
+              {/* Background Image & Overlay */}
+              <div className="absolute inset-0 z-0 h-[75%] flex flex-col justify-end overflow-hidden bg-[#0a0a0a]">
                 {player.photo_url ? (
-                  <img src={player.photo_url} alt={player.full_name} className="w-full h-full object-cover" />
+                  <img src={player.photo_url} alt={player.full_name} className="absolute inset-0 w-full h-full object-cover object-top z-10 opacity-90" />
                 ) : (
-                  <div className="w-full h-full flex flex-col items-center justify-center text-dark-muted bg-surface-bg">
-                    <span className="font-heading text-4xl font-black">{player.full_name.substring(0,1)}</span>
-                  </div>
+                  <div className="absolute inset-0 w-full h-full flex items-center justify-center bg-zinc-800 text-6xl font-black text-white/20 z-10">{player.full_name.substring(0,1)}</div>
                 )}
-                <div className="absolute top-2 right-2 px-2 py-1 rounded bg-surface-card/90 backdrop-blur border border-surface-border text-brand text-[10px] font-black shadow-sm">#{player.jersey_number}</div>
-                <div className="absolute bottom-2 left-2 right-2 px-2 py-1 rounded bg-brand/90 backdrop-blur border border-brand text-black text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-1 shadow-sm">
-                  <ShieldDone set="bold" className="w-3 h-3" /> VERIFIED
+                {/* Gradient overlay to blend image into the dark bottom */}
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/40 to-transparent pointer-events-none z-20"></div>
+              </div>
+
+              {/* Faint Number */}
+              <div className="absolute right-[-5%] top-[5%] text-[8rem] md:text-[10rem] 2xl:text-[12rem] font-black text-white/10 leading-none pointer-events-none select-none z-0">
+                {player.jersey_number}
+              </div>
+              
+              {/* Top Section */}
+              <div className="relative z-10 pt-4 px-4 pb-2 flex-grow flex flex-col justify-between">
+                {/* Verified Badge */}
+                <div className="flex justify-end">
+                  <div className="bg-[#165a34] text-white text-[7px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider shadow-md">
+                    Verified
+                  </div>
+                </div>
+
+                {/* Position & Name */}
+                <div className="mt-auto pt-16">
+                  <div className="text-brand text-[8px] font-black uppercase tracking-widest leading-none mb-1 drop-shadow-md">{player.position}</div>
+                  <div className="text-white text-xl font-black uppercase leading-tight truncate drop-shadow-lg">{player.full_name}</div>
                 </div>
               </div>
 
-              <div className="p-3 sm:p-4 space-y-2 bg-surface-card group-hover:bg-surface-hover transition-colors">
+              {/* Yellow Line */}
+              <div className="h-0.5 w-full bg-brand relative z-10 shadow-[0_0_5px_rgba(250,204,21,0.5)]"></div>
+
+              {/* Stats Section */}
+              <div className="p-3 grid grid-cols-2 gap-y-1.5 gap-x-2 text-[10px] relative z-10 bg-[#0a0a0a]">
                 <div>
-                  <h3 className="font-heading text-sm font-black text-dark-bg uppercase tracking-tight group-hover:text-brand transition-colors truncate">{player.full_name}</h3>
-                  <p className="text-[9px] text-dark-muted font-mono tracking-wider mt-0.5 truncate">{player.player_id}</p>
+                  <div className="text-white/40 uppercase font-bold tracking-widest mb-0.5 text-[7px]">Team</div>
+                  <div className="text-white font-bold truncate text-[11px]">{player.team_name}</div>
                 </div>
-                <div className="text-[10px] text-dark-surface pt-2 border-t border-surface-border space-y-1 font-bold uppercase tracking-widest">
-                  <p className="flex justify-between"><span className="text-dark-muted">Team</span><span className="text-dark-bg truncate max-w-[60%] text-right">{player.team_name}</span></p>
-                  <p className="flex justify-between"><span className="text-dark-muted">Pos</span><span className="text-brand">{player.position}</span></p>
+                <div>
+                  <div className="text-white/40 uppercase font-bold tracking-widest mb-0.5 text-[7px]">Country</div>
+                  <div className="text-white font-bold truncate text-[11px]">{player.team_country || 'N/A'}</div>
+                </div>
+                <div>
+                  <div className="text-white/40 uppercase font-bold tracking-widest mb-0.5 text-[7px]">Nationality</div>
+                  <div className="text-white font-bold truncate text-[11px]">{player.nationality || 'N/A'}</div>
+                </div>
+                <div>
+                  <div className="text-white/40 uppercase font-bold tracking-widest mb-0.5 text-[7px]">University</div>
+                  <div className="text-white font-bold truncate text-[11px]">{player.university || 'N/A'}</div>
+                </div>
+                <div></div>
+                <div>
+                  <div className="text-white/40 uppercase font-bold tracking-widest mb-0.5 text-[7px]">Squad No.</div>
+                  <div className="text-brand font-bold text-[11px]">#{player.jersey_number}</div>
+                </div>
+                <div className="col-span-2 pt-2 border-t border-white/10 mt-1 flex justify-between items-end">
+                  <div>
+                    <div className="text-brand font-black text-[10px]">{player.player_id}</div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -130,55 +175,125 @@ export const PlayersPage: React.FC = () => {
       )}
 
       {/* PLAYER DETAIL MODAL */}
-      <AnimatePresence>
-        {selectedPlayer && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 bg-dark-bg/50 backdrop-blur-sm flex items-center justify-center p-4">
-            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="bg-surface-card max-w-md w-full rounded-xl p-6 sm:p-8 space-y-6 relative border border-surface-border shadow-2xl">
-              <button onClick={() => setSelectedPlayer(null)} className="absolute top-4 right-4 text-dark-muted hover:text-dark-bg transition-colors p-2 rounded-full hover:bg-surface-hover">
-                <CloseSquare set="bold" className="w-5 h-5" />
-              </button>
-              
-              <div className="flex flex-col items-center text-center space-y-4">
-                <div className="w-24 h-24 rounded-full overflow-hidden bg-surface-bg border-2 border-brand shrink-0 relative shadow-lg">
+      {createPortal(
+        <AnimatePresence>
+          {selectedPlayer && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[99999] bg-black/90 backdrop-blur-md overflow-y-auto print:overflow-visible flex items-start justify-center p-4 sm:p-8 print:p-0">
+              <motion.div initial={{ scale: 0.95, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.95, opacity: 0, y: 20 }} className="bg-[#0a0a0a] rounded-2xl overflow-hidden relative border border-[#333] text-left w-full max-w-md mx-auto shadow-[0_0_50px_rgba(0,0,0,0.5)] flex flex-col my-auto shrink-0 print:m-0 print:border-none print:shadow-none print:w-screen print:h-screen print:rounded-none print:max-w-none print:bg-white">
+                
+                <style type="text/css" media="print">
+                  {`
+                    @media print {
+                      @page { size: portrait; margin: 0; }
+                      * {
+                        -webkit-print-color-adjust: exact !important;
+                        print-color-adjust: exact !important;
+                        color-adjust: exact !important;
+                      }
+                      ::-webkit-scrollbar { display: none !important; }
+                      body { background-color: white !important; margin: 0; padding: 0; overflow: hidden; }
+                      #root { display: none !important; }
+                    }
+                  `}
+                </style>
+
+                {/* Toolbar: Close & Download */}
+                <div className="absolute top-4 right-4 z-50 flex gap-2 print:hidden">
+                  <button onClick={() => window.print()} title="Download as PDF" className="text-white bg-black/50 hover:bg-black/80 backdrop-blur-md transition-colors p-2.5 rounded-full border border-white/10 shadow-lg flex items-center justify-center">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                  </button>
+                  <button onClick={() => setSelectedPlayer(null)} className="text-white bg-black/50 hover:bg-black/80 backdrop-blur-md transition-colors p-2.5 rounded-full border border-white/10 shadow-lg">
+                    <CloseSquare set="bold" className="w-5 h-5" />
+                  </button>
+                </div>
+
+                {/* Background Image & Overlay */}
+                <div className="absolute inset-0 z-0 h-[75%] print:h-[60%] flex flex-col justify-end overflow-hidden rounded-t-2xl print:rounded-none bg-[#0a0a0a] print:bg-white">
                   {selectedPlayer.photo_url ? (
-                    <img src={selectedPlayer.photo_url} alt="" className="w-full h-full object-cover" />
+                    <img 
+                      src={selectedPlayer.photo_url} 
+                      alt={selectedPlayer.full_name} 
+                      className="absolute inset-0 w-full h-full object-cover object-top z-10 opacity-90 [mask-image:linear-gradient(to_bottom,black_50%,transparent_100%)] [-webkit-mask-image:linear-gradient(to_bottom,black_50%,transparent_100%)] print:[-webkit-mask-image:none_!important] print:[mask-image:none_!important] print:opacity-100"
+                    />
                   ) : (
-                    <span className="w-full h-full flex items-center justify-center text-3xl font-black text-dark-muted">{selectedPlayer.full_name.substring(0,1)}</span>
+                    <div className="absolute inset-0 w-full h-full flex items-center justify-center bg-zinc-800 text-8xl font-black text-white/20 z-10 print:bg-gray-200 print:text-black/10">{selectedPlayer.full_name.substring(0,1)}</div>
                   )}
+                  {/* CSS Gradient for screen (fallback if mask fails, hidden on print) */}
+                  <div className="absolute inset-0 pointer-events-none z-20 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/80 to-transparent print:hidden"></div>
                 </div>
-                <div>
-                  <h2 className="font-heading text-2xl font-black text-dark-bg uppercase tracking-tight">{selectedPlayer.full_name}</h2>
-                  <p className="text-sm font-bold text-dark-surface uppercase tracking-wider mt-1">{selectedPlayer.team_name}</p>
-                </div>
-              </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div className="p-3 rounded bg-surface-bg border border-surface-border flex flex-col items-center text-center">
-                  <span className="text-[10px] uppercase font-bold text-dark-muted tracking-widest">Position</span>
-                  <span className="text-sm font-black text-dark-bg">{selectedPlayer.position}</span>
+                {/* Faint background number */}
+                <div className="absolute right-[-2%] top-[10%] text-[14rem] md:text-[18rem] print:text-[28rem] font-black text-white/10 print:text-black/5 leading-none pointer-events-none select-none z-0">
+                  {selectedPlayer.jersey_number}
                 </div>
-                <div className="p-3 rounded bg-surface-bg border border-surface-border flex flex-col items-center text-center">
-                  <span className="text-[10px] uppercase font-bold text-dark-muted tracking-widest">Jersey #</span>
-                  <span className="text-sm font-black text-dark-bg">{selectedPlayer.jersey_number}</span>
-                </div>
-                <div className="p-3 rounded bg-surface-bg border border-surface-border flex flex-col items-center text-center">
-                  <span className="text-[10px] uppercase font-bold text-dark-muted tracking-widest">Date of Birth</span>
-                  <span className="text-sm font-black text-dark-bg">{new Date(selectedPlayer.dob).toLocaleDateString()}</span>
-                </div>
-                <div className="p-3 rounded bg-brand/10 border border-brand/20 flex flex-col items-center text-center">
-                  <span className="text-[10px] uppercase font-bold text-brand tracking-widest">Player ID</span>
-                  <span className="text-xs font-mono font-black text-brand-dark">{selectedPlayer.player_id}</span>
-                </div>
-              </div>
 
-              <div className="pt-6 border-t border-surface-border flex justify-center">
-                <Link to={`/player/\${selectedPlayer.player_id}`} className="btn-primary text-sm w-full text-center py-3">View Full Profile</Link>
-              </div>
+                <div className="relative z-10 pt-6 px-6 md:px-8 pb-3 flex-grow min-h-[350px] flex flex-col justify-between">
+                  {/* Header */}
+                  <div className="flex justify-between items-start">
+                    <div className="drop-shadow-lg print:drop-shadow-none">
+                      <h3 className="text-brand font-black text-sm md:text-base uppercase leading-tight drop-shadow-md print:drop-shadow-none">MUICC '26</h3>
+                      <p className="text-white/70 print:text-black/70 text-[9px] md:text-[10px] uppercase tracking-widest font-bold">Champions Cup - Official Player Card</p>
+                    </div>
+                    {/* Pushed verified badge slightly down/left to avoid close button */}
+                    <div className="mr-24 bg-[#165a34] text-white text-[10px] md:text-xs px-3 py-1 rounded-full font-bold tracking-widest uppercase shadow-md print:mr-0">
+                      Verified
+                    </div>
+                  </div>
+
+                  {/* Position and Name */}
+                  <div className="mt-auto pt-24">
+                    <div className="text-brand text-xs md:text-sm font-black uppercase tracking-widest mb-1 drop-shadow-md print:drop-shadow-none">{selectedPlayer.position}</div>
+                    <div className="text-white print:text-black text-4xl md:text-5xl lg:text-6xl print:text-5xl font-black uppercase tracking-tight leading-none drop-shadow-xl print:drop-shadow-none">{selectedPlayer.full_name}</div>
+                  </div>
+                </div>
+
+                {/* Yellow Line */}
+                <div className="h-1.5 w-full bg-brand z-20 relative shadow-[0_0_15px_rgba(250,204,21,0.5)] print:hidden"></div>
+
+                {/* Stats */}
+                <div className="p-4 md:p-5 grid grid-cols-2 gap-y-3 gap-x-4 relative z-10 bg-[#0a0a0a] print:bg-white">
+                  <div>
+                    <div className="text-white/40 print:text-black/50 text-[10px] md:text-xs uppercase font-bold tracking-widest mb-1">Team</div>
+                    <div className="text-white print:text-black font-bold text-base md:text-lg">{selectedPlayer.team_name}</div>
+                  </div>
+                  <div>
+                    <div className="text-white/40 print:text-black/50 text-[10px] md:text-xs uppercase font-bold tracking-widest mb-1">Country</div>
+                    <div className="text-white print:text-black font-bold text-base md:text-lg">{selectedPlayer.team_country || 'N/A'}</div>
+                  </div>
+                  <div>
+                    <div className="text-white/40 print:text-black/50 text-[10px] md:text-xs uppercase font-bold tracking-widest mb-1">Nationality</div>
+                    <div className="text-white print:text-black font-bold text-base md:text-lg">{selectedPlayer.nationality || 'N/A'}</div>
+                  </div>
+                  <div>
+                    <div className="text-white/40 print:text-black/50 text-[10px] md:text-xs uppercase font-bold tracking-widest mb-1">University</div>
+                    <div className="text-white print:text-black font-bold text-base md:text-lg">{selectedPlayer.university || 'N/A'}</div>
+                  </div>
+                  <div></div>
+                  <div>
+                    <div className="text-white/40 print:text-black/50 text-[10px] md:text-xs uppercase font-bold tracking-widest mb-1">Squad No.</div>
+                    <div className="text-brand font-bold text-base md:text-lg">#{selectedPlayer.jersey_number}</div>
+                  </div>
+                  
+                  {/* Footer Row */}
+                  <div className="col-span-2 flex justify-between items-end mt-1 pt-4 print:pb-6 border-t border-white/10 print:border-black/10">
+                    <div>
+                      <div className="text-white/40 print:text-black/50 text-[10px] md:text-xs uppercase font-bold tracking-widest mb-1">Player ID</div>
+                      <div className="text-brand font-black text-base md:text-xl">{selectedPlayer.player_id}</div>
+                    </div>
+                    <div className="text-white/30 print:text-black/40 text-[8px] md:text-[10px] tracking-widest uppercase text-right max-w-[120px]">
+                      Beyond Borders, United by Football.
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
             </motion.div>
-          </motion.div>
-        )}
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
 
-        {/* SCANNER MODAL */}
+      {/* SCANNER MODAL */}
+      <AnimatePresence>
         {showScannerModal && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 bg-dark-bg/50 backdrop-blur-sm flex items-center justify-center p-4">
             <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="bg-surface-card max-w-md w-full rounded-xl p-6 sm:p-8 space-y-6 relative border border-surface-border shadow-2xl">

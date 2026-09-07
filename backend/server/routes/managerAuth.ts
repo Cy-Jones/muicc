@@ -66,10 +66,42 @@ router.get('/my-team', authenticateManager, async (req: AuthenticatedRequest, re
   return res.json({ team, players });
 });
 
+router.put('/my-team', authenticateManager, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const manager = req.manager!;
+    const nation = await db.prepare('SELECT * FROM participating_nations WHERE id = ?').get(manager.nation_id) as any;
+    if (!nation) return res.status(404).json({ error: 'Manager nation not found.' });
+
+    const team = await db.prepare('SELECT * FROM teams WHERE country = ? COLLATE NOCASE').get(nation.name) as any;
+    if (!team) return res.status(404).json({ error: 'Team not found.' });
+
+    const { name, university, coach_name, manager_name, manager_email, manager_phone, logo_url } = req.body;
+
+    await db.prepare(`
+      UPDATE teams 
+      SET name = ?, university = ?, coach_name = ?, manager_name = ?, manager_email = ?, manager_phone = ?, logo_url = ?
+      WHERE id = ?
+    `).run(
+      name || team.name, 
+      university || team.university, 
+      coach_name || team.coach_name, 
+      manager_name || team.manager_name, 
+      manager_email || team.manager_email, 
+      manager_phone || team.manager_phone, 
+      logo_url || team.logo_url, 
+      team.id
+    );
+
+    res.json({ success: true, message: 'Team details updated.' });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Failed to update team details' });
+  }
+});
+
 router.put('/players/:id', authenticateManager, async (req: AuthenticatedRequest, res: Response) => {
   const manager = req.manager!;
   const { id } = req.params;
-  const { full_name, position, jersey_number, student_id, dob } = req.body;
+  const { full_name, position, jersey_number, student_id, dob, photo_url, course, medical_conditions, emergency_contact_name, emergency_contact_phone } = req.body;
 
   try {
     const nation = await db.prepare('SELECT * FROM participating_nations WHERE id = ?').get(manager.nation_id) as any;
@@ -82,9 +114,14 @@ router.put('/players/:id', authenticateManager, async (req: AuthenticatedRequest
 
     await db.prepare(`
       UPDATE players 
-      SET full_name = ?, position = ?, jersey_number = ?, student_id = ?, dob = ?
+      SET full_name = ?, position = ?, jersey_number = ?, student_id = ?, dob = ?,
+          photo_url = ?, course = ?, medical_conditions = ?, emergency_contact_name = ?, emergency_contact_phone = ?
       WHERE id = ?
-    `).run(full_name, position, jersey_number, student_id || '', dob || '', id);
+    `).run(
+      full_name, position, jersey_number, student_id || '', dob || '',
+      photo_url || '', course || '', medical_conditions || '', emergency_contact_name || '', emergency_contact_phone || '',
+      id
+    );
 
     return res.json({ success: true, message: 'Player updated successfully' });
   } catch (err: any) {
@@ -94,7 +131,7 @@ router.put('/players/:id', authenticateManager, async (req: AuthenticatedRequest
 
 router.post('/players', authenticateManager, async (req: AuthenticatedRequest, res: Response) => {
   const manager = req.manager!;
-  const { full_name, position, jersey_number, student_id, dob, nationality, photo_url, preferred_foot, emergency_contact } = req.body;
+  const { full_name, position, jersey_number, student_id, dob, nationality, photo_url, preferred_foot, course, medical_conditions, emergency_contact_name, emergency_contact_phone } = req.body;
 
   try {
     const nation = await db.prepare('SELECT * FROM participating_nations WHERE id = ?').get(manager.nation_id) as any;
@@ -109,12 +146,14 @@ router.post('/players', authenticateManager, async (req: AuthenticatedRequest, r
     await db.prepare(`
       INSERT INTO players (
         id, team_id, full_name, photo_url, dob, nationality, student_id, university, 
-        position, jersey_number, preferred_foot, emergency_contact, status
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'SUBMITTED')
+        position, jersey_number, preferred_foot, course, medical_conditions, 
+        emergency_contact_name, emergency_contact_phone, status
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'SUBMITTED')
     `).run(
       id, team.id, full_name, photo_url || '', dob || '', playerNationality, 
       student_id || '', playerUniversity, position, jersey_number, 
-      preferred_foot || 'Right', emergency_contact || ''
+      preferred_foot || 'Right', course || '', medical_conditions || '', 
+      emergency_contact_name || '', emergency_contact_phone || ''
     );
 
     return res.json({ success: true, message: 'Player added successfully' });

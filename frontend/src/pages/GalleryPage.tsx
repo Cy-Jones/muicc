@@ -40,7 +40,7 @@ export const GalleryPage: React.FC = () => {
   });
 
   return (
-    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10 space-y-8">
+    <div className="mx-auto max-w-[96%] px-4 sm:px-6 lg:px-8 py-10 space-y-8">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#2d3748] pb-6">
         <div>
           <h1 className="font-heading text-3xl sm:text-4xl font-black text-white uppercase tracking-tight">
@@ -135,13 +135,13 @@ export const GalleryPage: React.FC = () => {
                   src={selectedItem.image_url}
                   controls
                   autoPlay
-                  className="max-w-full max-h-[70vh] object-contain rounded"
+                  className="max-w-[96%] max-h-[70vh] object-contain rounded"
                 />
               ) : (
                 <img
                   src={selectedItem.image_url}
                   alt={selectedItem.title}
-                  className="max-w-full max-h-[70vh] object-contain rounded"
+                  className="max-w-[96%] max-h-[70vh] object-contain rounded"
                 />
               )}
             </div>

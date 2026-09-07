@@ -97,7 +97,9 @@ export const api = {
   getMatchEvents: (id: string) => request<any>(`/api/matches/${id}/events`),
 
   // Manager endpoints
+  managerLogin: (credentials: any) => request<any>('/api/manager/login', { method: 'POST', body: JSON.stringify(credentials) }),
   getManagerTeam: () => request<any>('/api/manager/my-team'),
+  managerUpdateTeam: (data: any) => request<any>('/api/manager/my-team', { method: 'PUT', body: JSON.stringify(data) }),
   managerUpdatePlayer: (playerId: string, data: any) => request<any>(`/api/manager/players/${playerId}`, { method: 'PUT', body: JSON.stringify(data) }),
   managerAddPlayer: (payload: any) => request<any>('/api/manager/players', { method: 'POST', body: JSON.stringify(payload) }),
   managerDeletePlayer: (playerId: string) => request<any>(`/api/manager/players/${playerId}`, { method: 'DELETE' }),
@@ -116,6 +118,7 @@ export const api = {
   getDraw: () => request<any>('/api/draw'),
   adminGenerateDraw: (type: string) => request<any>('/api/draw/admin/generate', { method: 'POST', body: JSON.stringify({ type }) }),
   adminConfirmDraw: () => request<any>('/api/draw/admin/confirm', { method: 'POST' }),
+  adminUnlockDraw: () => request<any>('/api/draw/admin/unlock', { method: 'POST' }),
 
   // Predictions
   getPredictionStatus: (matchDayId: string) => request<any>(`/api/predictions/status/${matchDayId}`),

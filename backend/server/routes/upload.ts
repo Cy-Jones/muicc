@@ -77,7 +77,7 @@ router.post('/', upload.single('file'), async (req, res) => {
               fileName: result?.public_id,
               originalName
             });
-            resolve(true);
+            resolve();
           }
         );
         uploadStream.end(buffer);

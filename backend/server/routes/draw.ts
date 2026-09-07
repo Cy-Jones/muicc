@@ -292,4 +292,15 @@ router.post('/admin/confirm', authenticateAdmin, async (req: AuthenticatedReques
   return res.json({ success: true, message: 'Tournament draw confirmed and locked.' });
 });
 
+router.post('/admin/unlock', authenticateAdmin, async (req: AuthenticatedRequest, res: Response) => {
+  await db.prepare(`DELETE FROM audit_logs WHERE action = 'CONFIRM_DRAW'`).run();
+  
+  await db.prepare(`
+    INSERT INTO audit_logs (id, admin_email, action, entity, details)
+    VALUES (?, ?, 'UNLOCK_DRAW', 'DRAW', 'Tournament draw was manually unlocked by admin.')
+  `).run(crypto.randomUUID(), req.admin?.email || 'admin@miucc2026.org');
+
+  return res.json({ success: true, message: 'Tournament draw unlocked successfully.' });
+});
+
 export default router;

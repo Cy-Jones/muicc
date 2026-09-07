@@ -131,7 +131,7 @@ export const SponsorsModule: React.FC = () => {
                 <tr key={item.id} className="hover:bg-surface-bg transition-colors">
                   <td className="p-4">
                     <div className="w-12 h-12 bg-surface-bg rounded flex items-center justify-center p-1 border border-surface-border">
-                      <img src={item.logo_url} alt={item.name} className="max-w-full max-h-full object-contain" />
+                      <img src={item.logo_url} alt={item.name} className="max-w-[96%] max-h-full object-contain" />
                     </div>
                   </td>
                   <td className="p-4 font-bold text-dark-bg">{item.name}</td>
@@ -202,7 +202,7 @@ export const SponsorsModule: React.FC = () => {
                         <img 
                           src={logoUrl.trim()} 
                           alt="Logo Preview" 
-                          className="max-h-full max-w-full object-contain"
+                          className="max-h-full max-w-[96%] object-contain"
                           onError={(e) => {
                             (e.target as HTMLImageElement).style.display = 'none';
                           }}

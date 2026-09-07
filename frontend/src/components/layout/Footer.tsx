@@ -5,10 +5,10 @@ import { Star, Location, Calendar, Discovery, Lock } from 'react-iconly';
 export const Footer: React.FC = () => {
   return (
     <footer className="border-t border-surface-border bg-surface-card text-dark-muted font-sans py-8">
-      <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-8">
+      <div className="mx-auto max-w-[96%] px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-8">
         
         {/* Left: Logo */}
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="flex items-center gap-3 shrink-0 w-full justify-center md:w-auto md:flex-1 md:justify-start">
           <img 
             src="/logo.png" 
             alt="MIUCC Logo" 
@@ -22,7 +22,6 @@ export const Footer: React.FC = () => {
 
         {/* Middle: Links */}
         <div className="flex flex-row flex-nowrap justify-center items-center gap-3 sm:gap-6 text-[9px] sm:text-[11px] font-bold text-white uppercase tracking-widest w-full md:w-auto mt-4 md:mt-0">
-          <Link to="/about" className="hover:text-gold transition-colors py-2">About</Link>
           <Link to="/predict" className="hover:text-gold transition-colors py-2">Predict</Link>
           <Link to="/news" className="hover:text-gold transition-colors py-2">News</Link>
           <Link to="/gallery" className="hover:text-gold transition-colors py-2">Gallery</Link>
@@ -31,7 +30,7 @@ export const Footer: React.FC = () => {
         </div>
 
         {/* Right: Socials */}
-        <div className="flex items-center gap-4 shrink-0">
+        <div className="flex items-center gap-4 shrink-0 w-full justify-center md:w-auto md:flex-1 md:justify-end">
           <a 
             href="https://www.instagram.com/mulsu_icc?stkn=aTd4anppZ3I4M3p3" 
             target="_blank" 
@@ -49,7 +48,7 @@ export const Footer: React.FC = () => {
       </div>
 
       {/* Bottom Copyright */}
-      <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8 mt-6 pt-6 border-t border-surface-border flex flex-col md:flex-row items-center justify-between text-[10px] text-slate-500 font-bold uppercase tracking-widest gap-3 text-center md:text-left">
+      <div className="mx-auto max-w-[96%] px-4 sm:px-6 lg:px-8 mt-6 pt-6 border-t border-surface-border flex flex-col md:flex-row items-center justify-between text-[10px] text-slate-500 font-bold uppercase tracking-widest gap-3 text-center md:text-left">
         <p>© 2026 MUICC Champions Cup. All rights reserved.</p>
         <p>ONE CAMPUS. MANY NATIONS. ONE CHAMPION.</p>
       </div>

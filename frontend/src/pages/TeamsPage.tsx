@@ -2,7 +2,16 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { api } from '../lib/api';
-import { TwoUsers, Location, Home, Plus, Document, CloseSquare } from 'react-iconly';
+import { Home, Location, TwoUsers, CloseSquare, ShieldDone, Document, Plus } from 'react-iconly';
+
+const getCountryFlag = (country: string) => {
+  const map: Record<string, string> = {
+    'Liberia': '🇱🇷', 'Eswatini': '🇸🇿', 'Tanzania': '🇹🇿',
+    'South Sudan': '🇸🇸', 'Zimbabwe': '🇿🇼', 'India': '🇮🇳',
+    'Mozambique': '🇲🇿', 'Nigeria': '🇳🇬', 'Uganda': '🇺🇬', 'Zambia': '🇿🇲'
+  };
+  return map[country] || '🏳️';
+};
 
 export const TeamsPage: React.FC = () => {
   const [teams, setTeams] = useState<any[]>([]);
@@ -45,23 +54,6 @@ export const TeamsPage: React.FC = () => {
             Official university football clubs competing in the MIUCC 2026.
           </p>
         </div>
-        
-        <div className="flex flex-wrap items-center gap-3">
-          <a
-            href={api.getPublicTeamsExportPdfUrl()}
-            target="_blank"
-            rel="noreferrer"
-            className="btn-outline text-xs inline-flex items-center gap-2 bg-surface-card"
-          >
-            <Document set="bold" className="w-4 h-4" /> Download PDF
-          </a>
-          <Link
-            to="/teams/register"
-            className="btn-primary text-xs inline-flex items-center gap-2"
-          >
-            <Plus set="bold" className="w-4 h-4" /> Register New Team
-          </Link>
-        </div>
       </div>
 
       {loading ? (
@@ -77,11 +69,11 @@ export const TeamsPage: React.FC = () => {
               className="data-card p-6 cursor-pointer hover:bg-surface-hover hover:border-brand/30 transition-colors group flex flex-col justify-between space-y-4"
             >
               <div className="flex items-start gap-4">
-                <div className="w-16 h-16 bg-surface-bg rounded-lg border border-surface-border p-2 shrink-0 flex items-center justify-center">
+                <div className="w-16 h-16 bg-surface-bg rounded-lg border border-surface-border shrink-0 flex items-center justify-center overflow-hidden">
                   {team.logo_url ? (
-                    <img src={team.logo_url} alt={team.name} className="max-h-full object-contain" />
+                    <img src={team.logo_url} alt={team.name} className="max-h-full object-contain p-2" />
                   ) : (
-                    <span className="text-xl font-bold text-dark-muted">{team.name.substring(0,2)}</span>
+                    <span className="text-[3.5rem] leading-none pt-1" title={team.country}>{getCountryFlag(team.country)}</span>
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -110,24 +102,24 @@ export const TeamsPage: React.FC = () => {
             initial={{ opacity: 0 }} 
             animate={{ opacity: 1 }} 
             exit={{ opacity: 0 }} 
-            className="fixed inset-0 z-50 bg-dark-bg/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto"
+            className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto"
           >
             <motion.div 
               initial={{ scale: 0.95, opacity: 0 }} 
               animate={{ scale: 1, opacity: 1 }} 
               exit={{ scale: 0.95, opacity: 0 }} 
-              className="bg-surface-card border border-surface-border max-w-2xl w-full rounded-xl p-6 sm:p-8 space-y-8 relative shadow-2xl"
+              className="bg-surface-card border border-surface-border max-w-3xl w-full rounded-xl p-6 sm:p-8 space-y-8 relative shadow-2xl"
             >
               <button onClick={() => { setSelectedTeam(null); setTeamDetail(null); }} className="absolute top-4 right-4 text-dark-muted hover:text-dark-bg transition-colors p-2 rounded-full hover:bg-surface-hover">
                 <CloseSquare set="bold" className="w-5 h-5" />
               </button>
 
               <div className="flex flex-col sm:flex-row items-start gap-6 pb-6 border-b border-surface-border">
-                <div className="w-24 h-24 bg-surface-bg rounded-lg border border-surface-border p-4 flex items-center justify-center shrink-0">
+                <div className="w-24 h-24 bg-surface-bg rounded-lg border border-surface-border flex items-center justify-center shrink-0 overflow-hidden">
                   {selectedTeam.logo_url ? (
-                    <img src={selectedTeam.logo_url} alt="" className="max-h-full object-contain" />
+                    <img src={selectedTeam.logo_url} alt="" className="max-h-full object-contain p-4" />
                   ) : (
-                    <span className="text-3xl font-bold text-dark-muted">{selectedTeam.name.substring(0,2)}</span>
+                    <span className="text-[5.5rem] leading-none pt-2" title={selectedTeam.country}>{getCountryFlag(selectedTeam.country)}</span>
                   )}
                 </div>
                 <div>
@@ -154,16 +146,16 @@ export const TeamsPage: React.FC = () => {
                       <div key={p.id} className="flex items-center gap-3 p-3 bg-surface-card border border-surface-border rounded-lg shadow-sm">
                         <div className="w-10 h-10 rounded-full bg-surface-bg border border-surface-border flex items-center justify-center shrink-0 overflow-hidden">
                           {p.photo_url ? (
-                            <img src={p.photo_url} alt={p.name} className="w-full h-full object-cover" />
+                            <img src={p.photo_url} alt={p.full_name} className="w-full h-full object-cover" />
                           ) : (
-                            <span className="text-sm font-bold text-dark-muted">{p.name.substring(0,1)}</span>
+                            <span className="text-sm font-bold text-dark-muted">{p.full_name?.substring(0,1) || '?'}</span>
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-bold text-dark-bg truncate">{p.name}</p>
+                          <p className="text-sm font-bold text-dark-bg truncate">{p.full_name}</p>
                           <div className="flex items-center justify-between mt-0.5">
                             <span className="text-[10px] uppercase font-bold text-brand bg-brand/10 px-1.5 py-0.5 rounded border border-brand/20">{p.position}</span>
-                            <span className="text-[10px] text-dark-muted font-bold truncate ml-2">#{p.passport_number?.substring(0,4)}...</span>
+                            <span className="text-[10px] text-dark-muted font-bold truncate ml-2">#{p.jersey_number}</span>
                           </div>
                         </div>
                       </div>

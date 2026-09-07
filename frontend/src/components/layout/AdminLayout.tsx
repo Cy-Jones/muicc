@@ -37,7 +37,7 @@ export const AdminLayout: React.FC = () => {
 
       {/* Main Admin Content Area */}
       <main className="flex-1 w-full overflow-y-auto relative">
-        <div className="relative z-10 p-4 sm:p-8 animate-fade-in max-w-[1600px] mx-auto">
+        <div className="relative z-10 p-4 sm:p-8 animate-fade-in max-w-[96%] mx-auto">
           <Outlet />
         </div>
       </main>

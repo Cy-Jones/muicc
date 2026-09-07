@@ -3,9 +3,24 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { api } from '../lib/api';
 import { Calendar, TickSquare, TimeCircle } from 'react-iconly';
 
+const SYSTEM_FLAGS: Record<string, string> = {
+  liberia: '/images/flags/lbr.png',
+  eswatini: '/images/flags/swz.png',
+  tanzania: '/images/flags/tza.png',
+  tazania: '/images/flags/tza.png',
+  'south sudan': '/images/flags/ssd.png',
+  zimbabwe: '/images/flags/zwe.png',
+  india: '/images/flags/ind.png',
+  mozambique: '/images/flags/moz.png',
+  nigeria: '/images/flags/nga.png',
+  uganda: '/images/flags/uga.png',
+  zambia: '/images/flags/zmb.png'
+};
+
 export const FixturesResultsPage: React.FC = () => {
   const [matches, setMatches] = useState<any[]>([]);
   const [standings, setStandings] = useState<any[]>([]);
+  const [systemNations, setSystemNations] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<'MATCHES' | 'STANDINGS'>('MATCHES');
   const [matchFilter, setMatchFilter] = useState<'ALL' | 'LIVE' | 'TODAY' | 'UPCOMING' | 'RESULTS'>('ALL');
   const [loading, setLoading] = useState(true);
@@ -13,12 +28,14 @@ export const FixturesResultsPage: React.FC = () => {
   useEffect(() => {
     async function loadData() {
       try {
-        const [matchesData, standingsData] = await Promise.all([
+        const [matchesData, standingsData, settingsData] = await Promise.all([
           api.getMatches(),
-          api.getStandings()
+          api.getStandings(),
+          api.getSettings()
         ]);
         setMatches(matchesData || []);
         setStandings(standingsData?.standings || []);
+        if (settingsData?.nations) setSystemNations(settingsData.nations);
       } catch (err) {
         console.error(err);
       } finally {
@@ -45,6 +62,30 @@ export const FixturesResultsPage: React.FC = () => {
       default:
         return matches;
     }
+  };
+
+  const renderTeamFlag = (teamName: string, countryName?: string, logoUrl?: string, sizeClass: string = "w-8 h-8") => {
+    let flagSrc = logoUrl;
+    if (!flagSrc && systemNations.length > 0) {
+      const dbNation = systemNations.find((n: any) => 
+        (countryName && n.name.toLowerCase() === countryName.toLowerCase()) ||
+        (n.name.toLowerCase() === teamName.toLowerCase())
+      );
+      if (dbNation?.flag_url) flagSrc = dbNation.flag_url;
+    }
+    if (!flagSrc) {
+      const fallbackKey = Object.keys(SYSTEM_FLAGS).find(k => teamName.toLowerCase().includes(k) || (countryName && countryName.toLowerCase().includes(k)));
+      if (fallbackKey) flagSrc = SYSTEM_FLAGS[fallbackKey];
+    }
+    
+    if (flagSrc) {
+      return <img src={flagSrc} alt={teamName} className={`${sizeClass} object-contain`} />;
+    }
+    return (
+      <div className={`${sizeClass} rounded bg-surface-bg border border-surface-border flex items-center justify-center`}>
+        <span className="text-[10px] text-dark-muted font-bold">{teamName.substring(0,3).toUpperCase()}</span>
+      </div>
+    );
   };
 
   const filteredMatches = getFilteredMatches();
@@ -119,13 +160,9 @@ export const FixturesResultsPage: React.FC = () => {
                       {/* Home Team */}
                       <div className="flex-1 flex flex-col sm:flex-row items-center sm:justify-end gap-2 sm:gap-3 text-center sm:text-right">
                         <span className="text-sm font-bold text-dark-bg order-2 sm:order-1">{m.team_a_name}</span>
-                        {m.team_a_logo ? (
-                          <img src={m.team_a_logo} alt={m.team_a_name} className="w-8 h-8 object-contain order-1 sm:order-2" />
-                        ) : (
-                          <div className="w-8 h-8 rounded bg-surface-bg border border-surface-border flex items-center justify-center order-1 sm:order-2">
-                            <span className="text-[10px] text-dark-muted font-bold">{m.team_a_name.substring(0,3).toUpperCase()}</span>
-                          </div>
-                        )}
+                        <div className="order-1 sm:order-2">
+                          {renderTeamFlag(m.team_a_name, m.team_a_country, m.team_a_logo, "w-8 h-8")}
+                        </div>
                       </div>
 
                       {/* Score/Time */}
@@ -153,13 +190,7 @@ export const FixturesResultsPage: React.FC = () => {
 
                       {/* Away Team */}
                       <div className="flex-1 flex flex-col sm:flex-row items-center justify-start gap-2 sm:gap-3 text-center sm:text-left">
-                        {m.team_b_logo ? (
-                          <img src={m.team_b_logo} alt={m.team_b_name} className="w-8 h-8 object-contain" />
-                        ) : (
-                          <div className="w-8 h-8 rounded bg-surface-bg border border-surface-border flex items-center justify-center">
-                            <span className="text-[10px] text-dark-muted font-bold">{m.team_b_name.substring(0,3).toUpperCase()}</span>
-                          </div>
-                        )}
+                        {renderTeamFlag(m.team_b_name, m.team_b_country, m.team_b_logo, "w-8 h-8")}
                         <span className="text-sm font-bold text-dark-bg">{m.team_b_name}</span>
                       </div>
                     </div>
@@ -209,13 +240,7 @@ export const FixturesResultsPage: React.FC = () => {
                         <div key={team.team_id} className={`grid grid-cols-12 gap-2 p-3 items-center border-b border-surface-border last:border-0 hover:bg-surface-hover transition-colors \${idx < 2 ? 'border-l-4 border-l-status-completed' : 'border-l-4 border-l-transparent'}`}>
                           <div className="col-span-1 text-center text-xs font-bold text-dark-muted">{idx + 1}</div>
                           <div className="col-span-5 flex items-center gap-2">
-                            {team.team_logo ? (
-                              <img src={team.team_logo} alt="" className="w-5 h-5 object-contain" />
-                            ) : (
-                              <div className="w-5 h-5 bg-surface-bg border border-surface-border rounded flex items-center justify-center text-[8px] font-bold text-dark-muted">
-                                {team.team_name.substring(0,2)}
-                              </div>
-                            )}
+                            {renderTeamFlag(team.team_name, undefined, team.team_logo, "w-5 h-5")}
                             <span className="text-xs font-bold text-dark-bg truncate">{team.team_name}</span>
                           </div>
                           <div className="col-span-1 text-center text-xs text-dark-surface font-medium">{team.played}</div>

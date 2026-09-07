@@ -28,11 +28,22 @@ router.get('/status/:ref', async (req, res) => {
     WHERE registration_ref = ?
   `).get(ref) as any;
 
-  if (!team) {
-    return res.status(404).json({ error: 'Team registration reference not found.' });
+  if (team) {
+    return res.json({ type: 'team', data: team });
   }
 
-  return res.json(team);
+  const player = await db.prepare(`
+    SELECT p.player_id, p.full_name, p.position, p.status, t.name as team_name, t.country as team_country
+    FROM players p
+    JOIN teams t ON p.team_id = t.id
+    WHERE p.player_id = ?
+  `).get(ref) as any;
+
+  if (player) {
+    return res.json({ type: 'player', data: player });
+  }
+
+  return res.status(404).json({ error: 'Registration reference not found.' });
 });
 
 router.get('/:id', async (req, res) => {
@@ -308,8 +319,8 @@ router.post('/register', async (req, res) => {
 
     if (Array.isArray(players) && players.length > 0) {
       const stmt = tx.prepare(`
-        INSERT INTO players (id, player_id, team_id, full_name, photo_url, dob, nationality, student_id, university, position, jersey_number, preferred_foot, emergency_contact, status)
-        VALUES (?, NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'SUBMITTED')
+        INSERT INTO players (id, player_id, team_id, full_name, photo_url, dob, nationality, student_id, university, position, jersey_number, preferred_foot, course, medical_conditions, emergency_contact_name, emergency_contact_phone, status)
+        VALUES (?, NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'SUBMITTED')
       `);
 
       for (const p of players) {
@@ -326,7 +337,10 @@ router.post('/register', async (req, res) => {
             p.position,
             parseInt(p.jersey_number, 10) || 1,
             p.preferred_foot || 'Right',
-            p.emergency_contact || ''
+            p.course || '',
+            p.medical_conditions || '',
+            p.emergency_contact_name || '',
+            p.emergency_contact_phone || ''
           );
           registeredPlayersCount++;
         }

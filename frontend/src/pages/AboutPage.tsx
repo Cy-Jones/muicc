@@ -54,7 +54,7 @@ export const AboutPage: React.FC = () => {
       </section>
 
       {/* PAGE CONTENT */}
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-5xl px-4 sm:px-6 lg:px-8 space-y-12 mb-12 relative z-20 -mt-16 sm:-mt-24 md:-mt-32">
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-[96%] px-4 sm:px-6 lg:px-8 space-y-12 mb-12 relative z-20 -mt-16 sm:-mt-24 md:-mt-32">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="card-dark p-6 space-y-2 border-t-2 border-gold text-center">
             <Location set="bold" className="w-8 h-8 text-gold mx-auto" />
@@ -82,7 +82,7 @@ export const AboutPage: React.FC = () => {
               The <strong>MUICC '26 Champions Cup</strong> represents the premier collegiate football tournament uniting student athletes across 10 nations: <strong>Liberia, Eswatini, Tanzania, South Sudan, Zimbabwe, India, Mozambique, Nigeria, Uganda, and Zambia</strong>.
             </p>
             <p>
-              Hosted at the state-of-the-art facilities of <strong>Marwadi University Campus</strong>, the 8-day tournament showcases group stage competition, knockout rounds, and the championship grand final.
+              Hosted at the state-of-the-art facilities of <strong>Marwadi University Campus</strong>, the 14-day tournament showcases group stage competition, knockout rounds, and the championship grand final.
             </p>
           </div>
 
@@ -105,7 +105,7 @@ export const AboutPage: React.FC = () => {
                   <img 
                     src={`/images/flags/${nation.code}.png`} 
                     alt={`${nation.name} Flag`} 
-                    className="w-7 h-5 object-cover rounded shadow border border-gray-700" 
+                    className="w-7 h-5 object-contain rounded-sm shadow-sm" 
                     onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
                   />
                   <span className="text-xs font-bold text-white leading-tight">{nation.name}</span>

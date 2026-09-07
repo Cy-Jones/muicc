@@ -69,7 +69,10 @@ CREATE TABLE IF NOT EXISTS players (
   position TEXT NOT NULL,
   jersey_number INTEGER NOT NULL,
   preferred_foot TEXT DEFAULT 'Right',
-  emergency_contact TEXT,
+  course TEXT,
+  medical_conditions TEXT,
+  emergency_contact_name TEXT,
+  emergency_contact_phone TEXT,
   status TEXT CHECK(status IN ('SUBMITTED', 'UNDER_REVIEW', 'APPROVED', 'CHANGES_REQUIRED', 'REJECTED')) DEFAULT 'SUBMITTED',
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (team_id) REFERENCES teams(id) ON DELETE CASCADE

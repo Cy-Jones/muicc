@@ -91,26 +91,24 @@ export const PredictWinPage: React.FC = () => {
 
   return (
     <motion.div initial="hidden" animate="visible" variants={containerVariants} className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-10 space-y-8 pb-20">
-      <motion.div variants={itemVariants} className="glass-card p-8 md:p-12 border-gold/40 bg-gradient-to-br from-dark-surface to-dark-bg rounded-2xl text-center space-y-4 shadow-glow-gold-lg relative overflow-hidden">
-        <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-gold/5 rounded-full blur-3xl pointer-events-none"></div>
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gold/10 text-gold text-[10px] font-black uppercase tracking-widest border border-gold/30 shadow-md relative z-10">
-          <Discovery set="bold" className="w-3.5 h-3.5" /> OFFICIAL PREDICT & WIN HUB
-        </div>
+      <motion.div variants={itemVariants} className="data-card p-8 md:p-12 border border-brand/40 bg-surface-card rounded-2xl text-center space-y-4 shadow-[0_0_15px_rgba(250,204,21,0.2)] relative overflow-hidden">
+        <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-brand/5 rounded-full blur-3xl pointer-events-none"></div>
+
         <h1 className="font-heading text-4xl sm:text-5xl font-black text-white uppercase tracking-tight relative z-10">PREDICT & <span className="text-gold text-glow">WIN PRIZES</span></h1>
         <p className="text-sm text-dark-surface max-w-xl mx-auto font-medium relative z-10 leading-relaxed">
           Public predictions are strictly limited to <span className="text-gold font-bold">20 entries per Match Day</span>. First come, first served.
         </p>
       </motion.div>
 
-      <motion.div variants={itemVariants} className="glass-panel p-6 sm:p-8 space-y-6">
+      <motion.div variants={itemVariants} className="data-card p-6 sm:p-8 space-y-6">
         <label className="block text-xs font-black uppercase tracking-widest text-dark-muted">Select Active Match Day</label>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
           {matchDays.map((md) => (
             <button
               key={md.id}
               onClick={() => { setSelectedMatchDayId(md.id); setSubmissionResult(null); setErrorMessage(''); }}
-              className={`p-4 rounded-xl text-left transition-all duration-300 border shadow-md \${
-                selectedMatchDayId === md.id ? 'bg-gold/10 border-gold/60 text-white font-bold scale-[1.02] shadow-glow-gold' : 'bg-dark-bg border-dark-border text-dark-muted hover:border-gold/30'
+              className={`p-4 rounded-xl text-left transition-all duration-300 border shadow-md ${
+                selectedMatchDayId === md.id ? 'bg-brand/10 border-brand/60 text-white font-bold scale-[1.02] shadow-[0_0_10px_rgba(250,204,21,0.3)]' : 'bg-surface-bg border-surface-border text-dark-muted hover:border-brand/30'
               }`}
             >
               <span className="font-heading text-sm font-black uppercase block text-gold tracking-widest mb-1">{md.name}</span>
@@ -120,7 +118,7 @@ export const PredictWinPage: React.FC = () => {
         </div>
 
         {statusData && (
-          <div className="p-5 bg-dark-bg rounded-xl border border-dark-border flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-inner mt-6">
+          <div className="p-5 bg-surface-bg rounded-xl border border-surface-border flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-inner mt-6">
             <div>
               <p className="text-sm font-black text-white uppercase tracking-widest">{statusData.matchDayName}</p>
               <p className="text-[10px] text-dark-muted font-bold uppercase tracking-widest mt-1">{statusData.remainingSlots} slots remaining for this Match Day</p>
@@ -140,14 +138,14 @@ export const PredictWinPage: React.FC = () => {
       </motion.div>
 
       {submissionResult ? (
-        <motion.div variants={itemVariants} className="glass-card p-10 border-gold/50 text-center space-y-8 shadow-glow-gold-lg">
-          <TickSquare set="bold" className="w-20 h-20 text-gold mx-auto drop-shadow-[0_0_15px_rgba(250,204,21,0.5)]" />
+        <motion.div variants={itemVariants} className="data-card p-10 border border-brand/50 text-center space-y-8 shadow-[0_0_15px_rgba(250,204,21,0.2)]">
+          <TickSquare set="bold" className="w-20 h-20 text-brand mx-auto drop-shadow-[0_0_15px_rgba(250,204,21,0.5)]" />
           <div className="space-y-3">
             <h2 className="font-heading text-3xl font-black text-white uppercase tracking-widest">PREDICTION SUBMITTED</h2>
             <p className="text-sm text-dark-surface font-medium">Your entry has been locked and recorded.</p>
           </div>
 
-          <div className="bg-dark-bg p-8 rounded-xl border border-dark-border max-w-md mx-auto space-y-3 shadow-inner">
+          <div className="bg-surface-bg p-8 rounded-xl border border-surface-border max-w-md mx-auto space-y-3 shadow-inner">
             <p className="text-[10px] text-dark-muted font-black uppercase tracking-widest">YOUR PREDICTION REF ID</p>
             <p className="font-heading text-4xl font-black text-gold tracking-widest">{submissionResult.details.prediction_ref}</p>
             <p className="text-[10px] text-dark-muted font-bold uppercase tracking-widest mt-2">{submissionResult.details.matchDayName} • Slot #{submissionResult.details.slotNumber}</p>
@@ -158,7 +156,7 @@ export const PredictWinPage: React.FC = () => {
           </button>
         </motion.div>
       ) : isFullOrClosed ? (
-        <motion.div variants={itemVariants} className="glass-card p-10 border-2 border-status-error/40 bg-gradient-to-b from-status-error/10 to-dark-bg text-center space-y-5 rounded-2xl shadow-lg">
+        <motion.div variants={itemVariants} className="data-card p-10 border border-status-error/40 bg-gradient-to-b from-status-error/10 to-surface-bg text-center space-y-5 rounded-2xl shadow-lg">
           <div className="w-20 h-20 rounded-full bg-status-error/20 border-2 border-status-error text-status-error flex items-center justify-center mx-auto shadow-[0_0_20px_rgba(239,68,68,0.3)]">
             <Lock set="bold" className="w-10 h-10" />
           </div>
@@ -169,9 +167,9 @@ export const PredictWinPage: React.FC = () => {
           <p className="text-[10px] text-dark-muted font-bold uppercase tracking-widest">Check back for the next Match Day!</p>
         </motion.div>
       ) : (
-        <motion.form variants={itemVariants} onSubmit={handleSubmit} className="glass-card p-6 sm:p-10 space-y-8">
-          <h2 className="font-heading text-2xl font-black text-white border-b border-dark-border pb-4 flex items-center gap-3 uppercase tracking-widest">
-            <Star set="bold" className="w-6 h-6 text-gold" /> Make Your Prediction
+        <motion.form variants={itemVariants} onSubmit={handleSubmit} className="data-card p-6 sm:p-10 space-y-8">
+          <h2 className="font-heading text-2xl font-black text-white border-b border-surface-border pb-4 flex items-center gap-3 uppercase tracking-widest">
+            <Star set="bold" className="w-6 h-6 text-brand" /> Make Your Prediction
           </h2>
 
           {errorMessage && <div className="p-4 rounded-lg bg-status-error/10 border border-status-error/50 text-status-error text-xs font-bold uppercase tracking-wider">{errorMessage}</div>}
