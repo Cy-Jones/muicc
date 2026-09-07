@@ -64,8 +64,8 @@ npm run dev
 - **Single Admin Login**: [http://localhost:3000/admin/login](http://localhost:3000/admin/login)
 
 ### 4. Admin Credentials
-- **Email**: `admin@miucc2026.org`
-- **Password**: `AdminPassword2026!`
+- **Email**: ``
+- **Password**: ``
 
 ---
 
