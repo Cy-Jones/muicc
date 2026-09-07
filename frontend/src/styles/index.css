@@ -1,0 +1,68 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-surface-bg text-slate-100 font-sans antialiased;
+  }
+}
+
+@layer components {
+  /* Layout & Cards */
+  .data-card {
+    @apply bg-surface-card rounded-lg border border-surface-border shadow-card overflow-hidden text-slate-100;
+  }
+  
+  /* Inputs */
+  .input-field {
+    @apply w-full bg-surface-bg border border-surface-border rounded-md px-3 py-2 text-slate-100 placeholder-dark-muted focus:outline-none focus:ring-1 focus:ring-brand focus:border-brand transition-colors;
+  }
+
+  /* Interactive Elements */
+  .btn-primary {
+    @apply bg-brand text-black font-bold px-4 py-2 rounded transition-colors duration-200 hover:bg-brand-light active:bg-brand-dark focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2 focus:ring-offset-surface-bg;
+  }
+  
+  .btn-outline {
+    @apply bg-surface-card border border-surface-border text-slate-200 font-medium px-4 py-2 rounded transition-colors duration-200 hover:bg-surface-hover hover:text-brand focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2 focus:ring-offset-surface-bg;
+  }
+  
+  .btn-ghost {
+    @apply bg-transparent text-slate-200 font-medium px-4 py-2 rounded transition-colors duration-200 hover:bg-surface-hover hover:text-brand focus:outline-none;
+  }
+
+  /* Typography Utilities */
+  .font-heading {
+    @apply font-bold tracking-tight;
+  }
+
+  /* Badges */
+  .badge {
+    @apply inline-flex items-center justify-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide;
+  }
+  .badge-live {
+    @apply bg-status-live text-black;
+  }
+  .badge-upcoming {
+    @apply bg-surface-hover text-dark-muted border border-surface-border;
+  }
+  .badge-completed {
+    @apply bg-status-completed text-black;
+  }
+}
+
+/* Custom Scrollbar for dense data tables */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #A16207;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: #EAB308;
+}

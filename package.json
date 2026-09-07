@@ -1,0 +1,19 @@
+{
+  "name": "miucc-2026-champions-cup",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently \"npm --prefix backend run dev\" \"npm --prefix frontend run dev\"",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "dev:backend": "npm --prefix backend run dev",
+    "build": "npm --prefix frontend run build && npm --prefix backend run build",
+    "start": "npm --prefix backend start",
+    "test": "npm --prefix backend test",
+    "process-logo": "npm --prefix backend run process-logo",
+    "export-env": "node scripts/export-env-files.js"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}

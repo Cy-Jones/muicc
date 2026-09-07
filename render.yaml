@@ -1,0 +1,71 @@
+# Render Blueprint — MULSU_ICC 2026 Champions Cup
+#
+# Two free services on one platform:
+#   - a Static Site for the React frontend (CDN-served, never sleeps)
+#   - a Web Service for the Express API
+#
+# Secrets are NEVER stored here. Every value marked `sync: false` must be set
+# in the Render dashboard (or via the API) for each service. Render will prompt
+# for them when the blueprint is first applied.
+
+services:
+  # ---------------------------------------------------------------- frontend
+  - type: web
+    name: mulsu-icc-frontend
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    pullRequestPreviewsEnabled: false
+    envVars:
+      # Baked into the bundle at build time. Set to the backend service URL.
+      - key: VITE_API_URL
+        sync: false
+    headers:
+      - path: /*
+        name: X-Frame-Options
+        value: SAMEORIGIN
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+    routes:
+      # React Router owns client-side routing: every unmatched path must serve
+      # index.html, otherwise deep links such as /teams return 404 on reload.
+      - type: rewrite
+        source: /*
+        destination: /index.html
+
+  # ----------------------------------------------------------------- backend
+  - type: web
+    name: mulsu-icc-api
+    runtime: node
+    plan: free
+    rootDir: backend # db.ts resolves server/schema.sql relative to cwd
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # Supplied by Render; the app reads process.env.PORT.
+      # All of the following are secrets — set them in the dashboard.
+      - key: TURSO_DATABASE_URL
+        sync: false
+      - key: TURSO_AUTH_TOKEN
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      # Public URL of the static site above; drives the CORS allow-list.
+      - key: FRONTEND_URL
+        sync: false
+      # Image storage secrets
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
