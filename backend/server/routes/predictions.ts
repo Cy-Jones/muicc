@@ -113,6 +113,26 @@ router.post('/submit', async (req, res) => {
   }
 });
 
+router.get('/check/:ref', async (req, res) => {
+  const ref = req.params.ref.trim().toUpperCase();
+  const prediction = await db.prepare(`
+    SELECT p.prediction_ref, p.status, p.created_at,
+           md.name as match_day_name, md.date as match_day_date,
+           tw.name as predicted_winner_name, tc.name as predicted_champion_name
+    FROM predictions p
+    JOIN match_days md ON p.match_day_id = md.id
+    LEFT JOIN teams tw ON p.predicted_winner_team_id = tw.id
+    LEFT JOIN teams tc ON p.predicted_champion_team_id = tc.id
+    WHERE p.prediction_ref = ?
+  `).get(ref);
+
+  if (!prediction) {
+    return res.status(404).json({ error: 'Prediction not found.' });
+  }
+
+  return res.json(prediction);
+});
+
 router.get('/admin/all', authenticateAdmin, async (req, res) => {
   const { match_day_id, search } = req.query;
 

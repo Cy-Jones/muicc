@@ -123,6 +123,7 @@ export const api = {
   // Predictions
   getPredictionStatus: (matchDayId: string) => request<any>(`/api/predictions/status/${matchDayId}`),
   submitPrediction: (payload: any) => request<any>('/api/predictions/submit', { method: 'POST', body: JSON.stringify(payload) }),
+  checkPredictionStatus: (ref: string) => request<any>(`/api/predictions/check/${ref}`),
   adminGetPredictions: (params?: any) => {
     const query = new URLSearchParams(params).toString();
     return request<any>(`/api/predictions/admin/all?${query}`);
