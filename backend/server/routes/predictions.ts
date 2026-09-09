@@ -116,7 +116,7 @@ router.post('/submit', async (req, res) => {
 router.get('/check/:ref', async (req, res) => {
   const ref = req.params.ref.trim().toUpperCase();
   const prediction = await db.prepare(`
-    SELECT p.prediction_ref, p.status, p.created_at,
+    SELECT p.prediction_ref, p.status, p.created_at, p.full_name, p.email,
            md.name as match_day_name, md.date as match_day_date,
            tw.name as predicted_winner_name, tc.name as predicted_champion_name
     FROM predictions p

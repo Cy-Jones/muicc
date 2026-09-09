@@ -319,6 +319,14 @@ export const PredictWinPage: React.FC = () => {
                 <p className="text-[10px] text-dark-muted font-bold uppercase tracking-widest">Predicted Winner</p>
                 <p className="text-sm font-medium text-white">{checkResult.predicted_winner_name || 'N/A'}</p>
               </div>
+              <div>
+                <p className="text-[10px] text-dark-muted font-bold uppercase tracking-widest mt-2">Predictor</p>
+                <p className="text-sm font-medium text-white">{checkResult.full_name}</p>
+              </div>
+              <div>
+                <p className="text-[10px] text-dark-muted font-bold uppercase tracking-widest mt-2">Email</p>
+                <p className="text-sm font-medium text-white truncate" title={checkResult.email}>{checkResult.email}</p>
+              </div>
             </div>
           </div>
         )}
