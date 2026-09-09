@@ -158,12 +158,12 @@ export const api = {
   adminGetDashboardStats: () => request<any>('/api/admin/dashboard-stats'),
   adminGetAuditLogs: () => request<any>('/api/admin/audit-logs'),
   getExportPdfUrl: (type: string) => {
-    const token = localStorage.getItem('adminToken') || '';
+    const token = localStorage.getItem('miucc_admin_token') || '';
     return `${API_BASE}/api/admin/export-pdf/${type}?token=${encodeURIComponent(token)}`;
   },
   getPublicTeamsExportPdfUrl: () => `${API_BASE}/api/teams/export-pdf`,
   getTeamExportPdfUrl: (teamId: string) => {
-    const token = localStorage.getItem('managerToken') || '';
+    const token = localStorage.getItem('miucc_manager_token') || '';
     return `${API_BASE}/api/teams/${teamId}/export-pdf?token=${encodeURIComponent(token)}`;
   },
 

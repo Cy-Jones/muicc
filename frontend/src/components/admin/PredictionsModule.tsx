@@ -8,6 +8,9 @@ export const PredictionsModule: React.FC = () => {
   const [teams, setTeams] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedMatchDayId, setSelectedMatchDayId] = useState<string>('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingPredictionId, setEditingPredictionId] = useState<string | null>(null);
+  const [predictionStatus, setPredictionStatus] = useState<'WINNER' | 'LOSER' | 'PENDING'>('PENDING');
 
   const loadData = async () => {
     setIsLoading(true);
@@ -72,18 +75,23 @@ export const PredictionsModule: React.FC = () => {
     }
   };
 
-  const handlePredictionStatusUpdate = async (id: string) => {
-    const status = window.prompt('Enter result (WINNER, LOSER, PENDING):', 'PENDING');
-    if (status && ['WINNER', 'LOSER', 'PENDING'].includes(status.toUpperCase())) {
+  const handlePredictionStatusUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (editingPredictionId) {
       try {
-        await api.adminUpdatePredictionStatus(id, status.toUpperCase());
+        await api.adminUpdatePredictionStatus(editingPredictionId, predictionStatus);
+        setIsModalOpen(false);
         fetchPredictions(selectedMatchDayId);
       } catch (err) {
         alert('Failed to update prediction status');
       }
-    } else if (status) {
-      alert('Invalid status. Please enter WINNER, LOSER, or PENDING.');
     }
+  };
+  
+  const openEditModal = (item: any) => {
+    setEditingPredictionId(item.id);
+    setPredictionStatus(item.status || 'PENDING');
+    setIsModalOpen(true);
   };
 
   const selectedMd = matchDays.find(m => m.id === selectedMatchDayId);
@@ -158,7 +166,7 @@ export const PredictionsModule: React.FC = () => {
                   </td>
                   <td className="p-4">
                     <div className="flex items-center justify-end gap-2">
-                      <button onClick={() => handlePredictionStatusUpdate(item.id)} className="p-1.5 hover:bg-surface-border rounded text-dark-muted hover:text-brand transition-colors">
+                      <button onClick={() => openEditModal(item)} className="p-1.5 hover:bg-surface-border rounded text-dark-muted hover:text-brand transition-colors">
                         <Edit set="bold" className="w-4 h-4" />
                       </button>
                       <button onClick={() => handleDeletePrediction(item.id)} className="p-1.5 hover:bg-surface-border rounded text-dark-muted hover:text-red-500 transition-colors">
@@ -172,6 +180,41 @@ export const PredictionsModule: React.FC = () => {
           </tbody>
         </table>
       </div>
+
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-surface-card w-full max-w-sm rounded-xl border border-surface-border overflow-hidden shadow-2xl flex flex-col">
+            <div className="p-4 border-b border-surface-border bg-surface-bg flex justify-between items-center shrink-0">
+              <h3 className="font-heading text-lg font-black text-dark-bg uppercase tracking-widest">
+                Update Status
+              </h3>
+              <button onClick={() => setIsModalOpen(false)} className="text-dark-muted hover:text-dark-bg text-2xl leading-none">&times;</button>
+            </div>
+            
+            <div className="p-4">
+              <form id="status-form" onSubmit={handlePredictionStatusUpdate} className="space-y-4">
+                <div>
+                  <label className="admin-label">Prediction Status</label>
+                  <select 
+                    value={predictionStatus} 
+                    onChange={e => setPredictionStatus(e.target.value as any)} 
+                    className="admin-input"
+                  >
+                    <option value="PENDING">Pending</option>
+                    <option value="WINNER">Winner</option>
+                    <option value="LOSER">Loser</option>
+                  </select>
+                </div>
+              </form>
+            </div>
+            
+            <div className="p-4 border-t border-surface-border bg-surface-bg flex justify-end gap-3 shrink-0">
+              <button onClick={() => setIsModalOpen(false)} className="btn-outline text-xs">Cancel</button>
+              <button form="status-form" type="submit" className="btn-primary text-xs">Save Changes</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
