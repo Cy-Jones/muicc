@@ -15,26 +15,35 @@ export function getMatchLiveClock(match: any): { display: string; minuteNum: num
 
   const now = Date.now();
   const startTs = match.live_start_timestamp ? Number(match.live_start_timestamp) : now;
-  const elapsedSec = Math.max(0, Math.floor((now - startTs) / 1000) + (match.live_pause_elapsed_seconds || 0));
+  const realElapsedSec = Math.max(0, Math.floor((now - startTs) / 1000) + (match.live_pause_elapsed_seconds || 0));
+
+  // 9 real minutes = 90 in-game minutes => 1 real sec = 10 in-game sec
+  const inGameElapsedSec = realElapsedSec * 10;
+  const inGameMin = Math.floor(inGameElapsedSec / 60);
 
   const period = match.live_period || '1ST_HALF';
   const stop1 = Number(match.stoppage_time_1st || 0);
   const stop2 = Number(match.stoppage_time_2nd || 0);
 
   if (period === '1ST_HALF') {
-    const min = Math.floor(elapsedSec / 60);
-    if (min <= 45) {
-      return { display: `${min}'`, minuteNum: Math.max(1, min), isHalftime: false, isFulltime: false };
+    if (inGameMin <= 45) {
+      return { display: `${Math.max(1, inGameMin)}'`, minuteNum: Math.max(1, inGameMin), isHalftime: false, isFulltime: false };
     } else {
-      const extra = min - 45;
+      const extra = inGameMin - 45;
+      if (extra > stop1) {
+        return { display: 'HT', minuteNum: 45, isHalftime: true, isFulltime: false };
+      }
       return { display: `45+${extra}'`, minuteNum: 45 + extra, isHalftime: false, isFulltime: false };
     }
   } else if (period === '2ND_HALF') {
-    const min = 45 + Math.floor(elapsedSec / 60);
+    const min = 45 + inGameMin;
     if (min <= 90) {
       return { display: `${min}'`, minuteNum: min, isHalftime: false, isFulltime: false };
     } else {
       const extra = min - 90;
+      if (extra > stop2) {
+        return { display: 'FT', minuteNum: 90, isHalftime: false, isFulltime: true };
+      }
       return { display: `90+${extra}'`, minuteNum: 90 + extra, isHalftime: false, isFulltime: false };
     }
   }

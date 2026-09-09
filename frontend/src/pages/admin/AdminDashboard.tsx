@@ -46,6 +46,16 @@ export const AdminDashboard: React.FC = () => {
   const [matchTime, setMatchTime] = useState('16:00');
   const [matchVenue, setMatchVenue] = useState('Marwadi University Main Stadium');
 
+  // Edit Match State
+  const [editingMatch, setEditingMatch] = useState<any>(null);
+  const [editMatchStatus, setEditMatchStatus] = useState<'SCHEDULED' | 'LIVE' | 'HALF_TIME' | 'FULL_TIME'>('SCHEDULED');
+  const [editScoreA, setEditScoreA] = useState('0');
+  const [editScoreB, setEditScoreB] = useState('0');
+
+  // Extra Time State
+  const [extraTimeMatch, setExtraTimeMatch] = useState<any>(null);
+  const [extraMins, setExtraMins] = useState('3');
+
   // Status Check Fields
   const [searchRef, setSearchRef] = useState('');
   const [searching, setSearching] = useState(false);
@@ -606,19 +616,16 @@ export const AdminDashboard: React.FC = () => {
                           {m.status === 'SCHEDULED' && <button onClick={() => handleLiveClockControl(m.id, 'START_1ST_HALF')} className="action-btn bg-status-completed/10 text-status-completed hover:bg-status-completed/20 border-status-completed/30"><Play set="bold" className="w-3.5 h-3.5" /> 1st Half</button>}
                           {m.status === 'LIVE' && (m.live_period === '1ST_HALF' || !m.live_period) && <button onClick={() => handleLiveClockControl(m.id, 'PAUSE_HALF_TIME')} className="action-btn bg-status-warning/10 text-status-warning hover:bg-status-warning/20 border-status-warning/30"><CloseSquare set="bold" className="w-3.5 h-3.5" /> HT</button>}
                           {(m.status === 'HALF_TIME' || (m.status === 'LIVE' && m.live_period === 'HALF_TIME')) && <button onClick={() => handleLiveClockControl(m.id, 'START_2ND_HALF')} className="action-btn bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 border-blue-500/30"><Play set="bold" className="w-3.5 h-3.5" /> 2nd Half</button>}
-                          {m.status === 'LIVE' && <button onClick={() => { const min = prompt('Extra Mins:', '3'); if (min) handleLiveClockControl(m.id, m.live_period === '2ND_HALF' ? 'SET_STOPPAGE_2ND' : 'SET_STOPPAGE_1ST', parseInt(min)); }} className="action-btn bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 border-purple-500/30"><Play set="bold" className="w-3.5 h-3.5" /> +Time</button>}
+                          {m.status === 'LIVE' && <button onClick={() => { setExtraTimeMatch(m); setExtraMins('3'); }} className="action-btn bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 border-purple-500/30"><Play set="bold" className="w-3.5 h-3.5" /> +Time</button>}
                           {isLiveOrHt && <button onClick={() => handleLiveClockControl(m.id, 'END_MATCH')} className="action-btn bg-status-error/10 text-status-error hover:bg-status-error/20 border-status-error/30"><TickSquare set="bold" className="w-3.5 h-3.5" /> FT</button>}
                         </div>
 
                         <div className="flex items-center gap-2">
-                          <button onClick={async () => {
-                            const newStatus = prompt('Enter Match Status (SCHEDULED, LIVE, HALF_TIME, FULL_TIME):', m.status);
-                            if (!newStatus) return;
-                            const scoreAStr = prompt(`Enter Score for ${m.team_a_name}:`, m.score_a.toString());
-                            const scoreBStr = prompt(`Enter Score for ${m.team_b_name}:`, m.score_b.toString());
-                            if (scoreAStr !== null && scoreBStr !== null) {
-                              try { await api.adminUpdateMatchStatus(m.id, { status: newStatus.toUpperCase(), score_a: parseInt(scoreAStr, 10), score_b: parseInt(scoreBStr, 10), minute_text: m.minute_text }); loadAllAdminData(); } catch (err: any) { alert(err.message); }
-                            }
+                          <button onClick={() => {
+                            setEditingMatch(m);
+                            setEditMatchStatus(m.status);
+                            setEditScoreA(m.score_a?.toString() || '0');
+                            setEditScoreB(m.score_b?.toString() || '0');
                           }} className="action-btn bg-surface-border text-dark-bg hover:bg-surface-border border-surface-border"><Edit set="bold" className="w-3.5 h-3.5" /> Edit</button>
                           
                           {m.status !== 'FULL_TIME' && <button onClick={() => handleConfirmResult(m.id)} className="action-btn bg-status-completed/10 text-status-completed hover:bg-status-completed/20 border-status-completed/30"><TickSquare set="bold" className="w-3.5 h-3.5" /> Confirm FT</button>}
@@ -797,6 +804,94 @@ export const AdminDashboard: React.FC = () => {
           {activeTab === 'MANAGERS' && <ManagersModule />}
           {activeTab === 'EXPORTS' && <ExportsModule />}
 
+        </div>
+      )}
+
+      {/* Edit Match Modal */}
+      {editingMatch && (
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-surface-card w-full max-w-lg p-6 rounded-xl border border-surface-border shadow-2xl animate-fade-in space-y-6">
+            <div className="flex justify-between items-center border-b border-surface-border pb-3">
+              <h3 className="font-heading text-lg font-black text-dark-bg uppercase tracking-widest flex items-center gap-2">
+                <Edit set="bold" className="w-5 h-5 text-brand" /> Edit Match
+              </h3>
+              <button onClick={() => setEditingMatch(null)} className="text-dark-muted hover:text-dark-bg">
+                <CloseSquare set="bold" className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-dark-muted uppercase tracking-widest mb-1.5">Status</label>
+                <select className="input-field" value={editMatchStatus} onChange={e => setEditMatchStatus(e.target.value as any)}>
+                  <option value="SCHEDULED">SCHEDULED</option>
+                  <option value="LIVE">LIVE</option>
+                  <option value="HALF_TIME">HALF_TIME</option>
+                  <option value="FULL_TIME">FULL_TIME</option>
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-dark-muted uppercase tracking-widest mb-1.5">{editingMatch.team_a_name} Score</label>
+                  <input type="number" min="0" className="input-field" value={editScoreA} onChange={e => setEditScoreA(e.target.value)} />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-dark-muted uppercase tracking-widest mb-1.5">{editingMatch.team_b_name} Score</label>
+                  <input type="number" min="0" className="input-field" value={editScoreB} onChange={e => setEditScoreB(e.target.value)} />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 border-t border-surface-border pt-4 mt-6">
+              <button onClick={() => setEditingMatch(null)} className="px-5 py-2.5 rounded-lg text-sm font-bold text-dark-muted hover:text-dark-bg transition-colors">Cancel</button>
+              <button onClick={async () => {
+                try {
+                  await api.adminUpdateMatchStatus(editingMatch.id, {
+                    status: editMatchStatus,
+                    score_a: parseInt(editScoreA, 10),
+                    score_b: parseInt(editScoreB, 10),
+                    minute_text: editingMatch.minute_text
+                  });
+                  loadAllAdminData();
+                  setEditingMatch(null);
+                } catch (err: any) {
+                  alert(err.message);
+                }
+              }} className="btn-primary py-2.5 px-6">Save Changes</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Extra Time Modal */}
+      {extraTimeMatch && (
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-surface-card w-full max-w-sm p-6 rounded-xl border border-surface-border shadow-2xl animate-fade-in space-y-6">
+            <div className="flex justify-between items-center border-b border-surface-border pb-3">
+              <h3 className="font-heading text-lg font-black text-dark-bg uppercase tracking-widest flex items-center gap-2">
+                <Play set="bold" className="w-5 h-5 text-brand" /> Add Extra Time
+              </h3>
+              <button onClick={() => setExtraTimeMatch(null)} className="text-dark-muted hover:text-dark-bg">
+                <CloseSquare set="bold" className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-dark-muted uppercase tracking-widest mb-1.5">Minutes</label>
+                <input type="number" min="1" className="input-field" value={extraMins} onChange={e => setExtraMins(e.target.value)} />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 border-t border-surface-border pt-4 mt-6">
+              <button onClick={() => setExtraTimeMatch(null)} className="px-5 py-2.5 rounded-lg text-sm font-bold text-dark-muted hover:text-dark-bg transition-colors">Cancel</button>
+              <button onClick={() => {
+                handleLiveClockControl(extraTimeMatch.id, extraTimeMatch.live_period === '2ND_HALF' ? 'SET_STOPPAGE_2ND' : 'SET_STOPPAGE_1ST', parseInt(extraMins));
+                setExtraTimeMatch(null);
+              }} className="btn-primary py-2.5 px-6">Confirm</button>
+            </div>
+          </div>
         </div>
       )}
       

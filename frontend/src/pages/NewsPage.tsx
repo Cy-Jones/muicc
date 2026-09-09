@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { api } from '../lib/api';
 import { Calendar, ArrowRight, CloseSquare } from 'react-iconly';
@@ -84,46 +85,49 @@ export const NewsPage: React.FC = () => {
         </motion.div>
       )}
 
-      <AnimatePresence>
-        {selectedArticle && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-xl flex items-center justify-center p-4 overflow-y-auto">
-            <motion.div initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }} className="data-card max-w-3xl w-full p-0 space-y-0 relative border-brand/40 my-8">
-              <button onClick={() => setSelectedArticle(null)} className="absolute top-5 right-5 text-dark-muted hover:text-dark-bg text-xl font-bold z-20 bg-surface-bg/80 backdrop-blur p-2 rounded-full transition-colors">
-                <CloseSquare set="bold" className="w-5 h-5" />
-              </button>
-              
-              <div className="w-full relative bg-dark-bg flex items-center justify-center">
-                <img 
-                  src={selectedArticle.image_url && selectedArticle.image_url.trim() ? selectedArticle.image_url.trim() : DEFAULT_NEWS_IMAGE} 
-                  alt={selectedArticle.title} 
-                  onError={(e) => {
-                    const target = e.currentTarget;
-                    if (target.src !== DEFAULT_NEWS_IMAGE) {
-                      target.src = DEFAULT_NEWS_IMAGE;
-                    }
-                  }}
-                  className="w-full h-auto max-h-[60vh] object-contain" 
-                />
-                <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-surface-card to-transparent pointer-events-none"></div>
-              </div>
-              
-              <div className="p-8 sm:p-10 space-y-6 relative z-10 bg-surface-card">
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest text-dark-muted">
-                    <span className="px-3 py-1 rounded bg-brand/10 text-brand border border-brand/30">{selectedArticle.category}</span>
-                    <span className="flex items-center gap-1.5"><Calendar set="bold" className="w-3.5 h-3.5 text-brand" /> {selectedArticle.publish_date}</span>
-                  </div>
-                  <h2 className="font-heading text-3xl sm:text-4xl font-black text-dark-bg leading-tight">{selectedArticle.title}</h2>
+      {createPortal(
+        <AnimatePresence>
+          {selectedArticle && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-xl flex items-start justify-center p-4 overflow-y-auto">
+              <motion.div initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }} className="data-card max-w-3xl w-full p-0 space-y-0 relative border-brand/40 my-8 overflow-hidden">
+                <button onClick={() => setSelectedArticle(null)} className="absolute top-5 right-5 text-dark-muted hover:text-dark-bg text-xl font-bold z-20 bg-surface-bg/80 backdrop-blur p-2 rounded-full transition-colors">
+                  <CloseSquare set="bold" className="w-5 h-5" />
+                </button>
+                
+                <div className="w-full relative bg-surface-bg">
+                  <img 
+                    src={selectedArticle.image_url && selectedArticle.image_url.trim() ? selectedArticle.image_url.trim() : DEFAULT_NEWS_IMAGE} 
+                    alt={selectedArticle.title} 
+                    onError={(e) => {
+                      const target = e.currentTarget;
+                      if (target.src !== DEFAULT_NEWS_IMAGE) {
+                        target.src = DEFAULT_NEWS_IMAGE;
+                      }
+                    }}
+                    className="w-full h-auto block" 
+                  />
+                  <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-surface-card to-transparent pointer-events-none"></div>
                 </div>
                 
-                <div className="text-sm text-slate-200 leading-loose whitespace-pre-line border-t border-surface-border pt-6 font-medium">
-                  {selectedArticle.content}
+                <div className="p-8 sm:p-10 space-y-6 relative z-10 bg-surface-card">
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest text-dark-muted">
+                      <span className="px-3 py-1 rounded bg-brand/10 text-brand border border-brand/30">{selectedArticle.category}</span>
+                      <span className="flex items-center gap-1.5"><Calendar set="bold" className="w-3.5 h-3.5 text-brand" /> {selectedArticle.publish_date}</span>
+                    </div>
+                    <h2 className="font-heading text-3xl sm:text-4xl font-black text-dark-bg leading-tight">{selectedArticle.title}</h2>
+                  </div>
+                  
+                  <div className="text-sm text-slate-200 leading-loose whitespace-pre-line border-t border-surface-border pt-6 font-medium">
+                    {selectedArticle.content}
+                  </div>
                 </div>
-              </div>
+              </motion.div>
             </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
     </motion.div>
   );
 };

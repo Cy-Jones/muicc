@@ -218,7 +218,7 @@ router.put('/admin/:id/live-clock', authenticateAdmin, async (req: Authenticated
   if (action === 'START_1ST_HALF') {
     await db.prepare(`
       UPDATE matches
-      SET status = 'LIVE', live_period = '1ST_HALF', live_start_timestamp = ?, live_pause_elapsed_seconds = 0, minute_text = '0\''
+      SET status = 'LIVE', live_period = '1ST_HALF', live_start_timestamp = ?, live_pause_elapsed_seconds = 0, minute_text = '0'''
       WHERE id = ?
     `).run(now, matchId);
     return res.json({ success: true, message: 'First Half Started! Match clock running automatically from 0\'.' });
@@ -232,7 +232,7 @@ router.put('/admin/:id/live-clock', authenticateAdmin, async (req: Authenticated
   } else if (action === 'START_2ND_HALF') {
     await db.prepare(`
       UPDATE matches
-      SET status = 'LIVE', live_period = '2ND_HALF', live_start_timestamp = ?, live_pause_elapsed_seconds = 0, minute_text = '45\''
+      SET status = 'LIVE', live_period = '2ND_HALF', live_start_timestamp = ?, live_pause_elapsed_seconds = 0, minute_text = '45'''
       WHERE id = ?
     `).run(now, matchId);
     return res.json({ success: true, message: 'Second Half Resumed! Match clock running automatically from 45\'.' });

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { api } from '../lib/api';
+import { getMatchLiveClock } from '../lib/liveClock';
 import { Calendar, TickSquare, TimeCircle } from 'react-iconly';
 
 const SYSTEM_FLAGS: Record<string, string> = {
@@ -23,6 +24,12 @@ export const FixturesResultsPage: React.FC = () => {
   const [systemNations, setSystemNations] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<'MATCHES' | 'STANDINGS'>('MATCHES');
   const [matchFilter, setMatchFilter] = useState<'ALL' | 'LIVE' | 'TODAY' | 'UPCOMING' | 'RESULTS'>('ALL');
+  const [tick, setTick] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => setTick(t => t + 1), 1000);
+    return () => clearInterval(timer);
+  }, []);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -129,7 +136,7 @@ export const FixturesResultsPage: React.FC = () => {
                 <button
                   key={f}
                   onClick={() => setMatchFilter(f as any)}
-                  className={`px-4 py-2 text-xs font-bold uppercase tracking-widest rounded-full whitespace-nowrap transition-colors \${matchFilter === f ? 'bg-brand text-black' : 'bg-surface-card border border-surface-border text-dark-surface hover:text-brand hover:bg-surface-hover'}`}
+                  className={`px-4 py-2 text-xs font-bold uppercase tracking-widest rounded-full whitespace-nowrap transition-colors ${matchFilter === f ? 'bg-brand text-black' : 'bg-surface-card border border-surface-border text-dark-surface hover:text-brand hover:bg-surface-hover'}`}
                 >
                   {f === 'LIVE' && <span className="inline-block w-2 h-2 rounded-full bg-status-live animate-ping mr-2 align-middle"></span>}
                   {f}
@@ -180,7 +187,7 @@ export const FixturesResultsPage: React.FC = () => {
                               <span className="font-heading text-2xl font-black text-dark-bg">{m.score_b ?? 0}</span>
                             </div>
                             {m.status === 'LIVE' || m.status === 'HALF_TIME' ? (
-                              <span className="badge badge-live mt-1 flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-white animate-ping"/> Live</span>
+                              <span className="badge badge-live mt-1 flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-white animate-ping"/> {getMatchLiveClock(m).display}</span>
                             ) : (
                               <span className="badge badge-completed mt-1 flex items-center gap-1"><TickSquare set="bold" className="w-3 h-3"/> Full Time</span>
                             )}

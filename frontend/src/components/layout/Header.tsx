@@ -137,53 +137,48 @@ export const Header: React.FC = () => {
         <div className="w-full max-w-[96%] flex items-center justify-between mx-auto">
           {/* LEFT: Title */}
           <div className="flex items-center text-[9px] sm:text-xs font-black text-dark-bg tracking-widest uppercase shrink-0 whitespace-nowrap">
-            <span>MUICC '26 Countdown</span>
+            <span>{allMatches.length > 0 ? "MUICC '26 MATCHDAY CENTER" : "MUICC '26 COUNTDOWN"}</span>
           </div>
 
           {/* RIGHT/CENTER: Match Ticker or Timer */}
 
           {/* RIGHT/CENTER: Match Ticker or Title */}
-          <div className="flex-1 flex justify-end">
-            {allMatches.length > 0 && currentMatch ? (
-              <div className="flex items-center justify-between w-full max-w-2xl ml-4 md:ml-0">
-                <div className="flex items-center gap-3">
-                  {currentMatch.status === 'LIVE' || currentMatch.status === 'HALF_TIME' ? (
-                    <span className="badge badge-live">
-                      <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping mr-1" /> LIVE
-                    </span>
-                  ) : currentMatch.status === 'FULL_TIME' ? (
-                    <span className="badge badge-completed">
-                      <TickSquare set="bold" className="w-3 h-3 mr-1" /> FT
-                    </span>
-                  ) : (
-                    <span className="badge badge-upcoming">
-                      <TimeCircle set="bold" className="w-3 h-3 mr-1" /> NEXT
-                    </span>
-                  )}
-
-                  <div className="flex items-center gap-2 text-xs font-bold text-dark-bg">
-                    {renderTeamFlag(currentMatch.team_a_name, currentMatch.team_a_country, currentMatch.team_a_logo)}
-                    <span className="truncate max-w-[60px] sm:max-w-[100px] hidden sm:block">{currentMatch.team_a_name}</span>
-                    <span className="text-brand font-black mx-1">
-                      {currentMatch.status === 'SCHEDULED' ? 'vs' : `${currentMatch.score_a ?? 0} - ${currentMatch.score_b ?? 0}`}
-                    </span>
-                    <span className="truncate max-w-[60px] sm:max-w-[100px] hidden sm:block text-right">{currentMatch.team_b_name}</span>
-                    {renderTeamFlag(currentMatch.team_b_name, currentMatch.team_b_country, currentMatch.team_b_logo)}
-                    
-                    {currentMatch.status === 'LIVE' && currentMatch.live_minute && (
-                      <span className="text-status-live animate-pulse ml-2">
-                        {getMatchLiveClock(currentMatch).display}
+          <div className="flex-1 flex justify-end ml-4 overflow-hidden">
+            {allMatches.length > 0 ? (
+              <div className="flex items-center justify-end w-full max-w-4xl gap-6 sm:gap-10 overflow-x-auto scrollbar-hide hide-scrollbar">
+                {allMatches.slice(0, 3).map((match, idx) => (
+                  <div key={idx} className="flex items-center gap-2 sm:gap-3 shrink-0">
+                    {match.status === 'LIVE' || match.status === 'HALF_TIME' ? (
+                      <span className="badge badge-live">
+                        <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping mr-1" /> {getMatchLiveClock(match).isHalftime ? 'HT' : 'LIVE'}
+                      </span>
+                    ) : match.status === 'FULL_TIME' ? (
+                      <span className="badge badge-completed">
+                        <TickSquare set="bold" className="w-3 h-3 mr-1" /> FT
+                      </span>
+                    ) : (
+                      <span className="badge badge-upcoming">
+                        <TimeCircle set="bold" className="w-3 h-3 mr-1" /> NEXT
                       </span>
                     )}
-                  </div>
-                </div>
 
-                {allMatches.length > 1 && (
-                  <div className="flex items-center gap-1 ml-4">
-                    <button onClick={handlePrev} className="p-1 text-dark-muted hover:text-dark-bg hover:bg-surface-border rounded transition-colors"><ChevronLeft set="bold" className="w-4 h-4" /></button>
-                    <button onClick={handleNext} className="p-1 text-dark-muted hover:text-dark-bg hover:bg-surface-border rounded transition-colors"><ChevronRight set="bold" className="w-4 h-4" /></button>
+                    <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs font-bold text-dark-bg">
+                      {renderTeamFlag(match.team_a_name, match.team_a_country, match.team_a_logo)}
+                      <span className="truncate max-w-[50px] sm:max-w-[80px] hidden md:block">{match.team_a_name}</span>
+                      <span className="text-brand font-black mx-1">
+                        {match.status === 'SCHEDULED' ? 'vs' : `${match.score_a ?? 0} - ${match.score_b ?? 0}`}
+                      </span>
+                      <span className="truncate max-w-[50px] sm:max-w-[80px] hidden md:block text-right">{match.team_b_name}</span>
+                      {renderTeamFlag(match.team_b_name, match.team_b_country, match.team_b_logo)}
+                      
+                      {match.status === 'LIVE' && (
+                        <span className="text-status-live animate-pulse ml-1 sm:ml-2">
+                          {getMatchLiveClock(match).display}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                )}
+                ))}
               </div>
             ) : (
               <div className="flex items-center gap-1 text-xs font-bold text-dark-bg bg-surface-card px-3 py-1.5 rounded border border-surface-border">

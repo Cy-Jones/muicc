@@ -137,7 +137,7 @@ export const GalleryModule: React.FC = () => {
       </div>
 
       {isModalOpen && (
-        <div className="fixed inset-0 bg-dark-bg/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center p-4">
           <div className="bg-surface-card w-full max-w-md rounded-xl border border-surface-border overflow-hidden shadow-2xl flex flex-col">
             <div className="p-4 border-b border-surface-border bg-surface-bg flex justify-between items-center shrink-0">
               <h3 className="font-heading text-lg font-black text-dark-bg uppercase tracking-widest">

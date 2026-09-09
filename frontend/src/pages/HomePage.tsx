@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { api } from '../lib/api';
+import { getMatchLiveClock } from '../lib/liveClock';
 import { Star, ShieldDone, User, Calendar, Location, ChevronRight, TickSquare, Activity, Discovery } from 'react-iconly';
 
 const heroImages = [
@@ -29,6 +30,12 @@ export const HomePage: React.FC = () => {
   const [sponsors, setSponsors] = useState<any[]>([]);
   const [systemNations, setSystemNations] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<'live' | 'today' | 'upcoming' | 'results'>('today');
+  const [tick, setTick] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => setTick(t => t + 1), 1000);
+    return () => clearInterval(timer);
+  }, []);
   const [currentHeroIndex, setCurrentHeroIndex] = useState(0);
 
   useEffect(() => {
@@ -194,8 +201,8 @@ export const HomePage: React.FC = () => {
                               <span className="font-heading text-xl font-bold text-dark-bg">{m.score_b ?? 0}</span>
                             </div>
                           )}
-                          <span className={`text-[9px] font-bold uppercase mt-1 tracking-wider \${m.status === 'LIVE' ? 'text-status-live' : 'text-dark-muted'}`}>
-                            {m.status.replace('_', ' ')}
+                          <span className={`text-[9px] font-bold uppercase mt-1 tracking-wider ${m.status === 'LIVE' || m.status === 'HALF_TIME' ? 'text-status-live animate-pulse' : 'text-dark-muted'}`}>
+                            {m.status === 'LIVE' || m.status === 'HALF_TIME' ? getMatchLiveClock(m).display : m.status.replace('_', ' ')}
                           </span>
                         </div>
 

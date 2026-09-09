@@ -293,7 +293,7 @@ export const ManagerDashboardPage: React.FC = () => {
       </div>
 
       {isEditingTeam && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-fade-in">
           <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} className="bg-surface-card w-full max-w-lg rounded-2xl border border-surface-border shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
             <div className="flex items-center justify-between p-6 border-b border-surface-border shrink-0">
               <h2 className="font-heading text-lg font-black text-dark-bg uppercase tracking-widest">Edit Team Details</h2>
@@ -356,7 +356,7 @@ export const ManagerDashboardPage: React.FC = () => {
       )}
 
       {editingPlayer && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-fade-in">
           <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} className="bg-surface-card w-full max-w-2xl rounded-2xl border border-surface-border shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
             <div className="flex items-center justify-between p-6 border-b border-surface-border shrink-0">
               <h2 className="font-heading text-lg font-black text-dark-bg uppercase tracking-widest">Edit Player</h2>
@@ -466,7 +466,7 @@ export const ManagerDashboardPage: React.FC = () => {
       )}
 
       {isAddingPlayer && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-fade-in">
           <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} className="bg-surface-card w-full max-w-2xl rounded-2xl border border-surface-border shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
             <div className="flex items-center justify-between p-6 border-b border-surface-border shrink-0">
               <h2 className="font-heading text-lg font-black text-dark-bg uppercase tracking-widest">Add Player</h2>

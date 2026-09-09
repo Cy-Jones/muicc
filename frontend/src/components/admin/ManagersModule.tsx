@@ -128,7 +128,7 @@ export const ManagersModule: React.FC = () => {
 
       <AnimatePresence>
         {showModal && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
             <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} exit={{ scale: 0.95 }} className="bg-surface-card w-full max-w-md p-6 relative rounded-xl border border-surface-border">
               <button onClick={() => setShowModal(false)} className="absolute top-4 right-4 text-dark-muted hover:text-dark-bg">&times;</button>
               <h3 className="font-heading text-lg font-black text-dark-bg uppercase tracking-widest mb-4">
@@ -159,7 +159,7 @@ export const ManagersModule: React.FC = () => {
         {selectedTeam && (() => {
           const teamPlayers = players.filter(p => p.team_id === selectedTeam.id);
           return (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
             <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} exit={{ scale: 0.95 }} className="bg-surface-card w-full max-w-2xl rounded-2xl border border-surface-border shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
               <div className="flex items-center justify-between p-6 border-b border-surface-border shrink-0">
                 <h2 className="font-heading text-lg font-black text-dark-bg uppercase tracking-widest">Team Details: {selectedTeam.name}</h2>
