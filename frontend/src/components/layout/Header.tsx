@@ -137,7 +137,7 @@ export const Header: React.FC = () => {
         <div className="w-full max-w-[96%] flex items-center justify-between mx-auto">
           {/* LEFT: Title */}
           <div className="flex items-center text-[9px] sm:text-xs font-black text-dark-bg tracking-widest uppercase shrink-0 whitespace-nowrap">
-            <span>{allMatches.length > 0 ? "MUICC '26 MATCHDAY CENTER" : "MUICC '26 COUNTDOWN"}</span>
+            <span>{allMatches.length > 0 ? "MULSU ICC '26 MATCHDAY CENTER" : "MULSU ICC '26 COUNTDOWN"}</span>
           </div>
 
           {/* RIGHT/CENTER: Match Ticker or Timer */}
@@ -201,7 +201,7 @@ export const Header: React.FC = () => {
               className="h-10 sm:h-12 w-auto object-contain transition-transform group-hover:scale-105 duration-300"
             />
             <div className="hidden sm:flex flex-col">
-              <span className="font-heading text-lg font-black text-dark-bg leading-none tracking-tight">MUICC '26</span>
+              <span className="font-heading text-lg font-black text-dark-bg leading-none tracking-tight">MULSU ICC '26</span>
               <span className="text-[10px] font-bold text-brand uppercase tracking-widest mt-0.5">Champions Cup</span>
             </div>
           </Link>

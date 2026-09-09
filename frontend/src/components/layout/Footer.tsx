@@ -15,7 +15,7 @@ export const Footer: React.FC = () => {
             className="h-10 w-auto object-contain drop-shadow-[0_0_10px_rgba(250,204,21,0.2)]" 
           />
           <div className="flex flex-col">
-            <span className="font-heading text-lg font-black text-gold tracking-widest leading-none">MUICC <span className="text-white">'26</span></span>
+            <span className="font-heading text-lg font-black text-gold tracking-widest leading-none">MULSU ICC <span className="text-white">'26</span></span>
             <span className="text-[9px] text-dark-muted uppercase tracking-[0.2em] mt-0.5 font-bold">Champions Cup</span>
           </div>
         </div>
@@ -49,7 +49,7 @@ export const Footer: React.FC = () => {
 
       {/* Bottom Copyright */}
       <div className="mx-auto max-w-[96%] px-4 sm:px-6 lg:px-8 mt-6 pt-6 border-t border-surface-border flex flex-col md:flex-row items-center justify-between text-[10px] text-slate-500 font-bold uppercase tracking-widest gap-3 text-center md:text-left">
-        <p>© 2026 MUICC Champions Cup. All rights reserved.</p>
+        <p>© 2026 MULSU ICC Champions Cup. All rights reserved.</p>
         <p>ONE CAMPUS. MANY NATIONS. ONE CHAMPION.</p>
       </div>
     </footer>

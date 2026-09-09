@@ -231,7 +231,7 @@ export const PlayersPage: React.FC = () => {
                   {/* Header */}
                   <div className="flex justify-between items-start">
                     <div className="drop-shadow-lg print:drop-shadow-none">
-                      <h3 className="text-brand font-black text-sm md:text-base uppercase leading-tight drop-shadow-md print:drop-shadow-none">MUICC '26</h3>
+                      <h3 className="text-brand font-black text-sm md:text-base uppercase leading-tight drop-shadow-md print:drop-shadow-none">MULSU ICC '26</h3>
                       <p className="text-white/70 print:text-black/70 text-[9px] md:text-[10px] uppercase tracking-widest font-bold">Champions Cup - Official Player Card</p>
                     </div>
                     {/* Pushed verified badge slightly down/left to avoid close button */}

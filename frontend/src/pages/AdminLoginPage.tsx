@@ -78,7 +78,7 @@ export const AdminLoginPage: React.FC = () => {
               <img src="/logo.png" alt="MIUCC Logo" className="h-20 w-auto object-contain" />
             </div>
             <h1 className="font-heading text-3xl font-black text-dark-bg uppercase tracking-wide">ADMIN PORTAL</h1>
-            <p className="text-xs text-dark-muted uppercase font-bold">Authorized Personnel Only • MUICC '26</p>
+            <p className="text-xs text-dark-muted uppercase font-bold">Authorized Personnel Only • MULSU ICC '26</p>
           </div>
 
           {errorMessage && (

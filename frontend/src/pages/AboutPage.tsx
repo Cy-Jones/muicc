@@ -44,7 +44,7 @@ export const AboutPage: React.FC = () => {
             ABOUT THE TOURNAMENT
           </div>
           <h1 className="font-heading text-4xl sm:text-5xl md:text-7xl font-black text-white uppercase tracking-tight drop-shadow-xl">
-            MUICC '26 <br />
+            MULSU ICC '26 <br />
             <span className="text-gold glow-gold-text">CHAMPIONS CUP</span>
           </h1>
           <p className="text-xs sm:text-sm md:text-base text-gray-200 max-w-xl mx-auto font-bold tracking-[0.2em] sm:tracking-[0.2em] uppercase mt-4 drop-shadow">
@@ -79,7 +79,7 @@ export const AboutPage: React.FC = () => {
           <h2 className="font-heading text-2xl font-black text-white border-b border-surface-border pb-3">TOURNAMENT OVERVIEW</h2>
           <div className="text-sm text-dark-surface space-y-4 leading-relaxed">
             <p>
-              The <strong>MUICC '26 Champions Cup</strong> represents the premier collegiate football tournament uniting student athletes across 10 nations: <strong>Liberia, Eswatini, Tanzania, South Sudan, Zimbabwe, India, Mozambique, Nigeria, Uganda, and Zambia</strong>.
+              The <strong>MULSU ICC '26 Champions Cup</strong> represents the premier collegiate football tournament uniting student athletes across 10 nations: <strong>Liberia, Eswatini, Tanzania, South Sudan, Zimbabwe, India, Mozambique, Nigeria, Uganda, and Zambia</strong>.
             </p>
             <p>
               Hosted at the state-of-the-art facilities of <strong>Marwadi University Campus</strong>, the 14-day tournament showcases group stage competition, knockout rounds, and the championship grand final.
