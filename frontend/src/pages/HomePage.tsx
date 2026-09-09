@@ -7,7 +7,8 @@ import { Star, ShieldDone, User, Calendar, Location, ChevronRight, TickSquare, A
 
 const heroImages = [
   '/images/hero.jpg?v=2',
-  '/images/hero1.jpg'
+  '/images/hero1.jpg',
+  '/images/hero2.jpg'
 ];
 
 const SYSTEM_FLAGS: Record<string, string> = {
