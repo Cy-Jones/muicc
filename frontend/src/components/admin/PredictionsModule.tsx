@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Trash, Edit } from 'react-iconly';
+import { Delete, Edit } from 'react-iconly';
 import { api } from '../../lib/api';
 
 export const PredictionsModule: React.FC = () => {
@@ -162,7 +162,7 @@ export const PredictionsModule: React.FC = () => {
                         <Edit set="bold" className="w-4 h-4" />
                       </button>
                       <button onClick={() => handleDeletePrediction(item.id)} className="p-1.5 hover:bg-surface-border rounded text-dark-muted hover:text-red-500 transition-colors">
-                        <Trash set="bold" className="w-4 h-4" />
+                        <Delete set="bold" className="w-4 h-4" />
                       </button>
                     </div>
                   </td>
