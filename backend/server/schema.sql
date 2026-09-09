@@ -184,6 +184,7 @@ CREATE TABLE IF NOT EXISTS predictions (
   predicted_score_a INTEGER,
   predicted_score_b INTEGER,
   predicted_champion_team_id TEXT,
+  status TEXT DEFAULT 'PENDING',
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (match_day_id) REFERENCES match_days(id),
   UNIQUE(match_day_id, email_normalized)

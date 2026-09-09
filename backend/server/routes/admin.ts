@@ -5,6 +5,8 @@ import { authenticateAdmin, AuthenticatedRequest } from '../middleware/auth.js';
 import { asyncRouter } from '../middleware/asyncRouter.js';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
+import path from 'path';
+import fs from 'fs';
 
 const router = asyncRouter();
 
@@ -105,62 +107,97 @@ router.get('/export-pdf/:type', authenticateAdmin, async (req: AuthenticatedRequ
     `).all() as any[];
   }
 
-  const doc = new PDFDocument({ margin: 30, size: 'A4' });
+  const doc = new PDFDocument({ margin: 40, size: 'A4' });
+
+  // Register Fonts
+  const robotoRegular = path.join(process.cwd(), 'public/fonts/Roboto-Regular.ttf');
+  const robotoBold = path.join(process.cwd(), 'public/fonts/Roboto-Bold.ttf');
+  
+  // Register if files exist to prevent crashes
+  if (fs.existsSync(robotoRegular) && fs.existsSync(robotoBold)) {
+    doc.registerFont('Roboto', robotoRegular);
+    doc.registerFont('Roboto-Bold', robotoBold);
+  } else {
+    // Fallback if fonts somehow missing
+    doc.registerFont('Roboto', 'Helvetica');
+    doc.registerFont('Roboto-Bold', 'Helvetica-Bold');
+  }
+
+  const logoPath = path.join(process.cwd(), '../frontend/public/logo.png');
+
+  const addWatermark = () => {
+    if (fs.existsSync(logoPath)) {
+      doc.save();
+      doc.opacity(0.1);
+      const logoSize = 350;
+      doc.image(logoPath, (doc.page.width - logoSize) / 2, (doc.page.height - logoSize) / 2, { width: logoSize });
+      doc.restore();
+    }
+  };
+
+  doc.on('pageAdded', addWatermark);
 
   res.setHeader('Content-Type', 'application/pdf');
   res.setHeader('Content-Disposition', `attachment; filename="miucc_${type}_official_report.pdf"`);
 
   doc.pipe(res);
+  
+  // Draw watermark on first page
+  addWatermark();
 
-  // Document Header
-  doc.rect(0, 0, doc.page.width, 70).fill('#0F1115');
-  doc.fillColor('#FACC15').fontSize(16).font('Helvetica-Bold').text('MIUCC 2026 CHAMPIONS CUP', 30, 15);
-  doc.fillColor('#FFFFFF').fontSize(10).font('Helvetica').text(`OFFICIAL ADMINISTRATIVE REPORT — ${type.toUpperCase()}`, 30, 36);
-  doc.fillColor('#9CA3AF').fontSize(8).text(`Generated on ${new Date().toLocaleString()} | Marwadi University Campus`, 30, 50);
+  // Document Header - Official Memorandum Style
+  doc.fillColor('#000000').fontSize(16).font('Roboto-Bold').text('OFFICIAL MEMORANDUM', 40, 50);
+  doc.fontSize(11).font('Roboto-Bold').text(`Subject: MULSU ICC '26 Operations Portal - ${type.toUpperCase()} EXPORT`, 40, 80);
+  doc.fontSize(10).font('Roboto-Bold').text('Date: ', 40, 100).font('Roboto').text(new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }), 75, 100);
+  
+  doc.moveTo(40, 120).lineTo(doc.page.width - 40, 120).lineWidth(0.5).strokeColor('#E5E7EB').stroke();
 
-  let y = 90;
+  let y = 140;
 
   if (type === 'teams') {
     const teams = rows;
 
     if (teams.length === 0) {
-      doc.fillColor('#111827').fontSize(10).font('Helvetica-Oblique').text('No registered teams in system.', 30, y);
+      doc.fillColor('#000000').fontSize(10).font('Roboto').text('No registered teams in system.', 40, y);
     } else {
       for (const [idx, t] of teams.entries()) {
         const players = playersByTeam.get(t.id) || [];
 
         if (y > 700) { doc.addPage(); y = 40; }
 
-        doc.rect(30, y, doc.page.width - 60, 30).fill('#1A1D24');
-        doc.fillColor('#FACC15').fontSize(11).font('Helvetica-Bold').text(`${idx + 1}. ${t.name} (${t.country})`, 40, y + 8);
-        doc.fillColor('#FFFFFF').fontSize(8).font('Helvetica').text(`Ref: ${t.registration_ref} | Status: ${t.status} | Players: ${players.length}`, 280, y + 10, { align: 'right', width: 270 });
+        // Team Header
+        doc.rect(40, y, doc.page.width - 80, 24).fill('#F3F4F6');
+        doc.fillColor('#000000').fontSize(11).font('Roboto-Bold').text(`${idx + 1}. ${t.name} (${t.country})`, 48, y + 6);
+        doc.fillColor('#4B5563').fontSize(8).font('Roboto').text(`Ref: ${t.registration_ref} | Status: ${t.status} | Players: ${players.length}`, 280, y + 8, { align: 'right', width: 270 });
 
-        y += 35;
+        y += 28;
 
         if (players.length > 0) {
-          doc.rect(30, y, doc.page.width - 60, 16).fill('#2D3748');
-          doc.fillColor('#FACC15').fontSize(8).font('Helvetica-Bold');
-          doc.text('#', 40, y + 3, { width: 30 });
-          doc.text('PLAYER ID', 70, y + 3, { width: 100 });
-          doc.text('ATHLETE NAME', 170, y + 3, { width: 160 });
-          doc.text('POSITION', 330, y + 3, { width: 80 });
-          doc.text('GR#', 410, y + 3, { width: 70 });
-          doc.text('STATUS', 480, y + 3, { width: 70 });
+          doc.rect(40, y, doc.page.width - 80, 16).fill('#E5E7EB');
+          doc.fillColor('#000000').fontSize(8).font('Roboto-Bold');
+          doc.text('#', 48, y + 4, { width: 30 });
+          doc.text('PLAYER ID', 78, y + 4, { width: 100 });
+          doc.text('ATHLETE NAME', 178, y + 4, { width: 150 });
+          doc.text('POSITION', 328, y + 4, { width: 80 });
+          doc.text('GR#', 408, y + 4, { width: 70 });
+          doc.text('STATUS', 478, y + 4, { width: 70 });
 
           y += 18;
 
           players.forEach((p, pIdx) => {
             if (y > 750) { doc.addPage(); y = 40; }
-            doc.rect(30, y - 2, doc.page.width - 60, 15).fill(pIdx % 2 === 0 ? '#F9FAFB' : '#FFFFFF');
-            doc.fillColor('#111827').fontSize(8).font('Helvetica');
-            doc.text(`#${p.jersey_number}`, 40, y, { width: 30 });
-            doc.fillColor('#D97706').font('Helvetica-Bold').text(p.player_id || 'PENDING', 70, y, { width: 100 });
-            doc.fillColor('#111827').font('Helvetica-Bold').text(p.full_name, 170, y, { width: 160 });
-            doc.font('Helvetica').text(p.position, 330, y, { width: 80 });
-            doc.text(p.student_id || 'N/A', 410, y, { width: 70 });
-            doc.fillColor(p.status === 'APPROVED' ? '#059669' : '#D97706').font('Helvetica-Bold').text(p.status, 480, y, { width: 70 });
+            doc.rect(40, y, doc.page.width - 80, 16).fill(pIdx % 2 === 0 ? '#FFFFFF' : '#F9FAFB');
+            doc.fillColor('#000000').fontSize(8).font('Roboto');
+            doc.text(`#${p.jersey_number}`, 48, y + 4, { width: 30 });
+            doc.font('Roboto-Bold').text(p.player_id || 'PENDING', 78, y + 4, { width: 100 });
+            doc.text(p.full_name, 178, y + 4, { width: 150 });
+            doc.font('Roboto').text(p.position, 328, y + 4, { width: 80 });
+            doc.text(p.student_id || 'N/A', 408, y + 4, { width: 70 });
+            doc.fillColor(p.status === 'APPROVED' ? '#059669' : '#D97706').font('Roboto-Bold').text(p.status, 478, y + 4, { width: 70 });
             y += 16;
           });
+          
+          doc.moveTo(40, y).lineTo(doc.page.width - 40, y).lineWidth(0.5).strokeColor('#E5E7EB').stroke();
         }
         y += 15;
       }
@@ -169,81 +206,84 @@ router.get('/export-pdf/:type', authenticateAdmin, async (req: AuthenticatedRequ
     const players = rows;
 
     if (players.length === 0) {
-      doc.fillColor('#111827').fontSize(10).font('Helvetica-Oblique').text('No players registered in system.', 30, y);
+      doc.fillColor('#000000').fontSize(10).font('Roboto').text('No players registered in system.', 40, y);
     } else {
-      doc.rect(30, y, doc.page.width - 60, 20).fill('#1A1D24');
-      doc.fillColor('#FACC15').fontSize(8).font('Helvetica-Bold');
-      doc.text('#', 35, y + 5, { width: 25 });
-      doc.text('PLAYER ID', 60, y + 5, { width: 95 });
-      doc.text('FULL NAME', 155, y + 5, { width: 135 });
-      doc.text('TEAM', 290, y + 5, { width: 110 });
-      doc.text('POSITION', 400, y + 5, { width: 75 });
-      doc.text('STATUS', 475, y + 5, { width: 75 });
+      doc.rect(40, y, doc.page.width - 80, 20).fill('#E5E7EB');
+      doc.fillColor('#000000').fontSize(8).font('Roboto-Bold');
+      doc.text('#', 48, y + 6, { width: 25 });
+      doc.text('PLAYER ID', 73, y + 6, { width: 90 });
+      doc.text('FULL NAME', 163, y + 6, { width: 130 });
+      doc.text('TEAM', 293, y + 6, { width: 110 });
+      doc.text('POSITION', 403, y + 6, { width: 70 });
+      doc.text('STATUS', 473, y + 6, { width: 75 });
 
-      y += 24;
+      y += 20;
 
       players.forEach((p, idx) => {
         if (y > 750) { doc.addPage(); y = 40; }
-        doc.rect(30, y - 2, doc.page.width - 60, 16).fill(idx % 2 === 0 ? '#F9FAFB' : '#FFFFFF');
-        doc.fillColor('#111827').fontSize(8).font('Helvetica');
-        doc.text(`#${p.jersey_number}`, 35, y, { width: 25 });
-        doc.fillColor('#D97706').font('Helvetica-Bold').text(p.player_id || 'PENDING', 60, y, { width: 95 });
-        doc.fillColor('#111827').font('Helvetica-Bold').text(p.full_name, 155, y, { width: 135 });
-        doc.font('Helvetica').text(p.team_name, 290, y, { width: 110 });
-        doc.text(p.position, 400, y, { width: 75 });
-        doc.fillColor(p.status === 'APPROVED' ? '#059669' : '#D97706').font('Helvetica-Bold').text(p.status, 475, y, { width: 75 });
+        doc.rect(40, y, doc.page.width - 80, 18).fill(idx % 2 === 0 ? '#FFFFFF' : '#F9FAFB');
+        doc.fillColor('#000000').fontSize(8).font('Roboto');
+        doc.text(`#${p.jersey_number}`, 48, y + 5, { width: 25 });
+        doc.font('Roboto-Bold').text(p.player_id || 'PENDING', 73, y + 5, { width: 90 });
+        doc.text(p.full_name, 163, y + 5, { width: 130 });
+        doc.font('Roboto').text(p.team_name, 293, y + 5, { width: 110 });
+        doc.text(p.position, 403, y + 5, { width: 70 });
+        doc.fillColor(p.status === 'APPROVED' ? '#059669' : '#D97706').font('Roboto-Bold').text(p.status, 473, y + 5, { width: 75 });
         y += 18;
       });
+      doc.moveTo(40, y).lineTo(doc.page.width - 40, y).lineWidth(0.5).strokeColor('#E5E7EB').stroke();
     }
   } else if (type === 'predictions') {
     const predictions = rows;
 
     if (predictions.length === 0) {
-      doc.fillColor('#111827').fontSize(10).font('Helvetica-Oblique').text('No public predictions recorded yet.', 30, y);
+      doc.fillColor('#000000').fontSize(10).font('Roboto').text('No public predictions recorded yet.', 40, y);
     } else {
-      doc.rect(30, y, doc.page.width - 60, 20).fill('#1A1D24');
-      doc.fillColor('#FACC15').fontSize(8).font('Helvetica-Bold');
-      doc.text('REF', 35, y + 5, { width: 110 });
-      doc.text('MATCH DAY', 145, y + 5, { width: 130 });
-      doc.text('NAME', 275, y + 5, { width: 130 });
-      doc.text('EMAIL', 405, y + 5, { width: 145 });
+      doc.rect(40, y, doc.page.width - 80, 20).fill('#E5E7EB');
+      doc.fillColor('#000000').fontSize(8).font('Roboto-Bold');
+      doc.text('REF', 48, y + 6, { width: 100 });
+      doc.text('MATCH DAY', 148, y + 6, { width: 130 });
+      doc.text('NAME', 278, y + 6, { width: 130 });
+      doc.text('EMAIL', 408, y + 6, { width: 145 });
 
-      y += 24;
+      y += 20;
 
       predictions.forEach((p, idx) => {
         if (y > 750) { doc.addPage(); y = 40; }
-        doc.rect(30, y - 2, doc.page.width - 60, 16).fill(idx % 2 === 0 ? '#F9FAFB' : '#FFFFFF');
-        doc.fillColor('#D97706').fontSize(8).font('Helvetica-Bold').text(p.prediction_ref, 35, y, { width: 110 });
-        doc.fillColor('#111827').font('Helvetica').text(p.match_day_name, 145, y, { width: 130 });
-        doc.font('Helvetica-Bold').text(p.full_name, 275, y, { width: 130 });
-        doc.font('Helvetica').text(p.email, 405, y, { width: 145 });
+        doc.rect(40, y, doc.page.width - 80, 18).fill(idx % 2 === 0 ? '#FFFFFF' : '#F9FAFB');
+        doc.fillColor('#000000').fontSize(8).font('Roboto-Bold').text(p.prediction_ref, 48, y + 5, { width: 100 });
+        doc.font('Roboto').text(p.match_day_name, 148, y + 5, { width: 130 });
+        doc.font('Roboto-Bold').text(p.full_name, 278, y + 5, { width: 130 });
+        doc.font('Roboto').text(p.email, 408, y + 5, { width: 145 });
         y += 18;
       });
+      doc.moveTo(40, y).lineTo(doc.page.width - 40, y).lineWidth(0.5).strokeColor('#E5E7EB').stroke();
     }
   } else if (type === 'matches') {
     const matches = rows;
 
     if (matches.length === 0) {
-      doc.fillColor('#111827').fontSize(10).font('Helvetica-Oblique').text('No scheduled matches in system.', 30, y);
+      doc.fillColor('#000000').fontSize(10).font('Roboto').text('No scheduled matches in system.', 40, y);
     } else {
-      doc.rect(30, y, doc.page.width - 60, 20).fill('#1A1D24');
-      doc.fillColor('#FACC15').fontSize(8).font('Helvetica-Bold');
-      doc.text('CODE', 35, y + 5, { width: 95 });
-      doc.text('DATE & TIME', 130, y + 5, { width: 100 });
-      doc.text('MATCH FIXTURE', 230, y + 5, { width: 180 });
-      doc.text('SCORE / STATUS', 410, y + 5, { width: 140 });
+      doc.rect(40, y, doc.page.width - 80, 20).fill('#E5E7EB');
+      doc.fillColor('#000000').fontSize(8).font('Roboto-Bold');
+      doc.text('CODE', 48, y + 6, { width: 90 });
+      doc.text('DATE & TIME', 138, y + 6, { width: 100 });
+      doc.text('MATCH FIXTURE', 238, y + 6, { width: 170 });
+      doc.text('SCORE / STATUS', 408, y + 6, { width: 140 });
 
-      y += 24;
+      y += 20;
 
       matches.forEach((m, idx) => {
         if (y > 750) { doc.addPage(); y = 40; }
-        doc.rect(30, y - 2, doc.page.width - 60, 18).fill(idx % 2 === 0 ? '#F9FAFB' : '#FFFFFF');
-        doc.fillColor('#D97706').fontSize(8).font('Helvetica-Bold').text(m.match_code, 35, y, { width: 95 });
-        doc.fillColor('#111827').font('Helvetica').text(`${m.date} ${m.time}`, 130, y, { width: 100 });
-        doc.font('Helvetica-Bold').text(`${m.team_a_name} vs ${m.team_b_name}`, 230, y, { width: 180 });
-        doc.font('Helvetica-Bold').text(m.status === 'FULL_TIME' ? `${m.score_a} - ${m.score_b} (FT)` : m.status, 410, y, { width: 140 });
+        doc.rect(40, y, doc.page.width - 80, 20).fill(idx % 2 === 0 ? '#FFFFFF' : '#F9FAFB');
+        doc.fillColor('#000000').fontSize(8).font('Roboto-Bold').text(m.match_code, 48, y + 6, { width: 90 });
+        doc.font('Roboto').text(`${m.date} ${m.time}`, 138, y + 6, { width: 100 });
+        doc.font('Roboto-Bold').text(`${m.team_a_name} vs ${m.team_b_name}`, 238, y + 6, { width: 170 });
+        doc.font('Roboto-Bold').text(m.status === 'FULL_TIME' ? `${m.score_a} - ${m.score_b} (FT)` : m.status, 408, y + 6, { width: 140 });
         y += 20;
       });
+      doc.moveTo(40, y).lineTo(doc.page.width - 40, y).lineWidth(0.5).strokeColor('#E5E7EB').stroke();
     }
   }
 

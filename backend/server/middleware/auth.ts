@@ -14,12 +14,19 @@ export interface AuthenticatedRequest extends Request {
   };
 }
 export function authenticateAdmin(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  let token = '';
   const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+  
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    token = authHeader.split(' ')[1];
+  } else if (req.query.token && typeof req.query.token === 'string') {
+    token = req.query.token;
+  }
+
+  if (!token) {
     return res.status(401).json({ error: 'Unauthorized. Admin token required.' });
   }
 
-  const token = authHeader.split(' ')[1];
   try {
     const decoded = jwt.verify(token, getJwtSecret()) as { id: string; email: string; role?: string };
     if (decoded.role === 'manager') {
@@ -33,12 +40,19 @@ export function authenticateAdmin(req: AuthenticatedRequest, res: Response, next
 }
 
 export function authenticateManager(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  let token = '';
   const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+  
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    token = authHeader.split(' ')[1];
+  } else if (req.query.token && typeof req.query.token === 'string') {
+    token = req.query.token;
+  }
+
+  if (!token) {
     return res.status(401).json({ error: 'Unauthorized. Manager token required.' });
   }
 
-  const token = authHeader.split(' ')[1];
   try {
     const decoded = jwt.verify(token, getJwtSecret()) as { id: string; email: string; nation_id: string; role: string };
     if (decoded.role !== 'manager') {

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Trash, Edit } from 'react-iconly';
 import { api } from '../../lib/api';
 
 export const PredictionsModule: React.FC = () => {
@@ -60,6 +61,31 @@ export const PredictionsModule: React.FC = () => {
     return t ? t.name : 'Unknown';
   };
 
+  const handleDeletePrediction = async (id: string) => {
+    if (window.confirm('Are you sure you want to delete this prediction?')) {
+      try {
+        await api.adminDeletePrediction(id);
+        fetchPredictions(selectedMatchDayId);
+      } catch (err) {
+        alert('Failed to delete prediction');
+      }
+    }
+  };
+
+  const handlePredictionStatusUpdate = async (id: string) => {
+    const status = window.prompt('Enter result (WINNER, LOSER, PENDING):', 'PENDING');
+    if (status && ['WINNER', 'LOSER', 'PENDING'].includes(status.toUpperCase())) {
+      try {
+        await api.adminUpdatePredictionStatus(id, status.toUpperCase());
+        fetchPredictions(selectedMatchDayId);
+      } catch (err) {
+        alert('Failed to update prediction status');
+      }
+    } else if (status) {
+      alert('Invalid status. Please enter WINNER, LOSER, or PENDING.');
+    }
+  };
+
   const selectedMd = matchDays.find(m => m.id === selectedMatchDayId);
 
   return (
@@ -101,13 +127,15 @@ export const PredictionsModule: React.FC = () => {
               <th className="p-4">Match Winner</th>
               <th className="p-4">Score</th>
               <th className="p-4">Champion Pick</th>
+              <th className="p-4 text-center">Status</th>
+              <th className="p-4 text-right">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-surface-border">
             {isLoading ? (
-              <tr><td colSpan={5} className="p-8 text-center text-dark-muted">Loading...</td></tr>
+              <tr><td colSpan={7} className="p-8 text-center text-dark-muted">Loading...</td></tr>
             ) : predictions.length === 0 ? (
-              <tr><td colSpan={5} className="p-8 text-center text-dark-muted">No predictions found for this match day.</td></tr>
+              <tr><td colSpan={7} className="p-8 text-center text-dark-muted">No predictions found for this match day.</td></tr>
             ) : (
               predictions.map((item) => (
                 <tr key={item.id} className="hover:bg-surface-bg transition-colors">
@@ -119,6 +147,25 @@ export const PredictionsModule: React.FC = () => {
                   <td className="p-4">{item.predicted_winner_team_id ? getTeamName(item.predicted_winner_team_id) : 'Draw'}</td>
                   <td className="p-4 font-mono">{item.predicted_score_a} - {item.predicted_score_b}</td>
                   <td className="p-4 text-brand">{getTeamName(item.predicted_champion_team_id)}</td>
+                  <td className="p-4 text-center">
+                    <span className={`px-2 py-1 rounded text-[9px] font-black ${
+                      item.status === 'WINNER' ? 'bg-green-500/20 text-green-400' :
+                      item.status === 'LOSER' ? 'bg-red-500/20 text-red-400' :
+                      'bg-surface-card text-dark-muted'
+                    }`}>
+                      {item.status || 'PENDING'}
+                    </span>
+                  </td>
+                  <td className="p-4">
+                    <div className="flex items-center justify-end gap-2">
+                      <button onClick={() => handlePredictionStatusUpdate(item.id)} className="p-1.5 hover:bg-surface-border rounded text-dark-muted hover:text-brand transition-colors">
+                        <Edit set="bold" className="w-4 h-4" />
+                      </button>
+                      <button onClick={() => handleDeletePrediction(item.id)} className="p-1.5 hover:bg-surface-border rounded text-dark-muted hover:text-red-500 transition-colors">
+                        <Trash set="bold" className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </td>
                 </tr>
               ))
             )}

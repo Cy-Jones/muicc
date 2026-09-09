@@ -157,4 +157,13 @@ router.delete('/admin/:id', authenticateAdmin, async (req, res) => {
   return res.json({ success: true, message: 'Prediction entry deleted.' });
 });
 
+router.put('/admin/:id/status', authenticateAdmin, async (req, res) => {
+  const { status } = req.body;
+  if (!['WINNER', 'LOSER', 'PENDING'].includes(status)) {
+    return res.status(400).json({ error: 'Invalid status.' });
+  }
+  await db.prepare('UPDATE predictions SET status = ? WHERE id = ?').run(status, req.params.id);
+  return res.json({ success: true, message: `Prediction marked as ${status}.` });
+});
+
 export default router;

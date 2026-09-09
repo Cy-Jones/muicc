@@ -129,6 +129,7 @@ export const api = {
   },
   adminUpdateMatchDayPredictionStatus: (matchDayId: string, status: string) => request<any>(`/api/predictions/admin/match-day/${matchDayId}/status`, { method: 'PUT', body: JSON.stringify({ status }) }),
   adminDeletePrediction: (id: string) => request<any>(`/api/predictions/admin/${id}`, { method: 'DELETE' }),
+  adminUpdatePredictionStatus: (id: string, status: string) => request<any>(`/api/predictions/admin/${id}/status`, { method: 'PUT', body: JSON.stringify({ status }) }),
 
   // News
   getNews: () => request<any>('/api/news'),
@@ -156,9 +157,15 @@ export const api = {
   
   adminGetDashboardStats: () => request<any>('/api/admin/dashboard-stats'),
   adminGetAuditLogs: () => request<any>('/api/admin/audit-logs'),
-  getExportPdfUrl: (type: string) => `${API_BASE}/api/admin/export-pdf/${type}`,
+  getExportPdfUrl: (type: string) => {
+    const token = localStorage.getItem('adminToken') || '';
+    return `${API_BASE}/api/admin/export-pdf/${type}?token=${encodeURIComponent(token)}`;
+  },
   getPublicTeamsExportPdfUrl: () => `${API_BASE}/api/teams/export-pdf`,
-  getTeamExportPdfUrl: (teamId: string) => `${API_BASE}/api/teams/${teamId}/export-pdf`,
+  getTeamExportPdfUrl: (teamId: string) => {
+    const token = localStorage.getItem('managerToken') || '';
+    return `${API_BASE}/api/teams/${teamId}/export-pdf?token=${encodeURIComponent(token)}`;
+  },
 
   // File Upload
   uploadImage: async (file: File): Promise<{ url: string }> => {
