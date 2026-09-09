@@ -92,7 +92,7 @@ export const NewsPage: React.FC = () => {
                 <CloseSquare set="bold" className="w-5 h-5" />
               </button>
               
-              <div className="w-full h-64 sm:h-80 relative">
+              <div className="w-full relative bg-dark-bg flex items-center justify-center">
                 <img 
                   src={selectedArticle.image_url && selectedArticle.image_url.trim() ? selectedArticle.image_url.trim() : DEFAULT_NEWS_IMAGE} 
                   alt={selectedArticle.title} 
@@ -102,9 +102,9 @@ export const NewsPage: React.FC = () => {
                       target.src = DEFAULT_NEWS_IMAGE;
                     }
                   }}
-                  className="w-full h-full object-cover" 
+                  className="w-full h-auto max-h-[60vh] object-contain" 
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-surface-card to-transparent"></div>
+                <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-surface-card to-transparent pointer-events-none"></div>
               </div>
               
               <div className="p-8 sm:p-10 space-y-6 relative z-10 bg-surface-card">
