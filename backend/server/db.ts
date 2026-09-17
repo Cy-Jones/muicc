@@ -157,7 +157,12 @@ export async function initDatabase() {
     'ALTER TABLE matches ADD COLUMN live_pause_elapsed_seconds INTEGER DEFAULT 0;',
     'ALTER TABLE matches ADD COLUMN stoppage_time_1st INTEGER DEFAULT 0;',
     'ALTER TABLE matches ADD COLUMN stoppage_time_2nd INTEGER DEFAULT 0;',
-    'ALTER TABLE team_managers ADD COLUMN is_blocked INTEGER DEFAULT 0;'
+    'ALTER TABLE team_managers ADD COLUMN is_blocked INTEGER DEFAULT 0;',
+    'ALTER TABLE players ADD COLUMN course TEXT;',
+    'ALTER TABLE players ADD COLUMN preferred_foot TEXT DEFAULT \'Right\';',
+    'ALTER TABLE players ADD COLUMN medical_conditions TEXT;',
+    'ALTER TABLE players ADD COLUMN emergency_contact_name TEXT;',
+    'ALTER TABLE players ADD COLUMN emergency_contact_phone TEXT;'
   ];
   for (const sql of additions) {
     try { await getClient().execute(sql); } catch { /* column already exists */ }
