@@ -11,9 +11,8 @@ function getTeamRegion(team: any): string {
   const name = (team.country || team.name || '').toLowerCase();
   if (name.includes('liberia') || name.includes('nigeria')) return 'WEST_AFRICA';
   if (name.includes('tanzania') || name.includes('uganda')) return 'EAST_AFRICA';
-  if (name.includes('eswatini') || name.includes('zimbabwe') || name.includes('mozambique') || name.includes('zambia')) return 'SOUTHERN_AFRICA';
+  if (name.includes('eswatini') || name.includes('zimbabwe') || name.includes('mozambique')) return 'SOUTHERN_AFRICA';
   if (name.includes('south sudan')) return 'EAST_CENTRAL_AFRICA';
-  if (name.includes('india')) return 'SOUTH_ASIA';
   return 'OTHER';
 }
 

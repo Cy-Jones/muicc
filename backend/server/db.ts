@@ -260,11 +260,9 @@ async function seedNations() {
     { name: 'Tanzania', code: 'TZA', flag: '🇹🇿', order: 3 },
     { name: 'South Sudan', code: 'SSD', flag: '🇸🇸', order: 4 },
     { name: 'Zimbabwe', code: 'ZWE', flag: '🇿🇼', order: 5 },
-    { name: 'India', code: 'IND', flag: '🇮🇳', order: 6 },
     { name: 'Mozambique', code: 'MOZ', flag: '🇲🇿', order: 7 },
     { name: 'Nigeria', code: 'NGA', flag: '🇳🇬', order: 8 },
-    { name: 'Uganda', code: 'UGA', flag: '🇺🇬', order: 9 },
-    { name: 'Zambia', code: 'ZMB', flag: '🇿🇲', order: 10 }
+    { name: 'Uganda', code: 'UGA', flag: '🇺🇬', order: 9 }
   ];
   // Additive: insert only nations that are missing. Never clears the table.
   for (const nation of nations) {
