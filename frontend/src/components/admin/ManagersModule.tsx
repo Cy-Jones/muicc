@@ -53,6 +53,27 @@ export const ManagersModule: React.FC = () => {
     }
   };
 
+  const handleDelete = async (id: string, nationName: string) => {
+    if (!window.confirm(`Are you sure you want to delete the manager for ${nationName}? This action cannot be undone.`)) return;
+    try {
+      await api.adminDeleteManager(id);
+      loadData();
+    } catch (err: any) {
+      alert(err.message || 'Failed to delete manager');
+    }
+  };
+
+  const handleToggleBlock = async (id: string, currentlyBlocked: number, nationName: string) => {
+    const action = currentlyBlocked ? 'unblock' : 'block';
+    if (!window.confirm(`Are you sure you want to ${action} the manager for ${nationName}?`)) return;
+    try {
+      await api.adminBlockManager(id, !currentlyBlocked);
+      loadData();
+    } catch (err: any) {
+      alert(err.message || `Failed to ${action} manager`);
+    }
+  };
+
   const openModal = (nation_id?: string) => {
     if (nation_id) {
       const existing = managers.find(m => m.nation_id === nation_id);
@@ -100,12 +121,27 @@ export const ManagersModule: React.FC = () => {
             {managers.map(m => {
               const team = teams.find((t: any) => t.country === m.nation_name);
               return (
-              <tr key={m.id} className="hover:bg-surface-hover transition-colors">
-                <td className="p-4">{m.nation_name}</td>
+              <tr key={m.id} className={`hover:bg-surface-hover transition-colors ${m.is_blocked ? 'opacity-60' : ''}`}>
+                <td className="p-4 flex items-center gap-2">
+                  {m.nation_name}
+                  {m.is_blocked === 1 && <span className="bg-status-rejected/10 text-status-rejected text-[8px] font-black uppercase px-1.5 py-0.5 rounded">Blocked</span>}
+                </td>
                 <td className="p-4 text-brand">{m.email}</td>
                 <td className="p-4 text-dark-bg font-mono tracking-wider">{m.plain_password || '••••••••'}</td>
                 <td className="p-4 text-dark-muted">{new Date(m.created_at).toLocaleDateString()}</td>
-                <td className="p-4 text-right flex justify-end gap-2">
+                <td className="p-4 text-right flex justify-end gap-2 items-center">
+                  {m.is_blocked ? (
+                    <button onClick={() => handleToggleBlock(m.id, m.is_blocked, m.nation_name)} className="btn-outline text-[10px] py-1 px-2 border-status-completed text-status-completed hover:bg-status-completed/10">
+                      Unblock
+                    </button>
+                  ) : (
+                    <button onClick={() => handleToggleBlock(m.id, m.is_blocked, m.nation_name)} className="btn-outline text-[10px] py-1 px-2 border-status-warning text-status-warning hover:bg-status-warning/10">
+                      Block
+                    </button>
+                  )}
+                  <button onClick={() => handleDelete(m.id, m.nation_name)} className="btn-outline text-[10px] py-1 px-2 border-status-rejected text-status-rejected hover:bg-status-rejected/10">
+                    Delete
+                  </button>
                   <button onClick={() => openModal(m.nation_id)} className="btn-outline text-[10px] py-1 px-2">
                     Reset Password
                   </button>

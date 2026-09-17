@@ -156,7 +156,8 @@ export async function initDatabase() {
     'ALTER TABLE matches ADD COLUMN live_start_timestamp INTEGER;',
     'ALTER TABLE matches ADD COLUMN live_pause_elapsed_seconds INTEGER DEFAULT 0;',
     'ALTER TABLE matches ADD COLUMN stoppage_time_1st INTEGER DEFAULT 0;',
-    'ALTER TABLE matches ADD COLUMN stoppage_time_2nd INTEGER DEFAULT 0;'
+    'ALTER TABLE matches ADD COLUMN stoppage_time_2nd INTEGER DEFAULT 0;',
+    'ALTER TABLE team_managers ADD COLUMN is_blocked INTEGER DEFAULT 0;'
   ];
   for (const sql of additions) {
     try { await getClient().execute(sql); } catch { /* column already exists */ }

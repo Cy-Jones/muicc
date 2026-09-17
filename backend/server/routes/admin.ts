@@ -293,7 +293,7 @@ router.get('/export-pdf/:type', authenticateAdmin, async (req: AuthenticatedRequ
 // Get all managers
 router.get('/managers', authenticateAdmin, async (req: AuthenticatedRequest, res: Response) => {
   const managers = await db.prepare(`
-    SELECT m.id, m.email, m.plain_password, m.created_at, n.name as nation_name, n.id as nation_id
+    SELECT m.id, m.email, m.plain_password, m.created_at, m.is_blocked, n.name as nation_name, n.id as nation_id
     FROM team_managers m
     JOIN participating_nations n ON m.nation_id = n.id
   `).all();
@@ -327,6 +327,21 @@ router.post('/managers', authenticateAdmin, async (req: AuthenticatedRequest, re
   }
 
   return res.json({ success: true, message: 'Manager credentials updated' });
+});
+
+// Delete a manager
+router.delete('/managers/:id', authenticateAdmin, async (req: AuthenticatedRequest, res: Response) => {
+  const { id } = req.params;
+  await db.prepare('DELETE FROM team_managers WHERE id = ?').run(id);
+  return res.json({ success: true, message: 'Manager deleted' });
+});
+
+// Block/unblock a manager
+router.put('/managers/:id/block', authenticateAdmin, async (req: AuthenticatedRequest, res: Response) => {
+  const { id } = req.params;
+  const { blocked } = req.body;
+  await db.prepare('UPDATE team_managers SET is_blocked = ? WHERE id = ?').run(blocked ? 1 : 0, id);
+  return res.json({ success: true, message: blocked ? 'Manager blocked' : 'Manager unblocked' });
 });
 
 export default router;

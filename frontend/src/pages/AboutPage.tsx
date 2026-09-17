@@ -79,7 +79,7 @@ export const AboutPage: React.FC = () => {
           <h2 className="font-heading text-2xl font-black text-white border-b border-surface-border pb-3">TOURNAMENT OVERVIEW</h2>
           <div className="text-sm text-dark-surface space-y-4 leading-relaxed">
             <p>
-              The <strong>MULSU ICC '26 Champions Cup</strong> represents the premier collegiate football tournament uniting student athletes across 10 nations: <strong>Liberia, Eswatini, Tanzania, South Sudan, Zimbabwe, India, Mozambique, Nigeria, Uganda, and Zambia</strong>.
+              The <strong>MULSU ICC '26 Champions Cup</strong> represents the premier collegiate football tournament uniting student athletes across 8 nations: <strong>Liberia, Eswatini, Tanzania, South Sudan, Zimbabwe, Mozambique, Nigeria, and Uganda</strong>.
             </p>
             <p>
               Hosted at the state-of-the-art facilities of <strong>Marwadi University Campus</strong>, the 14-day tournament showcases group stage competition, knockout rounds, and the championship grand final.
@@ -88,18 +88,16 @@ export const AboutPage: React.FC = () => {
 
           <div className="pt-4 border-t border-surface-border">
             <h3 className="font-heading text-sm font-bold text-gold uppercase tracking-wider mb-4">Participating Nations</h3>
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               {[
                 { name: 'Liberia', code: 'lbr' },
                 { name: 'Eswatini', code: 'swz' },
                 { name: 'Tanzania', code: 'tza' },
                 { name: 'South Sudan', code: 'ssd' },
                 { name: 'Zimbabwe', code: 'zwe' },
-                { name: 'India', code: 'ind' },
                 { name: 'Mozambique', code: 'moz' },
                 { name: 'Nigeria', code: 'nga' },
-                { name: 'Uganda', code: 'uga' },
-                { name: 'Zambia', code: 'zmb' }
+                { name: 'Uganda', code: 'uga' }
               ].map(nation => (
                 <div key={nation.code} className="flex items-center gap-3 p-3 bg-[#0f1115] border border-gray-800 rounded-lg hover:border-gold/50 transition">
                   <img 

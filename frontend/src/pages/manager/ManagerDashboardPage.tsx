@@ -7,8 +7,8 @@ import { motion } from 'framer-motion';
 const getCountryFlag = (country: string) => {
   const map: Record<string, string> = {
     'Liberia': '🇱🇷', 'Eswatini': '🇸🇿', 'Tanzania': '🇹🇿',
-    'South Sudan': '🇸🇸', 'Zimbabwe': '🇿🇼', 'India': '🇮🇳',
-    'Mozambique': '🇲🇿', 'Nigeria': '🇳🇬', 'Uganda': '🇺🇬', 'Zambia': '🇿🇲'
+    'South Sudan': '🇸🇸', 'Zimbabwe': '🇿🇼',
+    'Mozambique': '🇲🇿', 'Nigeria': '🇳🇬', 'Uganda': '🇺🇬'
   };
   return map[country] || '🏳️';
 };
@@ -31,37 +31,43 @@ export const ManagerDashboardPage: React.FC = () => {
   const [isEditingTeam, setIsEditingTeam] = useState(false);
   const [teamForm, setTeamForm] = useState<any>({});
 
-  const handlePhotoFileUpload = (formType: 'add' | 'edit', event: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoFileUpload = async (formType: 'add' | 'edit', event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
         alert('Player photo file size must be less than 5MB.');
         return;
       }
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        if (formType === 'add') {
-          setAddForm(prev => ({ ...prev, photo_url: reader.result as string }));
-        } else {
-          setEditForm(prev => ({ ...prev, photo_url: reader.result as string }));
+      try {
+        const res = await api.uploadImage(file);
+        if (res && res.url) {
+          if (formType === 'add') {
+            setAddForm(prev => ({ ...prev, photo_url: res.url }));
+          } else {
+            setEditForm(prev => ({ ...prev, photo_url: res.url }));
+          }
         }
-      };
-      reader.readAsDataURL(file);
+      } catch (err: any) {
+        alert(err.message || 'Failed to upload photo.');
+      }
     }
   };
 
-  const handleTeamLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleTeamLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
         alert('Team logo file size must be less than 5MB.');
         return;
       }
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setTeamForm((prev: any) => ({ ...prev, logo_url: reader.result as string }));
-      };
-      reader.readAsDataURL(file);
+      try {
+        const res = await api.uploadImage(file);
+        if (res && res.url) {
+          setTeamForm((prev: any) => ({ ...prev, logo_url: res.url }));
+        }
+      } catch (err: any) {
+        alert(err.message || 'Failed to upload logo.');
+      }
     }
   };
 

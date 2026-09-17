@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS team_managers (
   email TEXT UNIQUE NOT NULL,
   password_hash TEXT NOT NULL,
   plain_password TEXT,
+  is_blocked INTEGER DEFAULT 0,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (nation_id) REFERENCES participating_nations(id) ON DELETE CASCADE
 );

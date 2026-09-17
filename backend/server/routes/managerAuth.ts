@@ -20,6 +20,10 @@ router.post('/login', async (req, res) => {
     return res.status(401).json({ error: 'Invalid credentials.' });
   }
 
+  if (manager.is_blocked === 1) {
+    return res.status(403).json({ error: 'Your access has been temporarily blocked. Please contact the administrator.' });
+  }
+
   // Get nation info
   const nation = await db.prepare('SELECT * FROM participating_nations WHERE id = ?').get(manager.nation_id) as any;
 

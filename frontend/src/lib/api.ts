@@ -155,6 +155,11 @@ export const api = {
     method: 'POST',
     body: JSON.stringify(data)
   }),
+  adminDeleteManager: (id: string) => request<any>(`/api/admin/managers/${id}`, { method: 'DELETE' }),
+  adminBlockManager: (id: string, blocked: boolean) => request<any>(`/api/admin/managers/${id}/block`, {
+    method: 'PUT',
+    body: JSON.stringify({ blocked })
+  }),
   
   adminGetDashboardStats: () => request<any>('/api/admin/dashboard-stats'),
   adminGetAuditLogs: () => request<any>('/api/admin/audit-logs'),

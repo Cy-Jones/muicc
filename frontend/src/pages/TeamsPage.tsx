@@ -7,8 +7,8 @@ import { Home, Location, TwoUsers, CloseSquare, ShieldDone, Document, Plus } fro
 const getCountryFlag = (country: string) => {
   const map: Record<string, string> = {
     'Liberia': '🇱🇷', 'Eswatini': '🇸🇿', 'Tanzania': '🇹🇿',
-    'South Sudan': '🇸🇸', 'Zimbabwe': '🇿🇼', 'India': '🇮🇳',
-    'Mozambique': '🇲🇿', 'Nigeria': '🇳🇬', 'Uganda': '🇺🇬', 'Zambia': '🇿🇲'
+    'South Sudan': '🇸🇸', 'Zimbabwe': '🇿🇼',
+    'Mozambique': '🇲🇿', 'Nigeria': '🇳🇬', 'Uganda': '🇺🇬'
   };
   return map[country] || '🏳️';
 };

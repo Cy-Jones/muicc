@@ -98,20 +98,25 @@ export const TeamRegistrationPage: React.FC = () => {
   const [lookupError, setLookupError] = useState('');
   const [searching, setSearching] = useState(false);
 
-  const handlePhotoFileUpload = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoFileUpload = async (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 5 * 1024 * 1024) {
       setErrorMessage('Player photo file size must be less than 5MB.');
       return;
     }
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      if (event.target?.result) {
-        handlePlayerChange(index, 'photo_url', event.target.result as string);
+    
+    setSubmitting(true);
+    try {
+      const res = await api.uploadImage(file);
+      if (res && res.url) {
+        handlePlayerChange(index, 'photo_url', res.url);
       }
-    };
-    reader.readAsDataURL(file);
+    } catch (err: any) {
+      setErrorMessage(err.message || 'Failed to upload photo.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleAddPlayer = () => {
@@ -287,7 +292,7 @@ export const TeamRegistrationPage: React.FC = () => {
                         value={formData.country}
                         onChange={(e) => setFormData({...formData, country: e.target.value})}
                         className="w-full input-field opacity-70 cursor-not-allowed"
-                      >  {['Liberia','Eswatini','Tanzania','South Sudan','Zimbabwe','India','Mozambique','Nigeria','Uganda','Zambia'].map(c => (
+                      >  {['Liberia','Eswatini','Tanzania','South Sudan','Zimbabwe','Mozambique','Nigeria','Uganda'].map(c => (
                           <option key={c} value={c}>{c}</option>
                         ))}
                       </select>
