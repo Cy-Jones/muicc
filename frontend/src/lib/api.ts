@@ -75,6 +75,7 @@ export const api = {
   adminUpdateTeamStatus: (id: string, status: string) => request<any>(`/api/teams/admin/${id}/status`, { method: 'PUT', body: JSON.stringify({ status }) }),
   adminSaveTeam: (payload: any) => request<any>('/api/teams/admin/save', { method: 'POST', body: JSON.stringify(payload) }),
   adminDeleteTeam: (id: string) => request<any>(`/api/teams/admin/${id}`, { method: 'DELETE' }),
+  adminTeamMessage: (id: string, message: string | null) => request<any>(`/api/admin/teams/${id}/admin-message`, { method: 'POST', body: JSON.stringify({ message }) }),
 
   // Players
   getPlayers: (params?: any) => {

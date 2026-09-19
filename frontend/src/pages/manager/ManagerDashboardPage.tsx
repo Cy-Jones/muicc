@@ -212,6 +212,15 @@ export const ManagerDashboardPage: React.FC = () => {
         </div>
       </div>
 
+      {team.admin_message && (
+        <div className="bg-status-warning/10 border border-status-warning/30 p-5 rounded-xl space-y-2">
+          <div className="flex items-center gap-2 text-status-warning">
+            <h4 className="font-bold uppercase tracking-widest text-xs">Admin Announcement</h4>
+          </div>
+          <p className="text-sm text-dark-bg whitespace-pre-wrap">{team.admin_message}</p>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-surface-card rounded-xl border border-surface-border p-6 flex items-center gap-4">
           <div className="w-12 h-12 rounded-full bg-brand/10 text-brand flex items-center justify-center">

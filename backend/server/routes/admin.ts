@@ -344,4 +344,16 @@ router.put('/managers/:id/block', authenticateAdmin, async (req: AuthenticatedRe
   return res.json({ success: true, message: blocked ? 'Manager blocked' : 'Manager unblocked' });
 });
 
+// Update or remove an admin message for a team
+router.post('/teams/:id/admin-message', authenticateAdmin, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { message } = req.body;
+    await db.prepare('UPDATE teams SET admin_message = ? WHERE id = ?').run(message || null, id);
+    return res.json({ success: true, message: 'Message updated' });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
 export default router;

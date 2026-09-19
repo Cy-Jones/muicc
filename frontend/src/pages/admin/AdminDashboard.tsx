@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api, getAuthToken, removeAuthToken } from '../../lib/api';
 import { getMatchLiveClock } from '../../lib/liveClock';
-import { Star, TwoUsers, ShieldDone, Calendar, Activity, Discovery, Document, Image, Lock, Plus, Delete, Play, TimeCircle, Danger, CloseSquare, Swap, Edit, TickSquare, Search } from 'react-iconly';
+import { Star, TwoUsers, ShieldDone, Calendar, Activity, Discovery, Document, Image, Lock, Plus, Delete, Play, TimeCircle, Danger, CloseSquare, Swap, Edit, TickSquare, Search, Message } from 'react-iconly';
 
 import { NewsModule } from '../../components/admin/NewsModule';
 import { GalleryModule } from '../../components/admin/GalleryModule';
@@ -22,6 +22,10 @@ export const AdminDashboard: React.FC = () => {
   const [predictions, setPredictions] = useState<any[]>([]);
   const [sponsors, setSponsors] = useState<any[]>([]);
   const [news, setNews] = useState<any[]>([]);
+  
+  const [messageModalTeam, setMessageModalTeam] = useState<any>(null);
+  const [adminMessageInput, setAdminMessageInput] = useState('');
+  const [isMessageModalOpen, setIsMessageModalOpen] = useState(false);
   const [gallery, setGallery] = useState<any[]>([]);
   const [draw, setDraw] = useState<any[]>([]);
   const [bracket, setBracket] = useState<any>(null);
@@ -176,6 +180,24 @@ export const AdminDashboard: React.FC = () => {
       loadAllAdminData();
     } catch (err: any) {
       alert(err.message);
+    }
+  };
+
+  const openMessageModal = (team: any) => {
+    setMessageModalTeam(team);
+    setAdminMessageInput(team.admin_message || '');
+    setIsMessageModalOpen(true);
+  };
+
+  const handleSaveMessage = async () => {
+    if (!messageModalTeam) return;
+    try {
+      await api.adminTeamMessage(messageModalTeam.id, adminMessageInput);
+      setIsMessageModalOpen(false);
+      setMessageModalTeam(null);
+      loadAllAdminData();
+    } catch (err: any) {
+      alert(err.message || 'Failed to update message');
     }
   };
 
@@ -390,7 +412,7 @@ export const AdminDashboard: React.FC = () => {
             {/* Operations Status & Verification Panel */}
             {(() => {
               const pendingTeamsCount = teams.filter(t => t.status === 'PENDING').length;
-              const pendingPlayersCount = players.filter(p => p.status === 'PENDING').length;
+              const pendingPlayersCount = players.filter(p => p.status === 'SUBMITTED' || p.status === 'UNDER_REVIEW').length;
               
               const approvedTeams = teams.filter(t => t.status === 'APPROVED');
               const approvedPlayers = players.filter(p => p.status === 'APPROVED');
@@ -746,6 +768,9 @@ export const AdminDashboard: React.FC = () => {
                         <td className="p-4 text-right space-x-2 flex items-center justify-end">
                           {t.status !== 'APPROVED' && <button onClick={() => handleUpdateTeamStatus(t.id, 'APPROVED')} className="action-btn bg-status-completed/10 text-status-completed border-status-completed/30 hover:bg-status-completed/20">Approve</button>}
                           {t.status !== 'REJECTED' && <button onClick={() => handleUpdateTeamStatus(t.id, 'REJECTED')} className="action-btn bg-status-error/10 text-status-error border-status-error/30 hover:bg-status-error/20">Reject</button>}
+                          <button onClick={() => openMessageModal(t)} className="p-1.5 rounded bg-brand/10 text-brand hover:bg-brand hover:text-black transition-colors" title="Send Message">
+                            <Message set="bold" className="w-4 h-4" />
+                          </button>
                           <button onClick={() => handleDeleteTeam(t.id)} className="p-1.5 rounded bg-status-error/10 text-status-error hover:bg-status-error hover:text-white transition-colors" title="Delete Team">
                             <Delete set="bold" className="w-4 h-4" />
                           </button>
@@ -905,6 +930,27 @@ export const AdminDashboard: React.FC = () => {
         .status-error { background-color: rgba(239, 68, 68, 0.15); color: #f87171; border-color: rgba(239, 68, 68, 0.4); }
         .status-warning { background-color: rgba(234, 179, 8, 0.15); color: #facc15; border-color: rgba(234, 179, 8, 0.4); }
       `}</style>
+      {isMessageModalOpen && messageModalTeam && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-surface-card w-full max-w-md rounded-2xl border border-surface-border p-6 shadow-2xl relative">
+            <button onClick={() => setIsMessageModalOpen(false)} className="absolute top-4 right-4 text-dark-muted hover:text-brand">
+              <CloseSquare set="bold" className="w-6 h-6" />
+            </button>
+            <h2 className="font-heading text-xl font-black text-dark-bg uppercase tracking-widest mb-2">Message {messageModalTeam.name}</h2>
+            <p className="text-xs text-dark-muted mb-4 font-medium">This message will appear on the manager's dashboard.</p>
+            <textarea
+              value={adminMessageInput}
+              onChange={(e) => setAdminMessageInput(e.target.value)}
+              placeholder="Enter message here (leave blank to clear)..."
+              className="w-full h-32 input-field mb-4 resize-none"
+            />
+            <div className="flex gap-3">
+              <button onClick={() => setIsMessageModalOpen(false)} className="btn-outline flex-1">Cancel</button>
+              <button onClick={handleSaveMessage} className="btn-primary flex-1">Save Message</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

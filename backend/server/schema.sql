@@ -53,6 +53,7 @@ CREATE TABLE IF NOT EXISTS teams (
   manager_email TEXT NOT NULL,
   manager_phone TEXT NOT NULL,
   description TEXT,
+  admin_message TEXT,
   status TEXT CHECK(status IN ('PENDING', 'APPROVED', 'CHANGES_REQUIRED', 'REJECTED')) DEFAULT 'PENDING',
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
