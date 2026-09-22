@@ -71,7 +71,7 @@ export const AboutPage: React.FC = () => {
           <div className="card-dark p-6 space-y-2 border-t-2 border-gold text-center">
             <Discovery set="bold" className="w-8 h-8 text-gold mx-auto" />
             <h3 className="font-heading font-bold text-white text-base">NATIONS</h3>
-            <p className="text-xs text-dark-muted">8 Participating University Nations</p>
+            <p className="text-xs text-dark-muted">7 Participating University Nations</p>
           </div>
         </div>
 

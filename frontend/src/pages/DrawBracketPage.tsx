@@ -90,9 +90,9 @@ export const DrawBracketPage: React.FC = () => {
               Official group draw and knockout bracket progression.
             </p>
           </div>
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded bg-surface-bg border border-surface-border text-dark-muted text-[10px] font-bold uppercase tracking-widest">
-            <Discovery set="bold" className="w-3.5 h-3.5 text-brand" />
-            10 NATIONS • 3 GROUPS • 8-TEAM KNOCKOUT
+          <div className="flex items-center gap-2 text-xs font-bold text-dark-muted border border-surface-border bg-dark-bg/50 px-3 py-1.5 rounded-md w-fit">
+            <Shield set="bold" className="w-4 h-4 text-brand" />
+            7 NATIONS • 3 GROUPS • 4-TEAM KNOCKOUT
           </div>
         </div>
 
@@ -113,19 +113,19 @@ export const DrawBracketPage: React.FC = () => {
         </div>
       )}
 
-      {/* QUALIFICATION RULE BANNER */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="data-card p-4 space-y-1">
-          <p className="font-bold text-dark-bg text-sm uppercase tracking-wide">Top 2 Qualifiers</p>
-          <p className="text-dark-surface text-xs font-medium">1st and 2nd highest placed teams in Group A, B, and C automatically advance.</p>
+      {/* Info Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
+        <div className="card-dark p-4 border-l-2 border-brand">
+          <h4 className="font-heading font-black text-sm text-white mb-1 uppercase tracking-wide">GROUP WINNERS</h4>
+          <p className="text-xs text-dark-muted leading-relaxed">The 1st placed teams in Group A, B, and C automatically advance.</p>
         </div>
-        <div className="data-card p-4 space-y-1">
-          <p className="font-bold text-dark-bg text-sm uppercase tracking-wide">2 Best Losers</p>
-          <p className="text-dark-surface text-xs font-medium">The 2 highest ranked 3rd-place teams (WC1 & WC2) fill the remaining 2 Quarter-Final spots.</p>
+        <div className="card-dark p-4 border-l-2 border-gold">
+          <h4 className="font-heading font-black text-sm text-white mb-1 uppercase tracking-wide">BEST RUNNER-UP</h4>
+          <p className="text-xs text-dark-muted leading-relaxed">The highest ranked 2nd-place team across all groups fills the remaining Semi-Final spot.</p>
         </div>
-        <div className="data-card p-4 space-y-1">
-          <p className="font-bold text-dark-bg text-sm uppercase tracking-wide">8-Team Knockout</p>
-          <p className="text-dark-surface text-xs font-medium">8 Teams battle in Quarter-Finals ➔ Semi-Finals ➔ Championship Final.</p>
+        <div className="card-dark p-4 border-l-2 border-green-500">
+          <h4 className="font-heading font-black text-sm text-white mb-1 uppercase tracking-wide">4-TEAM KNOCKOUT</h4>
+          <p className="text-xs text-dark-muted leading-relaxed">4 Teams battle in Semi-Finals ➔ Championship Final.</p>
         </div>
       </div>
 
