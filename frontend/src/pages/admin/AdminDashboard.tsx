@@ -339,12 +339,15 @@ export const AdminDashboard: React.FC = () => {
     { key: 'EXPORTS', label: 'Exports', icon: Document },
   ];
 
-  const filteredPlayers = players.filter(p => 
-    p.full_name?.toLowerCase().includes(playerSearchQuery.toLowerCase()) || 
-    p.team_name?.toLowerCase().includes(playerSearchQuery.toLowerCase()) || 
-    p.player_id?.toLowerCase().includes(playerSearchQuery.toLowerCase()) ||
-    p.university?.toLowerCase().includes(playerSearchQuery.toLowerCase())
-  );
+  const filteredPlayers = players.filter(p => {
+    const q = playerSearchQuery.toLowerCase();
+    return (
+      (p.full_name || '').toLowerCase().includes(q) || 
+      (p.team_name || '').toLowerCase().includes(q) || 
+      (p.player_id || '').toLowerCase().includes(q) ||
+      (p.university || '').toLowerCase().includes(q)
+    );
+  });
 
   return (
     <div className="space-y-6">
