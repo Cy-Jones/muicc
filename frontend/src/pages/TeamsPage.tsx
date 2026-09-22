@@ -87,9 +87,11 @@ export const TeamsPage: React.FC = () => {
                 <span className="flex items-center gap-1.5 font-bold">
                   <TwoUsers set="bold" className="w-4 h-4 text-dark-muted" /> {team.player_count || 0} Players
                 </span>
+                {/* Temporarily hidden until draw is completed 
                 <span className="px-2 py-1 rounded bg-brand/10 text-brand-dark font-bold uppercase border border-brand/20">
                   {team.group_name || 'Group Phase'}
                 </span>
+                */}
               </div>
             </div>
           ))}
