@@ -33,6 +33,10 @@ export const AdminDashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
 
+  // Player Search & View State
+  const [playerSearchQuery, setPlayerSearchQuery] = useState('');
+  const [viewingPlayer, setViewingPlayer] = useState<any>(null);
+
   // Match Filter & Creation Modal State
   const [matchFilter, setMatchFilter] = useState<'ALL' | 'LIVE' | 'SCHEDULED' | 'FULL_TIME'>('ALL');
   const [showCreateMatchModal, setShowCreateMatchModal] = useState(false);
@@ -334,6 +338,13 @@ export const AdminDashboard: React.FC = () => {
     { key: 'MANAGERS', label: 'Managers', icon: Lock },
     { key: 'EXPORTS', label: 'Exports', icon: Document },
   ];
+
+  const filteredPlayers = players.filter(p => 
+    p.full_name?.toLowerCase().includes(playerSearchQuery.toLowerCase()) || 
+    p.team_name?.toLowerCase().includes(playerSearchQuery.toLowerCase()) || 
+    p.player_id?.toLowerCase().includes(playerSearchQuery.toLowerCase()) ||
+    p.university?.toLowerCase().includes(playerSearchQuery.toLowerCase())
+  );
 
   return (
     <div className="space-y-6">
@@ -785,8 +796,18 @@ export const AdminDashboard: React.FC = () => {
 
           {activeTab === 'PLAYERS' && (
             <div className="bg-surface-card rounded-xl border border-surface-border overflow-hidden">
-              <div className="p-4 border-b border-surface-border bg-surface-bg">
-                <h2 className="font-heading text-lg font-black text-dark-bg uppercase tracking-widest">Player Approvals ({players.length})</h2>
+              <div className="p-4 border-b border-surface-border bg-surface-bg flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <h2 className="font-heading text-lg font-black text-dark-bg uppercase tracking-widest">Player Approvals ({filteredPlayers.length})</h2>
+                <div className="relative w-full md:w-auto">
+                  <Search set="light" className="w-4 h-4 text-dark-muted absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    placeholder="Search name, ID, team..."
+                    value={playerSearchQuery}
+                    onChange={(e) => setPlayerSearchQuery(e.target.value)}
+                    className="admin-input pl-10 text-xs w-full md:w-64"
+                  />
+                </div>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-[10px] font-bold uppercase tracking-widest text-dark-bg">
@@ -794,7 +815,7 @@ export const AdminDashboard: React.FC = () => {
                     <tr><th className="p-4">Player ID</th><th className="p-4">Athlete Name</th><th className="p-4">Team</th><th className="p-4">Pos</th><th className="p-4">Jersey</th><th className="p-4">Status</th><th className="p-4 text-right">Actions</th></tr>
                   </thead>
                   <tbody className="divide-y divide-surface-border">
-                    {players.map((p) => (
+                    {filteredPlayers.map((p) => (
                       <tr key={p.id} className="hover:bg-surface-bg transition-colors">
                         <td className="p-4 text-brand font-mono">{p.player_id || 'PENDING'}</td>
                         <td className="p-4 text-dark-bg flex items-center gap-3">
@@ -808,6 +829,7 @@ export const AdminDashboard: React.FC = () => {
                         <td className="p-4 text-brand">#{p.jersey_number}</td>
                         <td className="p-4"><span className={`status-badge ${p.status === 'APPROVED' ? 'status-completed' : p.status === 'REJECTED' ? 'status-error' : 'status-warning'}`}>{p.status}</span></td>
                         <td className="p-4 text-right space-x-2 flex items-center justify-end">
+                          <button onClick={() => setViewingPlayer(p)} className="action-btn bg-brand/10 text-brand border-brand/30 hover:bg-brand/20" title="View Details">Details</button>
                           {p.status !== 'APPROVED' && <button onClick={() => handleUpdatePlayerStatus(p.id, 'APPROVED')} className="action-btn bg-status-completed/10 text-status-completed border-status-completed/30 hover:bg-status-completed/20">Approve</button>}
                           {p.status !== 'REJECTED' && <button onClick={() => handleUpdatePlayerStatus(p.id, 'REJECTED')} className="action-btn bg-status-error/10 text-status-error border-status-error/30 hover:bg-status-error/20">Reject</button>}
                           <button onClick={() => handleDeletePlayer(p.id)} className="p-1.5 rounded bg-status-error/10 text-status-error hover:bg-status-error hover:text-white transition-colors" title="Delete Player">
@@ -947,6 +969,71 @@ export const AdminDashboard: React.FC = () => {
             <div className="flex gap-3">
               <button onClick={() => setIsMessageModalOpen(false)} className="btn-outline flex-1">Cancel</button>
               <button onClick={handleSaveMessage} className="btn-primary flex-1">Save Message</button>
+            </div>
+          </div>
+        </div>
+      {/* Player Details Modal */}
+      {viewingPlayer && (
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-surface-card w-full max-w-2xl p-6 rounded-xl border border-surface-border shadow-2xl animate-fade-in space-y-6">
+            <div className="flex justify-between items-center border-b border-surface-border pb-3">
+              <h3 className="font-heading text-lg font-black text-dark-bg uppercase tracking-widest flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-surface-bg border border-surface-border overflow-hidden flex-shrink-0">
+                  {viewingPlayer.photo_url && <img src={viewingPlayer.photo_url} alt="" className="w-full h-full object-cover" />}
+                </div>
+                Player Details: {viewingPlayer.full_name}
+              </h3>
+              <button onClick={() => setViewingPlayer(null)} className="text-dark-muted hover:text-dark-bg">
+                <CloseSquare set="bold" className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-[10px] font-black text-dark-muted uppercase tracking-widest mb-1">Registration Information</label>
+                  <div className="bg-surface-bg border border-surface-border p-3 rounded-lg space-y-2 text-xs">
+                    <p className="flex justify-between"><span className="text-dark-muted">Player ID:</span> <span className="font-mono text-brand">{viewingPlayer.player_id || 'PENDING'}</span></p>
+                    <p className="flex justify-between"><span className="text-dark-muted">Team:</span> <span className="font-bold">{viewingPlayer.team_name}</span></p>
+                    <p className="flex justify-between"><span className="text-dark-muted">Status:</span> <span className="font-bold">{viewingPlayer.status}</span></p>
+                    <p className="flex justify-between"><span className="text-dark-muted">Registration Date:</span> <span>{new Date(viewingPlayer.created_at).toLocaleDateString()}</span></p>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-black text-dark-muted uppercase tracking-widest mb-1">Personal Details</label>
+                  <div className="bg-surface-bg border border-surface-border p-3 rounded-lg space-y-2 text-xs">
+                    <p className="flex justify-between"><span className="text-dark-muted">Date of Birth:</span> <span>{new Date(viewingPlayer.dob).toLocaleDateString()}</span></p>
+                    <p className="flex justify-between"><span className="text-dark-muted">Nationality:</span> <span>{viewingPlayer.nationality}</span></p>
+                    <p className="flex justify-between"><span className="text-dark-muted">Emergency Contact:</span> <span>{viewingPlayer.emergency_contact || 'N/A'}</span></p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-[10px] font-black text-dark-muted uppercase tracking-widest mb-1">Athletic Profile</label>
+                  <div className="bg-surface-bg border border-surface-border p-3 rounded-lg space-y-2 text-xs">
+                    <p className="flex justify-between"><span className="text-dark-muted">Position:</span> <span>{viewingPlayer.position}</span></p>
+                    <p className="flex justify-between"><span className="text-dark-muted">Jersey Number:</span> <span>#{viewingPlayer.jersey_number}</span></p>
+                    <p className="flex justify-between"><span className="text-dark-muted">Preferred Foot:</span> <span>{viewingPlayer.preferred_foot}</span></p>
+                    <p className="flex justify-between"><span className="text-dark-muted">Medical Conditions:</span> <span>{viewingPlayer.medical_conditions || 'None'}</span></p>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-black text-dark-muted uppercase tracking-widest mb-1">Academic Information</label>
+                  <div className="bg-surface-bg border border-surface-border p-3 rounded-lg space-y-2 text-xs">
+                    <p className="flex justify-between"><span className="text-dark-muted">Student ID:</span> <span className="font-mono text-brand">{viewingPlayer.student_id}</span></p>
+                    <p className="flex justify-between"><span className="text-dark-muted">University:</span> <span>{viewingPlayer.university}</span></p>
+                    <p className="flex justify-between"><span className="text-dark-muted">Course/Major:</span> <span>{viewingPlayer.course || 'N/A'}</span></p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex justify-end pt-4 border-t border-surface-border">
+               <button onClick={() => setViewingPlayer(null)} className="btn-outline px-6 py-2 text-xs uppercase tracking-widest">Close</button>
             </div>
           </div>
         </div>
