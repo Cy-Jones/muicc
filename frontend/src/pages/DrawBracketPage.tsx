@@ -91,7 +91,7 @@ export const DrawBracketPage: React.FC = () => {
             </p>
           </div>
           <div className="flex items-center gap-2 text-xs font-bold text-dark-muted border border-surface-border bg-dark-bg/50 px-3 py-1.5 rounded-md w-fit">
-            <Shield set="bold" className="w-4 h-4 text-brand" />
+            <Discovery set="bold" className="w-4 h-4 text-brand" />
             7 NATIONS • 3 GROUPS • 4-TEAM KNOCKOUT
           </div>
         </div>
