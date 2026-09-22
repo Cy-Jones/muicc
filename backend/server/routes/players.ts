@@ -6,6 +6,24 @@ import { asyncRouter } from '../middleware/asyncRouter.js';
 
 const router = asyncRouter();
 
+async function executeWithRetry<T>(operation: () => Promise<T>, maxRetries = 5): Promise<T> {
+  let retries = maxRetries;
+  while (retries > 0) {
+    try {
+      return await operation();
+    } catch (err: any) {
+      if (err.message && (err.message.includes('UNIQUE constraint failed') || err.message.includes('SQLITE_CONSTRAINT'))) {
+        retries--;
+        if (retries === 0) throw err;
+        await new Promise(res => setTimeout(res, 100 + Math.random() * 200));
+      } else {
+        throw err;
+      }
+    }
+  }
+  throw new Error('Operation failed after retries');
+}
+
 async function generatePlayerId(): Promise<string> {
   const countRow = (await db.prepare("SELECT COUNT(*) as count FROM players WHERE player_id IS NOT NULL").get() as any)?.count || 0;
   const seq = (countRow + 1).toString().padStart(4, '0');
@@ -126,42 +144,47 @@ router.post('/admin/save', authenticateAdmin, async (req, res) => {
     let playerId = existing.player_id;
     const targetStatus = status || existing.status;
 
-    if (targetStatus === 'APPROVED' && !playerId) {
-      playerId = await generatePlayerId();
-    }
+    await executeWithRetry(async () => {
+      if (targetStatus === 'APPROVED' && !existing.player_id) {
+        playerId = await generatePlayerId();
+      }
 
-    await db.prepare(`
-      UPDATE players
-      SET team_id = ?, full_name = ?, photo_url = ?, dob = ?, nationality = ?, student_id = ?, university = ?, position = ?, jersey_number = ?, preferred_foot = ?, emergency_contact = ?, status = ?, player_id = ?
-      WHERE id = ?
-    `).run(team_id, full_name, photo_url, dob, nationality, student_id, university, position, jersey_number, preferred_foot || 'Right', emergency_contact, targetStatus, playerId, id);
-
-    if (targetStatus === 'APPROVED' && playerId) {
-      const qrDataUrl = await QRCode.toDataURL(`https://miucc2026.org/player/${playerId}`);
       await db.prepare(`
-        INSERT OR REPLACE INTO player_cards (id, player_id, qr_code_url, card_data)
-        VALUES (?, ?, ?, ?)
-      `).run(crypto.randomUUID(), playerId, qrDataUrl, JSON.stringify({ verified: true, player_id: playerId }));
-    }
+        UPDATE players
+        SET team_id = ?, full_name = ?, photo_url = ?, dob = ?, nationality = ?, student_id = ?, university = ?, position = ?, jersey_number = ?, preferred_foot = ?, emergency_contact = ?, status = ?, player_id = ?
+        WHERE id = ?
+      `).run(team_id, full_name, photo_url, dob, nationality, student_id, university, position, jersey_number, preferred_foot || 'Right', emergency_contact, targetStatus, playerId, id);
+
+      if (targetStatus === 'APPROVED' && playerId) {
+        const qrDataUrl = await QRCode.toDataURL(`https://miucc2026.org/player/${playerId}`);
+        await db.prepare(`
+          INSERT OR REPLACE INTO player_cards (id, player_id, qr_code_url, card_data)
+          VALUES (?, ?, ?, ?)
+        `).run(crypto.randomUUID(), playerId, qrDataUrl, JSON.stringify({ verified: true, player_id: playerId }));
+      }
+    });
 
     return res.json({ success: true, message: 'Player updated successfully.', player_id: playerId });
   } else {
     const targetStatus = status || 'APPROVED';
     const newId = crypto.randomUUID();
-    const playerId = targetStatus === 'APPROVED' ? await generatePlayerId() : null;
+    let playerId: string | null = null;
+    await executeWithRetry(async () => {
+      playerId = targetStatus === 'APPROVED' ? await generatePlayerId() : null;
 
-    await db.prepare(`
-      INSERT INTO players (id, player_id, team_id, full_name, photo_url, dob, nationality, student_id, university, position, jersey_number, preferred_foot, emergency_contact, status)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(newId, playerId, team_id, full_name, photo_url, dob, nationality, student_id, university, position, jersey_number, preferred_foot || 'Right', emergency_contact, targetStatus);
-
-    if (targetStatus === 'APPROVED' && playerId) {
-      const qrDataUrl = await QRCode.toDataURL(`https://miucc2026.org/player/${playerId}`);
       await db.prepare(`
-        INSERT INTO player_cards (id, player_id, qr_code_url, card_data)
-        VALUES (?, ?, ?, ?)
-      `).run(crypto.randomUUID(), playerId, qrDataUrl, JSON.stringify({ verified: true, player_id: playerId }));
-    }
+        INSERT INTO players (id, player_id, team_id, full_name, photo_url, dob, nationality, student_id, university, position, jersey_number, preferred_foot, emergency_contact, status)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `).run(newId, playerId, team_id, full_name, photo_url, dob, nationality, student_id, university, position, jersey_number, preferred_foot || 'Right', emergency_contact, targetStatus);
+
+      if (targetStatus === 'APPROVED' && playerId) {
+        const qrDataUrl = await QRCode.toDataURL(`https://miucc2026.org/player/${playerId}`);
+        await db.prepare(`
+          INSERT INTO player_cards (id, player_id, qr_code_url, card_data)
+          VALUES (?, ?, ?, ?)
+        `).run(crypto.randomUUID(), playerId, qrDataUrl, JSON.stringify({ verified: true, player_id: playerId }));
+      }
+    });
 
     return res.status(201).json({ success: true, message: 'Player created successfully.', player_id: playerId });
   }
@@ -179,19 +202,21 @@ router.put('/admin/:id/status', authenticateAdmin, async (req, res) => {
   }
 
   let playerId = player.player_id;
-  if (status === 'APPROVED' && !playerId) {
-    playerId = await generatePlayerId();
-  }
+  await executeWithRetry(async () => {
+    if (status === 'APPROVED' && !player.player_id) {
+      playerId = await generatePlayerId();
+    }
 
-  await db.prepare('UPDATE players SET status = ?, player_id = ? WHERE id = ?').run(status, playerId, req.params.id);
+    await db.prepare('UPDATE players SET status = ?, player_id = ? WHERE id = ?').run(status, playerId, req.params.id);
 
-  if (status === 'APPROVED' && playerId) {
-    const qrDataUrl = await QRCode.toDataURL(`https://miucc2026.org/player/${playerId}`);
-    await db.prepare(`
-      INSERT OR REPLACE INTO player_cards (id, player_id, qr_code_url, card_data)
-      VALUES (?, ?, ?, ?)
-    `).run(crypto.randomUUID(), playerId, qrDataUrl, JSON.stringify({ verified: true, player_id: playerId }));
-  }
+    if (status === 'APPROVED' && playerId) {
+      const qrDataUrl = await QRCode.toDataURL(`https://miucc2026.org/player/${playerId}`);
+      await db.prepare(`
+        INSERT OR REPLACE INTO player_cards (id, player_id, qr_code_url, card_data)
+        VALUES (?, ?, ?, ?)
+      `).run(crypto.randomUUID(), playerId, qrDataUrl, JSON.stringify({ verified: true, player_id: playerId }));
+    }
+  });
 
   return res.json({ success: true, message: `Player status updated to ${status}.`, player_id: playerId });
 });
