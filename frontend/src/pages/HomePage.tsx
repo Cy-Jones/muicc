@@ -263,7 +263,7 @@ export const HomePage: React.FC = () => {
           <div className="data-card p-6 space-y-2 border-t-2 border-brand text-center">
             <Location set="bold" className="w-8 h-8 text-brand mx-auto" />
             <h3 className="font-heading font-bold text-dark-bg text-base">HOST VENUE</h3>
-            <p className="text-xs text-dark-muted">Marwadi University Campus</p>
+            <p className="text-xs text-dark-muted">Railway Pitch, Madhapar, Rajkot</p>
           </div>
 
           <div className="data-card p-6 space-y-2 border-t-2 border-brand text-center">
@@ -275,7 +275,7 @@ export const HomePage: React.FC = () => {
           <div className="data-card p-6 space-y-2 border-t-2 border-brand text-center">
             <Discovery set="bold" className="w-8 h-8 text-brand mx-auto" />
             <h3 className="font-heading font-bold text-dark-bg text-base">NATIONS</h3>
-            <p className="text-xs text-dark-muted">10 Participating University Nations</p>
+            <p className="text-xs text-dark-muted">8 Participating University Nations</p>
           </div>
         </div>
 
@@ -290,7 +290,7 @@ export const HomePage: React.FC = () => {
               The <strong>MULSU ICC '26 Champions Cup</strong> represents the premier collegiate football tournament uniting student athletes across 8 nations: <strong>Liberia, Eswatini, Tanzania, South Sudan, Zimbabwe, Mozambique, Nigeria, and Uganda</strong>.
             </p>
             <p>
-              Hosted at the state-of-the-art facilities of <strong>Marwadi University Campus</strong>, the 14-day tournament showcases group stage competition, knockout rounds, and the championship grand final.
+              Hosted at the state-of-the-art facilities of <strong>Railway Pitch, Madhapar, Rajkot</strong>, the 14-day tournament showcases group stage competition, knockout rounds, and the championship grand final.
             </p>
           </div>
 
