@@ -94,7 +94,6 @@ export const AdminDashboard: React.FC = () => {
     'south sudan': '/images/flags/ssd.png',
     zimbabwe: '/images/flags/zwe.png',
     india: '/images/flags/ind.png',
-    mozambique: '/images/flags/moz.png',
     nigeria: '/images/flags/nga.png',
     uganda: '/images/flags/uga.png',
     zambia: '/images/flags/zmb.png'

@@ -292,7 +292,7 @@ export const TeamRegistrationPage: React.FC = () => {
                         value={formData.country}
                         onChange={(e) => setFormData({...formData, country: e.target.value})}
                         className="w-full input-field opacity-70 cursor-not-allowed"
-                      >  {['Liberia','Eswatini','Tanzania','South Sudan','Zimbabwe','Mozambique','Nigeria','Uganda'].map(c => (
+                      >  {['Liberia','Eswatini','Tanzania','South Sudan','Zimbabwe','Nigeria','Uganda'].map(c => (
                           <option key={c} value={c}>{c}</option>
                         ))}
                       </select>

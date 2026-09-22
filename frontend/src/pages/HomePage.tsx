@@ -18,7 +18,6 @@ const SYSTEM_FLAGS: Record<string, string> = {
   'south sudan': '/images/flags/ssd.png',
   zimbabwe: '/images/flags/zwe.png',
   india: '/images/flags/ind.png',
-  mozambique: '/images/flags/moz.png',
   nigeria: '/images/flags/nga.png',
   uganda: '/images/flags/uga.png',
   zambia: '/images/flags/zmb.png'
@@ -287,7 +286,7 @@ export const HomePage: React.FC = () => {
           </div>
           <div className="text-sm text-dark-surface space-y-4 leading-relaxed max-w-3xl mx-auto text-center">
             <p>
-              The <strong>MULSU ICC '26 Champions Cup</strong> represents the premier collegiate football tournament uniting student athletes across 8 nations: <strong>Liberia, Eswatini, Tanzania, South Sudan, Zimbabwe, Mozambique, Nigeria, and Uganda</strong>.
+              The <strong>MULSU ICC '26 Champions Cup</strong> represents the premier collegiate football tournament uniting student athletes across 7 nations: <strong>Liberia, Eswatini, Tanzania, South Sudan, Zimbabwe, Nigeria, and Uganda</strong>.
             </p>
             <p>
               Hosted at the state-of-the-art facilities of <strong>Railway Pitch, Madhapar, Rajkot</strong>, the 14-day tournament showcases group stage competition, knockout rounds, and the championship grand final.
@@ -303,7 +302,6 @@ export const HomePage: React.FC = () => {
                 { name: 'Tanzania', code: 'tza' },
                 { name: 'South Sudan', code: 'ssd' },
                 { name: 'Zimbabwe', code: 'zwe' },
-                { name: 'Mozambique', code: 'moz' },
                 { name: 'Nigeria', code: 'nga' },
                 { name: 'Uganda', code: 'uga' }
               ].map(nation => (

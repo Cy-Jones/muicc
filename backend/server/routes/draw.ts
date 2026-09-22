@@ -11,7 +11,7 @@ function getTeamRegion(team: any): string {
   const name = (team.country || team.name || '').toLowerCase();
   if (name.includes('liberia') || name.includes('nigeria')) return 'WEST_AFRICA';
   if (name.includes('tanzania') || name.includes('uganda')) return 'EAST_AFRICA';
-  if (name.includes('eswatini') || name.includes('zimbabwe') || name.includes('mozambique')) return 'SOUTHERN_AFRICA';
+  if (name.includes('eswatini') || name.includes('zimbabwe') ) return 'SOUTHERN_AFRICA';
   if (name.includes('south sudan')) return 'EAST_CENTRAL_AFRICA';
   return 'OTHER';
 }
@@ -181,8 +181,8 @@ router.post('/admin/generate', authenticateAdmin, async (req: AuthenticatedReque
 
   const groupCaps: Record<string, number> = {
     [groupA.id]: 3,
-    [groupB.id]: 3,
-    [groupC.id]: 4
+    [groupB.id]: 2,
+    [groupC.id]: 2
   };
 
   // Perform Regional Seeded Avoidance Draw Algorithm
@@ -253,7 +253,7 @@ router.post('/admin/generate', authenticateAdmin, async (req: AuthenticatedReque
     const shuffled = [...teamsWithRegion].sort(() => Math.random() - 0.5);
     shuffled.forEach((t, idx) => {
       if (idx < 3) successfulDraw![groupA.id].push(t);
-      else if (idx < 6) successfulDraw![groupB.id].push(t);
+      else if (idx < 5) successfulDraw![groupB.id].push(t);
       else successfulDraw![groupC.id].push(t);
     });
   }
@@ -273,12 +273,12 @@ router.post('/admin/generate', authenticateAdmin, async (req: AuthenticatedReque
     await tx.prepare(`
       INSERT INTO audit_logs (id, admin_email, action, entity, details)
       VALUES (?, ?, 'GENERATE_DRAW', 'DRAW', ?)
-    `).run(crypto.randomUUID(), req.admin?.email || 'admin@miucc2026.org', `Generated Regional-Seeded 3-Group draw (A:3, B:3, C:4) for ${teams.length} teams.`);
+    `).run(crypto.randomUUID(), req.admin?.email || 'admin@miucc2026.org', `Generated Regional-Seeded 3-Group draw (A:3, B:2, C:2) for ${teams.length} teams.`);
   });
 
   return res.json({
     success: true,
-    message: 'Regional Seeded Draw generated successfully with 3 Groups (Group A: 3, Group B: 3, Group C: 4). Same-region teams placed in separate groups.'
+    message: 'Regional Seeded Draw generated successfully with 3 Groups (Group A: 3, Group B: 2, Group C: 2). Same-region teams placed in separate groups.'
   });
 });
 
