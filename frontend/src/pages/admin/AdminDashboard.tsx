@@ -972,6 +972,8 @@ export const AdminDashboard: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+
       {/* Player Details Modal */}
       {viewingPlayer && (
         <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center p-4">
