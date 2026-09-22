@@ -92,7 +92,7 @@ export const DrawBracketPage: React.FC = () => {
           </div>
           <div className="flex items-center gap-2 text-xs font-bold text-dark-muted border border-surface-border bg-dark-bg/50 px-3 py-1.5 rounded-md w-fit">
             <Discovery set="bold" className="w-4 h-4 text-brand" />
-            7 NATIONS • 3 GROUPS • 4-TEAM KNOCKOUT
+            7 NATIONS • 2 GROUPS • 4-TEAM KNOCKOUT
           </div>
         </div>
 
@@ -114,14 +114,10 @@ export const DrawBracketPage: React.FC = () => {
       )}
 
       {/* Info Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-10">
         <div className="card-dark p-4 border-l-2 border-brand">
-          <h4 className="font-heading font-black text-sm text-white mb-1 uppercase tracking-wide">GROUP WINNERS</h4>
-          <p className="text-xs text-dark-muted leading-relaxed">The 1st placed teams in Group A, B, and C automatically advance.</p>
-        </div>
-        <div className="card-dark p-4 border-l-2 border-gold">
-          <h4 className="font-heading font-black text-sm text-white mb-1 uppercase tracking-wide">BEST RUNNER-UP</h4>
-          <p className="text-xs text-dark-muted leading-relaxed">The highest ranked 2nd-place team across all groups fills the remaining Semi-Final spot.</p>
+          <h4 className="font-heading font-black text-sm text-white mb-1 uppercase tracking-wide">SEMI-FINALISTS</h4>
+          <p className="text-xs text-dark-muted leading-relaxed">The 1st and 2nd placed teams in Group A and Group B advance to the Semi-Finals.</p>
         </div>
         <div className="card-dark p-4 border-l-2 border-green-500">
           <h4 className="font-heading font-black text-sm text-white mb-1 uppercase tracking-wide">4-TEAM KNOCKOUT</h4>

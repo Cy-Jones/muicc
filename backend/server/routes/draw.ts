@@ -170,115 +170,52 @@ router.post('/admin/generate', authenticateAdmin, async (req: AuthenticatedReque
     teams = await db.prepare("SELECT id, name, country FROM teams").all() as any[];
   }
 
-  if (teams.length < 2) {
-    return res.status(400).json({ error: 'At least 2 teams are required to generate a tournament draw.' });
-  }
-
-  // Group Capacities for 10 teams: Group A (3), Group B (3), Group C (4)
   const groupA = (await db.prepare("SELECT id FROM groups WHERE name = 'Group A'").get() as any) || { id: 'grp-a' };
   const groupB = (await db.prepare("SELECT id FROM groups WHERE name = 'Group B'").get() as any) || { id: 'grp-b' };
-  const groupC = (await db.prepare("SELECT id FROM groups WHERE name = 'Group C'").get() as any) || { id: 'grp-c' };
 
-  const groupCaps: Record<string, number> = {
-    [groupA.id]: 3,
-    [groupB.id]: 2,
-    [groupC.id]: 2
+  const groupACountries = ['Liberia', 'Nigeria', 'Tanzania', 'South Sudan'];
+  const groupBCountries = ['Uganda', 'Eswatini', 'Zimbabwe'];
+
+  const successfulDraw: Record<string, any[]> = {
+    [groupA.id]: [],
+    [groupB.id]: []
   };
 
-  // Perform Regional Seeded Avoidance Draw Algorithm
-  const teamsWithRegion = teams.map(t => ({
-    ...t,
-    region: getTeamRegion(t)
-  }));
-
-  let successfulDraw: Record<string, any[]> | null = null;
-
-  for (let attempt = 0; attempt < 300; attempt++) {
-    const shuffled = [...teamsWithRegion].sort(() => Math.random() - 0.5);
-    const resultGroups: Record<string, any[]> = {
-      [groupA.id]: [],
-      [groupB.id]: [],
-      [groupC.id]: []
-    };
-    let isValid = true;
-
-    for (const team of shuffled) {
-      // Find candidate groups that aren't full and don't violate regional collision rules
-      const validGroupIds = Object.keys(resultGroups).filter(grpId => {
-        const groupTeams = resultGroups[grpId];
-        const maxCap = groupCaps[grpId];
-
-        if (groupTeams.length >= maxCap) return false;
-
-        // West Africa Rule: Liberia and Nigeria MUST NOT be in the same group
-        if (team.region === 'WEST_AFRICA' && groupTeams.some(t => t.region === 'WEST_AFRICA')) {
-          return false;
-        }
-
-        // East Africa Rule: Tanzania and Uganda MUST NOT be in the same group
-        if (team.region === 'EAST_AFRICA' && groupTeams.some(t => t.region === 'EAST_AFRICA')) {
-          return false;
-        }
-
-        // Southern Africa Rule: Max 1 in Group A, Max 1 in Group B, Max 2 in Group C
-        if (team.region === 'SOUTHERN_AFRICA') {
-          const countSA = groupTeams.filter(t => t.region === 'SOUTHERN_AFRICA').length;
-          if (grpId === groupA.id && countSA >= 1) return false;
-          if (grpId === groupB.id && countSA >= 1) return false;
-          if (grpId === groupC.id && countSA >= 2) return false;
-        }
-
-        return true;
-      });
-
-      if (validGroupIds.length === 0) {
-        isValid = false;
-        break; // Retry shuffle
-      }
-
-      // Pick random valid candidate group
-      const chosenGrpId = validGroupIds[Math.floor(Math.random() * validGroupIds.length)];
-      resultGroups[chosenGrpId].push(team);
+  for (const team of teams) {
+    // We match by checking if the team's country string contains the target country name
+    if (groupACountries.some(c => team.country.toLowerCase().includes(c.toLowerCase()))) {
+      successfulDraw[groupA.id].push(team);
+    } else if (groupBCountries.some(c => team.country.toLowerCase().includes(c.toLowerCase()))) {
+      successfulDraw[groupB.id].push(team);
     }
-
-    if (isValid) {
-      successfulDraw = resultGroups;
-      break;
-    }
-  }
-
-  // Fallback if strict regional retry limit reached
-  if (!successfulDraw) {
-    successfulDraw = { [groupA.id]: [], [groupB.id]: [], [groupC.id]: [] };
-    const shuffled = [...teamsWithRegion].sort(() => Math.random() - 0.5);
-    shuffled.forEach((t, idx) => {
-      if (idx < 3) successfulDraw![groupA.id].push(t);
-      else if (idx < 5) successfulDraw![groupB.id].push(t);
-      else successfulDraw![groupC.id].push(t);
-    });
   }
 
   await db.transaction(async (tx) => {
+    // Delete old groupings and standings
     await tx.prepare('DELETE FROM group_teams').run();
     await tx.prepare('DELETE FROM standings').run();
 
-    for (const groupId of Object.keys(successfulDraw!)) {
-      const groupTeams = successfulDraw![groupId];
+    // Assign new groupings
+    for (const groupId of Object.keys(successfulDraw)) {
+      const groupTeams = successfulDraw[groupId];
       for (const t of groupTeams) {
         await tx.prepare('INSERT INTO group_teams (id, group_id, team_id) VALUES (?, ?, ?)').run(crypto.randomUUID(), groupId, t.id);
         await tx.prepare('INSERT INTO standings (id, group_id, team_id) VALUES (?, ?, ?)').run(crypto.randomUUID(), groupId, t.id);
       }
     }
 
+    // Ensure we delete Group C if it exists to clean up
+    await tx.prepare("DELETE FROM groups WHERE name = 'Group C'").run();
+
     await tx.prepare(`
       INSERT INTO audit_logs (id, admin_email, action, entity, details)
       VALUES (?, ?, 'GENERATE_DRAW', 'DRAW', ?)
-    `).run(crypto.randomUUID(), req.admin?.email || 'admin@miucc2026.org', `Generated Regional-Seeded 3-Group draw (A:3, B:2, C:2) for ${teams.length} teams.`);
+    `).run(crypto.randomUUID(), req.admin?.email || 'admin@miucc2026.org', `Applied manual 2-Group draw (A:4, B:3) for ${teams.length} teams.`);
   });
 
   return res.json({
     success: true,
-    message: 'Regional Seeded Draw generated successfully with 3 Groups (Group A: 3, Group B: 2, Group C: 2). Same-region teams placed in separate groups.'
+    message: 'Manual Draw applied successfully with 2 Groups (Group A: 4, Group B: 3).'
   });
 });
 
