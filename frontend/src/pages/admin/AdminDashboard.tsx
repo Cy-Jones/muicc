@@ -735,9 +735,11 @@ export const AdminDashboard: React.FC = () => {
                   <div key={gData.group.id} className="bg-surface-bg p-4 rounded-lg border border-surface-border space-y-3 ">
                     <div className="flex justify-between items-center border-b border-surface-border pb-2">
                       <h3 className="font-heading font-black text-brand uppercase tracking-widest">{gData.group.name}</h3>
-                      <span className="text-[10px] text-dark-muted font-black tracking-widest uppercase">{gData.teams.length} Teams</span>
+                      <span className="text-[10px] text-dark-muted font-black tracking-widest uppercase">0 Teams</span>
                     </div>
                     <div className="space-y-1.5">
+                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest text-center py-4">No teams assigned yet.</p>
+                      {/*
                       {gData.teams.length === 0 ? (
                         <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest text-center py-4">No teams assigned.</p>
                       ) : (
@@ -751,6 +753,7 @@ export const AdminDashboard: React.FC = () => {
                           </div>
                         ))
                       )}
+                      */}
                     </div>
                   </div>
                 ))}
@@ -805,7 +808,7 @@ export const AdminDashboard: React.FC = () => {
                     placeholder="Search name, ID, team..."
                     value={playerSearchQuery}
                     onChange={(e) => setPlayerSearchQuery(e.target.value)}
-                    className="admin-input pl-10 text-xs w-full md:w-64"
+                    className="admin-input !pl-10 text-xs w-full md:w-64"
                   />
                 </div>
               </div>
@@ -979,13 +982,13 @@ export const AdminDashboard: React.FC = () => {
         <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center p-4">
           <div className="bg-surface-card w-full max-w-2xl p-6 rounded-xl border border-surface-border shadow-2xl animate-fade-in space-y-6">
             <div className="flex justify-between items-center border-b border-surface-border pb-3">
-              <h3 className="font-heading text-lg font-black text-dark-bg uppercase tracking-widest flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-surface-bg border border-surface-border overflow-hidden flex-shrink-0">
+              <h3 className="font-heading text-lg font-black text-dark-bg uppercase tracking-widest flex items-center gap-4">
+                <div className="w-16 h-16 rounded-full bg-surface-bg border border-surface-border overflow-hidden flex-shrink-0 shadow-md">
                   {viewingPlayer.photo_url && <img src={viewingPlayer.photo_url} alt="" className="w-full h-full object-cover" />}
                 </div>
                 Player Details: {viewingPlayer.full_name}
               </h3>
-              <button onClick={() => setViewingPlayer(null)} className="text-dark-muted hover:text-dark-bg">
+              <button onClick={() => setViewingPlayer(null)} className="text-dark-muted hover:text-dark-bg self-start mt-2">
                 <CloseSquare set="bold" className="w-6 h-6" />
               </button>
             </div>
