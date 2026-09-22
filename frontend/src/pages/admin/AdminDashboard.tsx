@@ -340,12 +340,17 @@ export const AdminDashboard: React.FC = () => {
   ];
 
   const filteredPlayers = players.filter(p => {
-    const q = playerSearchQuery.toLowerCase();
+    const q = playerSearchQuery.toLowerCase().trim();
+    if (!q) return true;
+    
     return (
       (p.full_name || '').toLowerCase().includes(q) || 
       (p.team_name || '').toLowerCase().includes(q) || 
-      (p.player_id || '').toLowerCase().includes(q) ||
-      (p.university || '').toLowerCase().includes(q)
+      (p.university || '').toLowerCase().includes(q) ||
+      (
+        (p.player_id || '').toLowerCase().includes(q) && 
+        !['mulsu', 'mulsu-', 'mulsu-ply', 'mulsu-ply-'].includes(q)
+      )
     );
   });
 
