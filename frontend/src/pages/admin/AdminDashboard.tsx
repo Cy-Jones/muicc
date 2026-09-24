@@ -618,7 +618,7 @@ export const AdminDashboard: React.FC = () => {
                       <div className="flex flex-wrap items-center justify-between gap-2 text-[10px] font-black uppercase tracking-widest p-3 bg-surface-bg border-b border-surface-border">
                         <div className="flex items-center gap-3">
                           <span className="text-dark-muted">{m.match_code}</span>
-                          <span className="text-dark-bg">{m.stage}</span>
+                          <span className="text-dark-bg">{m.stage?.replace(/_/g, ' ')}</span>
                           {isLiveOrHt && (
                             <span className="px-2 py-0.5 rounded-sm bg-status-error/20 text-status-error border border-status-error/30 flex items-center gap-1 animate-pulse">
                               <TimeCircle set="bold" className="w-3 h-3" /> {liveClock.display}
@@ -737,17 +737,15 @@ export const AdminDashboard: React.FC = () => {
                   )}
                 </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 {draw.map((gData: any) => (
                   <div key={gData.group.id} className="bg-surface-bg p-4 rounded-lg border border-surface-border space-y-3 ">
                     <div className="flex justify-between items-center border-b border-surface-border pb-2">
                       <h3 className="font-heading font-black text-brand uppercase tracking-widest">{gData.group.name}</h3>
-                      <span className="text-[10px] text-dark-muted font-black tracking-widest uppercase">0 Teams</span>
+                      <span className="text-[10px] text-dark-muted font-black tracking-widest uppercase">{gData.teams?.length || 0} Teams</span>
                     </div>
                     <div className="space-y-1.5">
-                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest text-center py-4">No teams assigned yet.</p>
-                      {/*
-                      {gData.teams.length === 0 ? (
+                      {!gData.teams || gData.teams.length === 0 ? (
                         <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest text-center py-4">No teams assigned.</p>
                       ) : (
                         gData.teams.map((t: any, idx: number) => (
@@ -760,7 +758,6 @@ export const AdminDashboard: React.FC = () => {
                           </div>
                         ))
                       )}
-                      */}
                     </div>
                   </div>
                 ))}

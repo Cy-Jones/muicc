@@ -207,7 +207,7 @@ export const ManagerDashboardPage: React.FC = () => {
         <div className="flex items-center gap-3 bg-surface-card px-4 py-2 rounded-lg border border-surface-border">
           <div className="text-[10px] font-black text-dark-muted uppercase tracking-widest">Status:</div>
           <div className={`text-xs font-black uppercase tracking-widest ${statusColors[team.status] || 'text-dark-bg'}`}>
-            {team.status.replace('_', ' ')}
+            {team.status.replace(/_/g, ' ')}
           </div>
         </div>
       </div>

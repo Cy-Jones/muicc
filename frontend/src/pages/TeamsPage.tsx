@@ -23,7 +23,7 @@ export const TeamsPage: React.FC = () => {
     async function loadTeams() {
       try {
         const data = await api.getTeams();
-        setTeams(data);
+        setTeams(data.filter((t: any) => t.country !== 'TBD'));
       } catch (err) {
         console.error('Failed to load teams:', err);
       } finally {

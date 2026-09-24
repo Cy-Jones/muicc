@@ -137,7 +137,7 @@ export const DrawBracketPage: React.FC = () => {
             </h2>
             
             {draw.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {draw.map((group) => (
                   <div key={group.groupName} className="data-card overflow-hidden">
                     <div className="bg-surface-bg px-4 py-3 border-b border-surface-border flex justify-between items-center">
@@ -155,7 +155,7 @@ export const DrawBracketPage: React.FC = () => {
                           </div>
                           {t.pot && (
                             <span className="text-[10px] font-bold bg-surface-bg px-2 py-0.5 rounded text-dark-muted border border-surface-border">
-                              {t.pot.replace('_', ' ')}
+                              {t.pot.replace(/_/g, ' ')}
                             </span>
                           )}
                         </div>

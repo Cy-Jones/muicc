@@ -153,12 +153,12 @@ export const FixturesResultsPage: React.FC = () => {
                     
                     {/* Date/Status Info */}
                     <div className="flex sm:flex-col items-center sm:items-start justify-between sm:w-1/6 text-xs text-dark-muted font-bold">
-                      <span className="sm:hidden uppercase tracking-wider text-dark-bg bg-surface-bg px-2 py-1 rounded border border-surface-border">{m.stage || 'Group'}</span>
+                      <span className="sm:hidden uppercase tracking-wider text-dark-bg bg-surface-bg px-2 py-1 rounded border border-surface-border">{m.stage ? m.stage.replace(/_/g, ' ') : 'Group'}</span>
                       <div className="flex items-center gap-1.5">
                         <Calendar set="bold" className="w-3.5 h-3.5" />
                         <span>{new Date(m.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span>
                       </div>
-                      <span className="hidden sm:inline-block mt-1 uppercase tracking-wider">{m.stage || 'Group Stage'}</span>
+                      <span className="hidden sm:inline-block mt-1 uppercase tracking-wider">{m.stage ? m.stage.replace(/_/g, ' ') : 'Group Stage'}</span>
                     </div>
 
                     {/* Main Match Score Area */}

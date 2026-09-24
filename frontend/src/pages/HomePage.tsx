@@ -202,7 +202,7 @@ export const HomePage: React.FC = () => {
                             </div>
                           )}
                           <span className={`text-[9px] font-bold uppercase mt-1 tracking-wider ${m.status === 'LIVE' || m.status === 'HALF_TIME' ? 'text-status-live animate-pulse' : 'text-dark-muted'}`}>
-                            {m.status === 'LIVE' || m.status === 'HALF_TIME' ? getMatchLiveClock(m).display : m.status.replace('_', ' ')}
+                            {m.status === 'LIVE' || m.status === 'HALF_TIME' ? getMatchLiveClock(m).display : m.status.replace(/_/g, ' ')}
                           </span>
                         </div>
 
@@ -274,7 +274,7 @@ export const HomePage: React.FC = () => {
           <div className="data-card p-6 space-y-2 border-t-2 border-brand text-center">
             <Discovery set="bold" className="w-8 h-8 text-brand mx-auto" />
             <h3 className="font-heading font-bold text-dark-bg text-base">NATIONS</h3>
-            <p className="text-xs text-dark-muted">8 Participating University Nations</p>
+            <p className="text-xs text-dark-muted">7 Participating University Nations</p>
           </div>
         </div>
 
