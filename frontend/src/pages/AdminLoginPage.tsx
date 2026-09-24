@@ -71,7 +71,7 @@ export const AdminLoginPage: React.FC = () => {
           initial={{ opacity: 0, x: -20, scale: 0.95 }}
           animate={{ opacity: 1, x: 0, scale: 1 }}
           transition={{ duration: 0.5 }}
-          className="w-full max-w-[420px] bg-surface-card/95 backdrop-blur-2xl border border-surface-border rounded-[3rem] rounded-tr-[1rem] rounded-bl-[1rem] p-8 sm:p-12 shadow-[0_0_50px_rgba(0,0,0,0.5)] flex flex-col justify-center"
+          className="w-full max-w-[420px] bg-surface-card backdrop-blur-2xl border border-surface-border rounded-[3rem] rounded-tr-[1rem] rounded-bl-[1rem] p-8 sm:p-12 shadow-[0_0_50px_rgba(0,0,0,0.5)] flex flex-col justify-center"
         >
           <div className="text-center space-y-3 mb-10">
             <div className="flex justify-center mb-4">

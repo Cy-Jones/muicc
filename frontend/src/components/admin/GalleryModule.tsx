@@ -115,13 +115,13 @@ export const GalleryModule: React.FC = () => {
                   {item.media_type === 'IMAGE' ? (
                     <img src={item.image_url} alt={item.title} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
                   ) : (
-                    <div className="text-white"><Image set="bold" className="w-8 h-8 opacity-50" /></div>
+                    <div className="text-dark-bg"><Image set="bold" className="w-8 h-8 opacity-50" /></div>
                   )}
                   <div className="absolute top-2 right-2 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={() => openModal(item)} className="p-1.5 bg-dark-bg/80 text-white rounded hover:bg-brand">
+                    <button onClick={() => openModal(item)} className="p-1.5 bg-dark-bg/80 text-dark-bg rounded hover:bg-brand">
                       <EditSquare set="bold" className="w-3 h-3" />
                     </button>
-                    <button onClick={() => handleDelete(item.id)} className="p-1.5 bg-dark-bg/80 text-white rounded hover:bg-status-error">
+                    <button onClick={() => handleDelete(item.id)} className="p-1.5 bg-dark-bg/80 text-dark-bg rounded hover:bg-status-error">
                       <Delete set="bold" className="w-3 h-3" />
                     </button>
                   </div>

@@ -239,3 +239,31 @@ CREATE INDEX IF NOT EXISTS idx_players_player_id ON players(player_id);
 CREATE INDEX IF NOT EXISTS idx_matches_match_day ON matches(match_day_id);
 CREATE INDEX IF NOT EXISTS idx_predictions_match_day ON predictions(match_day_id);
 CREATE INDEX IF NOT EXISTS idx_predictions_email ON predictions(email_normalized);
+
+CREATE TABLE IF NOT EXISTS match_lineups (
+  id TEXT PRIMARY KEY,
+  match_id TEXT NOT NULL,
+  team_id TEXT NOT NULL,
+  formation TEXT DEFAULT '4-4-2',
+  approval_status TEXT CHECK(approval_status IN ('PENDING', 'APPROVED', 'REJECTED')) DEFAULT 'PENDING',
+  submitted_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  reviewed_at DATETIME,
+  FOREIGN KEY (match_id) REFERENCES matches(id) ON DELETE CASCADE,
+  FOREIGN KEY (team_id) REFERENCES teams(id),
+  UNIQUE(match_id, team_id)
+);
+
+CREATE TABLE IF NOT EXISTS match_lineup_players (
+  id TEXT PRIMARY KEY,
+  lineup_id TEXT NOT NULL,
+  player_id TEXT NOT NULL,
+  is_starting INTEGER DEFAULT 1,
+  position TEXT NOT NULL,
+  display_order INTEGER DEFAULT 0,
+  FOREIGN KEY (lineup_id) REFERENCES match_lineups(id) ON DELETE CASCADE,
+  FOREIGN KEY (player_id) REFERENCES players(id),
+  UNIQUE(lineup_id, player_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_match_lineups_match ON match_lineups(match_id);
+CREATE INDEX IF NOT EXISTS idx_match_lineup_players_lineup ON match_lineup_players(lineup_id);

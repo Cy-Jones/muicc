@@ -162,6 +162,14 @@ export const api = {
     body: JSON.stringify({ blocked })
   }),
   
+  // Lineup Endpoints
+  getManagerMatches: () => request<any>('/api/manager/matches'),
+  getManagerMatchLineup: (matchId: string) => request<any>(`/api/manager/matches/${matchId}/lineup`),
+  submitManagerMatchLineup: (matchId: string, payload: any) => request<any>(`/api/manager/matches/${matchId}/lineup`, { method: 'POST', body: JSON.stringify(payload) }),
+  adminGetLineups: () => request<any[]>('/api/admin/lineups'),
+  adminGetLineup: (id: string) => request<any>(`/api/admin/lineups/${id}`),
+  adminUpdateLineupStatus: (id: string, status: string) => request<any>(`/api/admin/lineups/${id}/status`, { method: 'PUT', body: JSON.stringify({ approval_status: status }) }),
+
   adminGetDashboardStats: () => request<any>('/api/admin/dashboard-stats'),
   adminGetAuditLogs: () => request<any>('/api/admin/audit-logs'),
   getExportPdfUrl: (type: string) => {

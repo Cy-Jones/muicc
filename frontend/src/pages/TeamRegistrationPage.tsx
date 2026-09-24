@@ -207,7 +207,7 @@ export const TeamRegistrationPage: React.FC = () => {
       
       <motion.div variants={itemVariants} className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-dark-border">
         <div>
-          <h1 className="font-heading text-4xl sm:text-5xl font-black text-white uppercase tracking-tight">
+          <h1 className="font-heading text-4xl sm:text-5xl font-black text-dark-bg uppercase tracking-tight">
             TEAM <span className="text-gold text-glow">REGISTRATION</span>
           </h1>
           <p className="text-sm text-dark-muted mt-2">
@@ -240,7 +240,7 @@ export const TeamRegistrationPage: React.FC = () => {
                 <TickSquare set="bold" className="w-20 h-20 text-gold mx-auto drop-shadow-[0_0_15px_rgba(250,204,21,0.5)]" />
                 
                 <div className="space-y-3 relative z-10">
-                  <h2 className="font-heading text-3xl font-black text-white uppercase tracking-widest">REGISTRATION RECEIVED</h2>
+                  <h2 className="font-heading text-3xl font-black text-dark-bg uppercase tracking-widest">REGISTRATION RECEIVED</h2>
                   <p className="text-sm text-dark-muted font-medium">
                     Your team and <span className="text-brand font-bold">{submissionResult.playersCount || 0} players</span> have been submitted successfully.
                   </p>
@@ -269,7 +269,7 @@ export const TeamRegistrationPage: React.FC = () => {
               >
                 {/* TEAM INFO */}
                 <div className="space-y-6">
-                  <h2 className="font-heading text-xl font-black text-white border-b border-dark-border pb-4 flex items-center gap-3 uppercase tracking-widest">
+                  <h2 className="font-heading text-xl font-black text-dark-bg border-b border-dark-border pb-4 flex items-center gap-3 uppercase tracking-widest">
                     <Star set="bold" className="w-5 h-5 text-gold" /> Official Team Information
                   </h2>
 
@@ -342,7 +342,7 @@ export const TeamRegistrationPage: React.FC = () => {
                 <div className="space-y-6 pt-6 border-t border-dark-border">
                   <div className="flex items-end justify-between border-b border-dark-border pb-4">
                     <div>
-                      <h2 className="font-heading text-xl font-black text-white flex items-center gap-3 uppercase tracking-widest">
+                      <h2 className="font-heading text-xl font-black text-dark-bg flex items-center gap-3 uppercase tracking-widest">
                         <TwoUsers set="bold" className="w-5 h-5 text-gold" /> Squad Roster
                       </h2>
                       <p className="text-[10px] text-dark-muted mt-1 uppercase tracking-widest font-bold">Register all athletes ({players.length} Players)</p>
@@ -478,7 +478,7 @@ export const TeamRegistrationPage: React.FC = () => {
 
         <motion.div variants={itemVariants} className="space-y-6 lg:sticky lg:top-24 self-start">
           <div className="glass-card p-6 border-gold/30 space-y-5">
-            <h3 className="font-heading text-lg font-black text-white flex items-center gap-2 uppercase tracking-widest border-b border-dark-border pb-3">
+            <h3 className="font-heading text-lg font-black text-dark-bg flex items-center gap-2 uppercase tracking-widest border-b border-dark-border pb-3">
               <Search set="bold" className="w-5 h-5 text-gold" /> Status Check
             </h3>
             <p className="text-xs text-dark-muted font-medium">Enter your reference code to check review progress.</p>
@@ -503,7 +503,7 @@ export const TeamRegistrationPage: React.FC = () => {
                   </span>
                 </div>
                 <div>
-                  <p className="font-black text-white text-xs uppercase tracking-wider">{lookupResult.name}</p>
+                  <p className="font-black text-dark-bg text-xs uppercase tracking-wider">{lookupResult.name}</p>
                   <p className="text-[10px] text-dark-muted uppercase tracking-widest mt-0.5">{lookupResult.university} • {lookupResult.country}</p>
                 </div>
               </div>
@@ -511,7 +511,7 @@ export const TeamRegistrationPage: React.FC = () => {
           </div>
 
           <div className="glass-card p-6 border-gold/30 space-y-4">
-             <h3 className="font-heading text-lg font-black text-white flex items-center gap-2 uppercase tracking-widest border-b border-dark-border pb-3">
+             <h3 className="font-heading text-lg font-black text-dark-bg flex items-center gap-2 uppercase tracking-widest border-b border-dark-border pb-3">
                <TwoUsers set="bold" className="w-5 h-5 text-gold" /> Squad Summary
              </h3>
              <div className="space-y-3">
@@ -521,25 +521,25 @@ export const TeamRegistrationPage: React.FC = () => {
                 </div>
                 <div className="flex justify-between items-center text-xs font-bold uppercase tracking-widest text-dark-muted">
                   <span>Forwards</span>
-                  <span className="text-white">{players.filter(p => p.position === 'Forward').length}</span>
+                  <span className="text-dark-bg">{players.filter(p => p.position === 'Forward').length}</span>
                 </div>
                 <div className="flex justify-between items-center text-xs font-bold uppercase tracking-widest text-dark-muted">
                   <span>Midfielders</span>
-                  <span className="text-white">{players.filter(p => p.position === 'Midfielder').length}</span>
+                  <span className="text-dark-bg">{players.filter(p => p.position === 'Midfielder').length}</span>
                 </div>
                 <div className="flex justify-between items-center text-xs font-bold uppercase tracking-widest text-dark-muted">
                   <span>Defenders</span>
-                  <span className="text-white">{players.filter(p => p.position === 'Defender').length}</span>
+                  <span className="text-dark-bg">{players.filter(p => p.position === 'Defender').length}</span>
                 </div>
                 <div className="flex justify-between items-center text-xs font-bold uppercase tracking-widest text-dark-muted">
                   <span>Goalkeepers</span>
-                  <span className="text-white">{players.filter(p => p.position === 'Goalkeeper').length}</span>
+                  <span className="text-dark-bg">{players.filter(p => p.position === 'Goalkeeper').length}</span>
                 </div>
              </div>
           </div>
 
           <div className="glass-card p-6 border-gold/30 space-y-4 hidden sm:block">
-             <h3 className="font-heading text-lg font-black text-white flex items-center gap-2 uppercase tracking-widest border-b border-dark-border pb-3">
+             <h3 className="font-heading text-lg font-black text-dark-bg flex items-center gap-2 uppercase tracking-widest border-b border-dark-border pb-3">
                <ShieldDone set="bold" className="w-5 h-5 text-gold" /> Guidelines
              </h3>
              <ul className="text-[10px] text-dark-muted space-y-3 font-bold uppercase tracking-wider list-disc pl-4 marker:text-gold/50">

@@ -21,9 +21,11 @@ async function run() {
     { name: 'Zimbabwe Warriors', country: 'Zimbabwe' },
   ];
 
-  for (const t of teams) {
+  for (let i = 0; i < teams.length; i++) {
+    const t = teams[i];
     const id = crypto.randomUUID();
-    const ref = crypto.randomUUID().substring(0, 8);
+    const countryClean = (t.country || 'TEAM').toUpperCase().replace(/[^A-Z0-9]/g, '');
+    const ref = `MULSU-${countryClean}-${2601 + i}`;
     await db.prepare('INSERT INTO teams (id, name, country, status, registration_ref, university, coach_name, manager_name, manager_email, manager_phone) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').run(id, t.name, t.country, 'APPROVED', ref, 'MU', 'Coach', 'Manager', 'test@test.com', '1234567890');
   }
   

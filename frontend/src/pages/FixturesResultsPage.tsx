@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { api } from '../lib/api';
 import { getMatchLiveClock } from '../lib/liveClock';
 import { Calendar, TickSquare, TimeCircle } from 'react-iconly';
+import { MatchDetailModal } from '../components/MatchDetailModal';
+import { staggerContainer, fadeUp } from '../lib/animations';
 
 const SYSTEM_FLAGS: Record<string, string> = {
   liberia: '/images/flags/lbr.png',
@@ -23,6 +25,7 @@ export const FixturesResultsPage: React.FC = () => {
   const [systemNations, setSystemNations] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<'MATCHES' | 'STANDINGS'>('MATCHES');
   const [matchFilter, setMatchFilter] = useState<'ALL' | 'LIVE' | 'TODAY' | 'UPCOMING' | 'RESULTS'>('ALL');
+  const [selectedMatchId, setSelectedMatchId] = useState<string | null>(null);
   const [tick, setTick] = useState(0);
 
   useEffect(() => {
@@ -144,12 +147,17 @@ export const FixturesResultsPage: React.FC = () => {
             </div>
 
             {/* Match List */}
-            <div className="data-card divide-y divide-surface-border">
+            <motion.div 
+              variants={staggerContainer}
+              initial="initial"
+              animate="animate"
+              className="data-card divide-y divide-surface-border"
+            >
               {loading ? (
                 <div className="p-12 text-center text-dark-muted">Loading matches...</div>
               ) : filteredMatches.length > 0 ? (
                 filteredMatches.map(m => (
-                  <div key={m.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 hover:bg-surface-hover transition-colors gap-4">
+                  <motion.div variants={fadeUp} key={m.id} onClick={() => setSelectedMatchId(m.id)} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 hover:bg-surface-hover transition-colors gap-4 cursor-pointer">
                     
                     {/* Date/Status Info */}
                     <div className="flex sm:flex-col items-center sm:items-start justify-between sm:w-1/6 text-xs text-dark-muted font-bold">
@@ -206,12 +214,12 @@ export const FixturesResultsPage: React.FC = () => {
                       {m.venue && <span>{m.venue}</span>}
                       {m.group_name && <span className="uppercase tracking-wider mt-1">{m.group_name}</span>}
                     </div>
-                  </div>
+                  </motion.div>
                 ))
               ) : (
                 <div className="p-12 text-center text-dark-muted border-dashed border-surface-border border m-4 rounded">No matches found for the selected filter.</div>
               )}
-            </div>
+            </motion.div>
           </motion.div>
         ) : (
           <motion.div key="standings" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-8">
@@ -220,9 +228,9 @@ export const FixturesResultsPage: React.FC = () => {
             ) : standings.length === 0 ? (
               <div className="p-12 text-center text-dark-muted data-card border-dashed">No standings available.</div>
             ) : (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <motion.div variants={staggerContainer} initial="initial" animate="animate" className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {standings.map((groupData) => (
-                  <div key={groupData.group.id} className="data-card overflow-hidden">
+                  <motion.div variants={fadeUp} key={groupData.group.id} className="data-card overflow-hidden">
                     {/* Group Header */}
                     <div className="bg-surface-bg px-4 py-3 border-b border-surface-border flex justify-between items-center">
                       <h3 className="font-heading text-lg font-black text-dark-bg uppercase tracking-tight">{groupData.group.name}</h3>
@@ -258,11 +266,17 @@ export const FixturesResultsPage: React.FC = () => {
                         </div>
                       ))}
                     </div>
-                  </div>
+                  </motion.div>
                 ))}
-              </div>
+              </motion.div>
             )}
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {selectedMatchId && (
+          <MatchDetailModal matchId={selectedMatchId} onClose={() => setSelectedMatchId(null)} />
         )}
       </AnimatePresence>
     </motion.div>

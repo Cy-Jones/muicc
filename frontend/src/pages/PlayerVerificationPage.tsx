@@ -48,7 +48,7 @@ export const PlayerVerificationPage: React.FC = () => {
           <Danger set="bold" className="w-10 h-10" />
         </motion.div>
         <motion.div variants={itemVariants}>
-          <h2 className="font-heading text-3xl font-black text-white uppercase tracking-tight">VERIFICATION FAILED</h2>
+          <h2 className="font-heading text-3xl font-black text-dark-bg uppercase tracking-tight">VERIFICATION FAILED</h2>
           <p className="text-sm text-dark-muted font-medium mt-2">{error || 'Player ID invalid or not approved.'}</p>
         </motion.div>
         <motion.div variants={itemVariants}>
@@ -79,7 +79,7 @@ export const PlayerVerificationPage: React.FC = () => {
         </div>
 
         <div>
-          <h1 className="font-heading text-2xl sm:text-4xl font-black text-white uppercase tracking-tight">OFFICIAL VERIFICATION PASSPORT</h1>
+          <h1 className="font-heading text-2xl sm:text-4xl font-black text-dark-bg uppercase tracking-tight">OFFICIAL VERIFICATION PASSPORT</h1>
           <p className="text-xs text-dark-muted font-medium uppercase tracking-widest mt-2">Verified record for MIUCC 2026</p>
         </div>
       </motion.div>
@@ -91,32 +91,32 @@ export const PlayerVerificationPage: React.FC = () => {
             <img src={p.photo_url} alt="" className="w-full h-full object-cover rounded-full" />
           </div>
           <div className="relative z-10">
-            <h2 className="font-heading text-2xl font-black text-white uppercase">{p.full_name}</h2>
+            <h2 className="font-heading text-2xl font-black text-dark-bg uppercase">{p.full_name}</h2>
             <p className="text-sm font-mono font-black text-gold tracking-widest mt-1">{p.player_id}</p>
           </div>
           <div className="pt-5 border-t border-dark-border text-xs text-dark-muted space-y-1.5 relative z-10">
-            <p className="font-black text-white uppercase tracking-wider">{p.team_name}</p>
+            <p className="font-black text-dark-bg uppercase tracking-wider">{p.team_name}</p>
             <p className="uppercase tracking-widest font-bold">{p.university}</p>
           </div>
         </motion.div>
 
         <motion.div variants={itemVariants} className="md:col-span-2 space-y-8">
           <div className="glass-card p-6 md:p-8 space-y-5 shadow-lg">
-            <h3 className="font-heading text-lg font-black text-white border-b border-dark-border pb-3 flex items-center gap-3 uppercase tracking-widest">
+            <h3 className="font-heading text-lg font-black text-dark-bg border-b border-dark-border pb-3 flex items-center gap-3 uppercase tracking-widest">
               <Star set="bold" className="w-5 h-5 text-gold" /> Public Profile
             </h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-xs">
               <div className="p-4 bg-dark-bg rounded-xl border border-dark-border"><span className="text-[10px] text-dark-muted uppercase block font-bold tracking-widest mb-1">Position</span><span className="font-black text-gold text-sm uppercase">{p.position}</span></div>
-              <div className="p-4 bg-dark-bg rounded-xl border border-dark-border"><span className="text-[10px] text-dark-muted uppercase block font-bold tracking-widest mb-1">Jersey Number</span><span className="font-black text-white text-sm">#{p.jersey_number}</span></div>
-              <div className="p-4 bg-dark-bg rounded-xl border border-dark-border"><span className="text-[10px] text-dark-muted uppercase block font-bold tracking-widest mb-1">Nationality</span><span className="font-black text-white text-sm uppercase">{p.nationality}</span></div>
-              <div className="p-4 bg-dark-bg rounded-xl border border-dark-border"><span className="text-[10px] text-dark-muted uppercase block font-bold tracking-widest mb-1">Preferred Foot</span><span className="font-black text-white text-sm uppercase">{p.preferred_foot || 'Right'}</span></div>
-              <div className="p-4 bg-dark-bg rounded-xl border border-dark-border"><span className="text-[10px] text-dark-muted uppercase block font-bold tracking-widest mb-1">Country Team</span><span className="font-black text-white text-sm uppercase">{p.team_country}</span></div>
+              <div className="p-4 bg-dark-bg rounded-xl border border-dark-border"><span className="text-[10px] text-dark-muted uppercase block font-bold tracking-widest mb-1">Jersey Number</span><span className="font-black text-dark-bg text-sm">#{p.jersey_number}</span></div>
+              <div className="p-4 bg-dark-bg rounded-xl border border-dark-border"><span className="text-[10px] text-dark-muted uppercase block font-bold tracking-widest mb-1">Nationality</span><span className="font-black text-dark-bg text-sm uppercase">{p.nationality}</span></div>
+              <div className="p-4 bg-dark-bg rounded-xl border border-dark-border"><span className="text-[10px] text-dark-muted uppercase block font-bold tracking-widest mb-1">Preferred Foot</span><span className="font-black text-dark-bg text-sm uppercase">{p.preferred_foot || 'Right'}</span></div>
+              <div className="p-4 bg-dark-bg rounded-xl border border-dark-border"><span className="text-[10px] text-dark-muted uppercase block font-bold tracking-widest mb-1">Country Team</span><span className="font-black text-dark-bg text-sm uppercase">{p.team_country}</span></div>
               <div className="p-4 bg-status-completed/10 rounded-xl border border-status-completed/30 shadow-[0_0_15px_rgba(34,197,94,0.1)]"><span className="text-[10px] text-status-completed/70 uppercase block font-bold tracking-widest mb-1">Status</span><span className="font-black text-status-completed text-sm uppercase tracking-widest">VERIFIED</span></div>
             </div>
           </div>
 
           <div className="glass-card p-6 md:p-8 space-y-5 shadow-lg">
-            <h3 className="font-heading text-lg font-black text-white border-b border-dark-border pb-3 flex items-center gap-3 uppercase tracking-widest">
+            <h3 className="font-heading text-lg font-black text-dark-bg border-b border-dark-border pb-3 flex items-center gap-3 uppercase tracking-widest">
               <Activity set="bold" className="w-5 h-5 text-gold" /> Tournament Statistics
             </h3>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">

@@ -1,10 +1,14 @@
 import React from 'react';
-import { Outlet, Link, useNavigate } from 'react-router-dom';
+import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { pageVariants } from '../../lib/animations';
 import { Logout } from 'react-iconly';
 import { removeAuthToken } from '../../lib/api';
+import { ThemeToggle } from '../ThemeToggle';
 
 export const AdminLayout: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleLogout = () => {
     removeAuthToken();
@@ -26,18 +30,21 @@ export const AdminLayout: React.FC = () => {
             <span className="text-[10px] text-dark-muted font-bold uppercase tracking-widest leading-none mt-1">Operations Portal</span>
           </div>
         </Link>
-        <button 
-          onClick={handleLogout}
-          className="flex items-center gap-2 px-3 sm:px-4 py-2 text-status-error hover:bg-status-error/10 rounded transition-colors text-sm font-bold"
-        >
-          <Logout set="bold" className="w-4 h-4" />
-          <span className="hidden sm:inline">Sign Out</span>
-        </button>
+        <div className="flex items-center gap-4">
+          <ThemeToggle />
+          <button 
+            onClick={handleLogout}
+            className="flex items-center gap-2 px-3 sm:px-4 py-2 text-status-error hover:bg-status-error/10 rounded transition-colors text-sm font-bold"
+          >
+            <Logout set="bold" className="w-4 h-4" />
+            <span className="hidden sm:inline">Sign Out</span>
+          </button>
+        </div>
       </header>
 
       {/* Main Admin Content Area */}
       <main className="flex-1 w-full overflow-y-auto relative">
-        <div className="relative z-10 p-4 sm:p-8 animate-fade-in max-w-[96%] mx-auto">
+        <div className="relative z-10 p-4 sm:p-8 max-w-[96%] mx-auto">
           <Outlet />
         </div>
       </main>

@@ -41,20 +41,20 @@ export const GalleryPage: React.FC = () => {
 
   return (
     <div className="mx-auto max-w-[96%] px-4 sm:px-6 lg:px-8 py-10 space-y-8">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#2d3748] pb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-surface-border pb-6">
         <div>
-          <h1 className="font-heading text-3xl sm:text-4xl font-black text-white uppercase tracking-tight">
+          <h1 className="font-heading text-3xl sm:text-4xl font-black text-dark-bg uppercase tracking-tight">
             TOURNAMENT <span className="text-gold">GALLERY</span>
           </h1>
           <p className="text-xs sm:text-sm text-dark-muted">Official photo & video highlights from the MULSU_ICC 2026 Champions Cup.</p>
         </div>
 
         {/* Media Filters */}
-        <div className="flex items-center gap-2 bg-[#0f1115] p-1.5 rounded-lg border border-gray-800 self-start sm:self-auto">
+        <div className="flex items-center gap-2 bg-surface-card p-1.5 rounded-lg border border-surface-border self-start sm:self-auto">
           <button
             onClick={() => setActiveFilter('ALL')}
             className={`px-3 py-1.5 text-xs font-bold rounded transition ${
-              activeFilter === 'ALL' ? 'bg-gold text-black' : 'text-dark-muted hover:text-white'
+              activeFilter === 'ALL' ? 'bg-gold text-black' : 'text-dark-muted hover:text-dark-bg'
             }`}
           >
             All Media ({items.length})
@@ -62,7 +62,7 @@ export const GalleryPage: React.FC = () => {
           <button
             onClick={() => setActiveFilter('IMAGE')}
             className={`px-3 py-1.5 text-xs font-bold rounded transition flex items-center gap-1.5 ${
-              activeFilter === 'IMAGE' ? 'bg-gold text-black' : 'text-dark-muted hover:text-white'
+              activeFilter === 'IMAGE' ? 'bg-gold text-black' : 'text-dark-muted hover:text-dark-bg'
             }`}
           >
             <Image set="bold" className="w-3.5 h-3.5" />
@@ -71,7 +71,7 @@ export const GalleryPage: React.FC = () => {
           <button
             onClick={() => setActiveFilter('VIDEO')}
             className={`px-3 py-1.5 text-xs font-bold rounded transition flex items-center gap-1.5 ${
-              activeFilter === 'VIDEO' ? 'bg-gold text-black' : 'text-dark-muted hover:text-white'
+              activeFilter === 'VIDEO' ? 'bg-gold text-black' : 'text-dark-muted hover:text-dark-bg'
             }`}
           >
             <Video set="bold" className="w-3.5 h-3.5" />
@@ -81,7 +81,7 @@ export const GalleryPage: React.FC = () => {
       </div>
 
       {filteredItems.length === 0 ? (
-        <div className="card-dark p-12 text-center text-dark-muted">No media items uploaded in this section yet.</div>
+        <div className="data-card p-12 text-center text-dark-muted">No media items uploaded in this section yet.</div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {filteredItems.map((item) => {
@@ -90,7 +90,7 @@ export const GalleryPage: React.FC = () => {
               <div
                 key={item.id}
                 onClick={() => setSelectedItem(item)}
-                className="card-dark overflow-hidden hover:border-gold cursor-pointer transition group aspect-video sm:aspect-square relative bg-[#0f1115]"
+                className="data-card p-0 overflow-hidden hover:border-brand cursor-pointer transition group aspect-video sm:aspect-square relative bg-surface-card"
               >
                 {itemIsVideo ? (
                   <div className="w-full h-full relative bg-black flex items-center justify-center">
@@ -109,7 +109,7 @@ export const GalleryPage: React.FC = () => {
                 )}
 
                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition p-4 flex flex-col justify-end">
-                  <p className="font-heading font-bold text-white text-xs">{item.title}</p>
+                  <p className="font-heading font-bold text-dark-bg text-xs">{item.title}</p>
                   <p className="text-[10px] text-gold">{item.album_name || 'General'}</p>
                 </div>
               </div>
@@ -121,15 +121,15 @@ export const GalleryPage: React.FC = () => {
       {/* Media Viewer Modal */}
       {selectedItem && (
         <div className="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="relative max-w-4xl w-full bg-[#0f1115] border border-gray-800 rounded-xl overflow-hidden shadow-2xl space-y-4 p-4">
+          <div className="relative max-w-4xl w-full bg-surface-card border border-surface-border rounded-xl overflow-hidden shadow-2xl space-y-4 p-4">
             <button
               onClick={() => setSelectedItem(null)}
-              className="absolute top-4 right-4 z-10 p-2 rounded-full bg-black/60 text-white hover:text-gold hover:bg-black transition"
+              className="absolute top-4 right-4 z-10 p-2 rounded-full bg-surface-bg/80 text-dark-muted hover:text-brand hover:bg-surface-border transition"
             >
               <CloseSquare set="bold" className="w-6 h-6" />
             </button>
 
-            <div className="flex items-center justify-center min-h-[300px] max-h-[75vh] bg-black rounded-lg overflow-hidden">
+            <div className="flex items-center justify-center min-h-[300px] max-h-[75vh] bg-surface-bg rounded-lg overflow-hidden">
               {isVideo(selectedItem) ? (
                 <video
                   src={selectedItem.image_url}
@@ -146,12 +146,12 @@ export const GalleryPage: React.FC = () => {
               )}
             </div>
 
-            <div className="flex items-center justify-between border-t border-gray-800 pt-3 px-2">
+            <div className="flex items-center justify-between border-t border-surface-border pt-3 px-2">
               <div>
-                <h3 className="font-heading font-bold text-white text-base">{selectedItem.title}</h3>
+                <h3 className="font-heading font-bold text-dark-bg text-base">{selectedItem.title}</h3>
                 {selectedItem.caption && <p className="text-xs text-dark-muted mt-1">{selectedItem.caption}</p>}
               </div>
-              <span className="px-3 py-1 rounded bg-gold/10 border border-gold/30 text-gold text-xs font-bold">
+              <span className="px-3 py-1 rounded bg-brand text-black border border-brand text-xs font-bold shadow-sm">
                 {selectedItem.album_name || 'General'}
               </span>
             </div>

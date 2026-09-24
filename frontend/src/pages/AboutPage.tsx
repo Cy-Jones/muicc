@@ -43,11 +43,11 @@ export const AboutPage: React.FC = () => {
           <div className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded bg-gold text-black text-xs sm:text-sm font-black uppercase tracking-wider mx-auto">
             ABOUT THE TOURNAMENT
           </div>
-          <h1 className="font-heading text-4xl sm:text-5xl md:text-7xl font-black text-white uppercase tracking-tight drop-shadow-xl">
+          <h1 className="font-heading text-4xl sm:text-5xl md:text-7xl font-black text-dark-bg uppercase tracking-tight drop-shadow-xl">
             MULSU ICC '26 <br />
             <span className="text-gold glow-gold-text">CHAMPIONS CUP</span>
           </h1>
-          <p className="text-xs sm:text-sm md:text-base text-gray-200 max-w-xl mx-auto font-bold tracking-[0.2em] sm:tracking-[0.2em] uppercase mt-4 drop-shadow">
+          <p className="text-xs sm:text-sm md:text-base text-dark-surface max-w-xl mx-auto font-bold tracking-[0.2em] sm:tracking-[0.2em] uppercase mt-4 drop-shadow">
             BEYOND BORDERS, UNITED BY FOOTBALL.
           </p>
         </div>
@@ -58,25 +58,25 @@ export const AboutPage: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="card-dark p-6 space-y-2 border-t-2 border-gold text-center">
             <Location set="bold" className="w-8 h-8 text-gold mx-auto" />
-            <h3 className="font-heading font-bold text-white text-base">HOST VENUE</h3>
+            <h3 className="font-heading font-bold text-dark-bg text-base">HOST VENUE</h3>
             <p className="text-xs text-dark-muted">Railway Pitch, Madhapar, Rajkot</p>
           </div>
 
           <div className="card-dark p-6 space-y-2 border-t-2 border-gold text-center">
             <Calendar set="bold" className="w-8 h-8 text-gold mx-auto" />
-            <h3 className="font-heading font-bold text-white text-base">OFFICIAL DATES</h3>
+            <h3 className="font-heading font-bold text-dark-bg text-base">OFFICIAL DATES</h3>
             <p className="text-xs text-dark-muted">26 September – 10 October 2026</p>
           </div>
 
           <div className="card-dark p-6 space-y-2 border-t-2 border-gold text-center">
             <Discovery set="bold" className="w-8 h-8 text-gold mx-auto" />
-            <h3 className="font-heading font-bold text-white text-base">NATIONS</h3>
+            <h3 className="font-heading font-bold text-dark-bg text-base">NATIONS</h3>
             <p className="text-xs text-dark-muted">7 Participating University Nations</p>
           </div>
         </div>
 
         <div className="card-dark p-8 space-y-6">
-          <h2 className="font-heading text-2xl font-black text-white border-b border-surface-border pb-3">TOURNAMENT OVERVIEW</h2>
+          <h2 className="font-heading text-2xl font-black text-dark-bg border-b border-surface-border pb-3">TOURNAMENT OVERVIEW</h2>
           <div className="text-sm text-dark-surface space-y-4 leading-relaxed">
             <p>
               The <strong>MULSU ICC '26 Champions Cup</strong> represents the premier collegiate football tournament uniting student athletes across 7 nations: <strong>Liberia, Eswatini, Tanzania, South Sudan, Zimbabwe, Nigeria, and Uganda</strong>.
@@ -105,7 +105,7 @@ export const AboutPage: React.FC = () => {
                     className="w-7 h-5 object-contain rounded-sm shadow-sm" 
                     onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
                   />
-                  <span className="text-xs font-bold text-white leading-tight">{nation.name}</span>
+                  <span className="text-xs font-bold text-dark-bg leading-tight">{nation.name}</span>
                 </div>
               ))}
             </div>

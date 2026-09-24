@@ -118,7 +118,7 @@ export const NewsPage: React.FC = () => {
                     <h2 className="font-heading text-3xl sm:text-4xl font-black text-dark-bg leading-tight">{selectedArticle.title}</h2>
                   </div>
                   
-                  <div className="text-sm text-slate-200 leading-loose whitespace-pre-line border-t border-surface-border pt-6 font-medium">
+                  <div className="text-sm text-dark-surface leading-loose whitespace-pre-line border-t border-surface-border pt-6 font-medium">
                     {selectedArticle.content}
                   </div>
                 </div>

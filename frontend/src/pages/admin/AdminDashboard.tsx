@@ -10,10 +10,30 @@ import { SponsorsModule } from '../../components/admin/SponsorsModule';
 import { PredictionsModule } from '../../components/admin/PredictionsModule';
 import { ExportsModule } from '../../components/admin/ExportsModule';
 import { ManagersModule } from '../../components/admin/ManagersModule';
+import { AdminLineupsModule } from './AdminLineupsModule';
+
+const ToastMessage = ({ message, onClose }: { message: string, onClose: () => void }) => {
+  useEffect(() => {
+    const timer = setTimeout(onClose, 3000);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [message]);
+  return (
+    <div className="relative overflow-hidden px-3 py-1.5 rounded-md bg-status-completed/10 border border-status-completed/30 text-status-completed text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+      <style>{`
+        @keyframes shrink { from { width: 100%; } to { width: 0%; } }
+      `}</style>
+      <Document set="bold" className="w-3.5 h-3.5" />
+      {message}
+      <button onClick={onClose} className="ml-2 hover:text-dark-bg"><CloseSquare set="bold" className="w-3 h-3" /></button>
+      <div className="absolute bottom-0 left-0 h-[2px] bg-status-completed" style={{ animation: 'shrink 3s linear forwards' }} />
+    </div>
+  );
+};
 
 export const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'OVERVIEW' | 'MATCHES' | 'DRAW' | 'TEAMS' | 'PLAYERS' | 'NEWS' | 'GALLERY' | 'SPONSORS' | 'PREDICTIONS' | 'MANAGERS' | 'EXPORTS'>('OVERVIEW');
+  const [activeTab, setActiveTab] = useState<'OVERVIEW' | 'MATCHES' | 'LINEUPS' | 'DRAW' | 'TEAMS' | 'PLAYERS' | 'NEWS' | 'GALLERY' | 'SPONSORS' | 'PREDICTIONS' | 'MANAGERS' | 'EXPORTS'>('OVERVIEW');
 
   const [stats, setStats] = useState<any>(null);
   const [teams, setTeams] = useState<any[]>([]);
@@ -46,7 +66,7 @@ export const AdminDashboard: React.FC = () => {
   const [teamBId, setTeamBId] = useState('');
   const [stage, setStage] = useState('GROUP');
   const [groupId, setGroupId] = useState('grp-a');
-  const [matchStatus, setMatchStatus] = useState<'SCHEDULED' | 'LIVE' | 'FULL_TIME'>('SCHEDULED');
+  const [matchStatus, setMatchStatus] = useState<'SCHEDULED' | 'LIVE' | 'HALF_TIME' | 'FULL_TIME' | 'POSTPONED' | 'CANCELLED'>('SCHEDULED');
   const [scoreA, setScoreA] = useState('0');
   const [scoreB, setScoreB] = useState('0');
   const [minuteText, setMinuteText] = useState('');
@@ -56,9 +76,18 @@ export const AdminDashboard: React.FC = () => {
 
   // Edit Match State
   const [editingMatch, setEditingMatch] = useState<any>(null);
-  const [editMatchStatus, setEditMatchStatus] = useState<'SCHEDULED' | 'LIVE' | 'HALF_TIME' | 'FULL_TIME'>('SCHEDULED');
+  const [editMatchStatus, setEditMatchStatus] = useState<'SCHEDULED' | 'LIVE' | 'HALF_TIME' | 'FULL_TIME' | 'POSTPONED' | 'CANCELLED'>('SCHEDULED');
   const [editScoreA, setEditScoreA] = useState('0');
   const [editScoreB, setEditScoreB] = useState('0');
+  const [editMatchDate, setEditMatchDate] = useState('');
+  const [editMatchTime, setEditMatchTime] = useState('');
+  
+  // Edit Match Events State
+  const [editEventMinute, setEditEventMinute] = useState('1');
+  const [editEventType, setEditEventType] = useState('GOAL');
+  const [editEventTeam, setEditEventTeam] = useState('');
+  const [editEventPlayer, setEditEventPlayer] = useState('');
+  const [editEventSecondary, setEditEventSecondary] = useState('');
 
   // Extra Time State
   const [extraTimeMatch, setExtraTimeMatch] = useState<any>(null);
@@ -247,6 +276,24 @@ export const AdminDashboard: React.FC = () => {
     }
   };
 
+  const handleRecordEvent = async () => {
+    if (!editingMatch || !editEventTeam || !editEventPlayer || !editEventType) return;
+    try {
+      await api.adminRecordMatchEvent(editingMatch.id, {
+        team_id: editEventTeam,
+        player_id: editEventPlayer,
+        event_type: editEventType,
+        secondary_player_id: editEventSecondary || undefined,
+        minute: parseInt(editEventMinute, 10)
+      });
+      setMessage(`Recorded ${editEventType.replace('_', ' ')} successfully.`);
+      setEditEventPlayer('');
+      setEditEventSecondary('');
+    } catch (err: any) {
+      alert(err.message);
+    }
+  };
+
   const handleUnlockDraw = async () => {
     if (!window.confirm('Are you sure you want to unlock the draw? This will allow you to generate a new draw.')) return;
     try {
@@ -327,6 +374,7 @@ export const AdminDashboard: React.FC = () => {
   const TABS = [
     { key: 'OVERVIEW', label: 'Overview', icon: Activity },
     { key: 'MATCHES', label: 'Matches & Live Center', icon: Calendar },
+    { key: 'LINEUPS', label: 'Lineups', icon: TwoUsers },
     { key: 'DRAW', label: 'Tournament Draw', icon: Star },
     { key: 'TEAMS', label: 'Teams', icon: ShieldDone },
     { key: 'PLAYERS', label: 'Players', icon: TwoUsers },
@@ -363,11 +411,7 @@ export const AdminDashboard: React.FC = () => {
         
         <div className="flex items-center gap-3">
           {message && (
-            <div className="px-3 py-1.5 rounded-md bg-status-completed/10 border border-status-completed/30 text-status-completed text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
-              <Document set="bold" className="w-3.5 h-3.5" />
-              {message}
-              <button onClick={() => setMessage('')} className="ml-2 hover:text-dark-bg"><CloseSquare set="bold" className="w-3 h-3" /></button>
-            </div>
+            <ToastMessage message={message} onClose={() => setMessage('')} />
           )}
           <button onClick={loadAllAdminData} className="p-2 rounded-md bg-surface-border text-dark-bg hover:text-dark-bg hover:bg-surface-border transition border border-surface-border shadow-sm">
             <Swap set="bold" className="w-4 h-4" />
@@ -503,7 +547,7 @@ export const AdminDashboard: React.FC = () => {
                           <h4 className="font-bold uppercase tracking-widest text-xs">Tournament Draw Action Required</h4>
                         </div>
                         <p className="text-sm text-dark-bg">The tournament draw has not been locked. Group assignments and fixtures may be incomplete.</p>
-                        <button onClick={() => setActiveTab('DRAW')} className="action-btn bg-blue-500/20 text-blue-400 hover:bg-blue-500 hover:text-white">Go to Draw Manager</button>
+                        <button onClick={() => setActiveTab('DRAW')} className="action-btn bg-blue-500/20 text-blue-400 hover:bg-blue-500 hover:text-dark-bg">Go to Draw Manager</button>
                       </div>
                     ) : (
                       <div className="bg-status-completed/10 border border-status-completed/30 p-5 rounded-xl flex items-center justify-between md:col-span-2">
@@ -514,7 +558,7 @@ export const AdminDashboard: React.FC = () => {
                           </div>
                           <p className="text-xs text-dark-muted">The tournament structure is officially finalized.</p>
                         </div>
-                        <button onClick={() => setActiveTab('DRAW')} className="action-btn bg-status-completed/20 text-status-completed hover:bg-status-completed hover:text-white">View Draw</button>
+                        <button onClick={() => setActiveTab('DRAW')} className="action-btn bg-status-completed/20 text-status-completed hover:bg-status-completed hover:text-dark-bg">View Draw</button>
                       </div>
                     )}
 
@@ -632,7 +676,7 @@ export const AdminDashboard: React.FC = () => {
                             m.status === 'LIVE' ? 'bg-status-error/10 text-status-error border border-status-error/30' :
                             m.status === 'HALF_TIME' ? 'bg-status-warning/10 text-status-warning border border-status-warning/30' : 'bg-surface-border text-dark-muted'
                           }`}>
-                            {m.status === 'HALF_TIME' ? 'HT' : m.status}
+                            {m.status === 'HALF_TIME' ? 'HT' : m.status.replace(/_/g, ' ')}
                           </span>
                         </div>
                       </div>
@@ -652,12 +696,57 @@ export const AdminDashboard: React.FC = () => {
                       </div>
 
                       <div className="p-3 bg-surface-bg border-t border-surface-border flex flex-wrap items-center justify-between gap-3">
-                        <div className="flex items-center gap-2">
-                          {m.status === 'SCHEDULED' && <button onClick={() => handleLiveClockControl(m.id, 'START_1ST_HALF')} className="action-btn bg-status-completed/10 text-status-completed hover:bg-status-completed/20 border-status-completed/30"><Play set="bold" className="w-3.5 h-3.5" /> 1st Half</button>}
-                          {m.status === 'LIVE' && (m.live_period === '1ST_HALF' || !m.live_period) && <button onClick={() => handleLiveClockControl(m.id, 'PAUSE_HALF_TIME')} className="action-btn bg-status-warning/10 text-status-warning hover:bg-status-warning/20 border-status-warning/30"><CloseSquare set="bold" className="w-3.5 h-3.5" /> HT</button>}
-                          {(m.status === 'HALF_TIME' || (m.status === 'LIVE' && m.live_period === 'HALF_TIME')) && <button onClick={() => handleLiveClockControl(m.id, 'START_2ND_HALF')} className="action-btn bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 border-blue-500/30"><Play set="bold" className="w-3.5 h-3.5" /> 2nd Half</button>}
-                          {m.status === 'LIVE' && <button onClick={() => { setExtraTimeMatch(m); setExtraMins('3'); }} className="action-btn bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 border-purple-500/30"><Play set="bold" className="w-3.5 h-3.5" /> +Time</button>}
-                          {isLiveOrHt && <button onClick={() => handleLiveClockControl(m.id, 'END_MATCH')} className="action-btn bg-status-error/10 text-status-error hover:bg-status-error/20 border-status-error/30"><TickSquare set="bold" className="w-3.5 h-3.5" /> FT</button>}
+                        <div className="flex flex-wrap items-center gap-2">
+                          {liveClock.phase === 'PRE_MATCH' && <button onClick={() => handleLiveClockControl(m.id, 'START_1ST_HALF')} className="action-btn bg-status-completed/10 text-status-completed border-status-completed/30"><Play set="bold" className="w-3.5 h-3.5" /> Start 1st Half</button>}
+                          
+                          {liveClock.phase === 'FIRST_HALF' && (
+                            <>
+                              <button onClick={() => handleLiveClockControl(m.id, 'END_1ST_HALF')} className="action-btn bg-status-warning/10 text-status-warning border-status-warning/30"><CloseSquare set="bold" className="w-3.5 h-3.5" /> End 1st Half</button>
+                              <button onClick={() => { setExtraTimeMatch(m); setExtraMins('3'); }} className="action-btn bg-purple-500/10 text-purple-400 border-purple-500/30"><Play set="bold" className="w-3.5 h-3.5" /> +Time</button>
+                            </>
+                          )}
+                          
+                          {liveClock.phase === 'HALF_TIME' && <button onClick={() => handleLiveClockControl(m.id, 'START_2ND_HALF')} className="action-btn bg-blue-500/10 text-blue-400 border-blue-500/30"><Play set="bold" className="w-3.5 h-3.5" /> Start 2nd Half</button>}
+                          
+                          {liveClock.phase === 'SECOND_HALF' && (
+                            <>
+                              <button onClick={() => handleLiveClockControl(m.id, 'END_2ND_HALF')} className="action-btn bg-status-error/10 text-status-error border-status-error/30"><TickSquare set="bold" className="w-3.5 h-3.5" /> Full Time</button>
+                              <button onClick={() => { setExtraTimeMatch(m); setExtraMins('3'); }} className="action-btn bg-purple-500/10 text-purple-400 border-purple-500/30"><Play set="bold" className="w-3.5 h-3.5" /> +Time</button>
+                            </>
+                          )}
+                          
+                          {liveClock.phase === 'FULL_TIME' && (
+                            <>
+                              <button onClick={() => handleLiveClockControl(m.id, 'START_ET_1')} className="action-btn bg-orange-500/10 text-orange-400 border-orange-500/30"><Play set="bold" className="w-3.5 h-3.5" /> Start ET1</button>
+                            </>
+                          )}
+                          
+                          {liveClock.phase === 'EXTRA_TIME_FIRST_HALF' && (
+                            <>
+                              <button onClick={() => handleLiveClockControl(m.id, 'END_ET_1')} className="action-btn bg-status-warning/10 text-status-warning border-status-warning/30"><CloseSquare set="bold" className="w-3.5 h-3.5" /> End ET1</button>
+                              <button onClick={() => { setExtraTimeMatch(m); setExtraMins('1'); }} className="action-btn bg-purple-500/10 text-purple-400 border-purple-500/30"><Play set="bold" className="w-3.5 h-3.5" /> +Time</button>
+                            </>
+                          )}
+                          
+                          {liveClock.phase === 'EXTRA_TIME_HALF_TIME' && <button onClick={() => handleLiveClockControl(m.id, 'START_ET_2')} className="action-btn bg-blue-500/10 text-blue-400 border-blue-500/30"><Play set="bold" className="w-3.5 h-3.5" /> Start ET2</button>}
+
+                          {liveClock.phase === 'EXTRA_TIME_SECOND_HALF' && (
+                            <>
+                              <button onClick={() => handleLiveClockControl(m.id, 'START_PENALTIES')} className="action-btn bg-purple-500/10 text-purple-400 border-purple-500/30"><Play set="bold" className="w-3.5 h-3.5" /> Pens</button>
+                              <button onClick={() => handleLiveClockControl(m.id, 'END_MATCH')} className="action-btn bg-status-error/10 text-status-error border-status-error/30"><TickSquare set="bold" className="w-3.5 h-3.5" /> End Match</button>
+                              <button onClick={() => { setExtraTimeMatch(m); setExtraMins('1'); }} className="action-btn bg-purple-500/10 text-purple-400 border-purple-500/30"><Play set="bold" className="w-3.5 h-3.5" /> +Time</button>
+                            </>
+                          )}
+                          
+                          {liveClock.phase === 'PENALTY_SHOOTOUT' && (
+                            <button onClick={() => handleLiveClockControl(m.id, 'END_MATCH')} className="action-btn bg-status-error/10 text-status-error border-status-error/30"><TickSquare set="bold" className="w-3.5 h-3.5" /> End Match</button>
+                          )}
+
+                          {liveClock.phase !== 'COMPLETED' && (
+                            <button onClick={() => handleLiveClockControl(m.id, 'TOGGLE_TEST_MODE')} className={`action-btn ${m.is_test_mode ? 'bg-red-500/20 text-red-400 border-red-500/50' : 'bg-gray-500/10 text-gray-400 border-gray-500/30'}`}>
+                              {m.is_test_mode === 1 ? 'Test Mode: ON' : 'Test Mode: OFF'}
+                            </button>
+                          )}
                         </div>
 
                         <div className="flex items-center gap-2">
@@ -666,6 +755,8 @@ export const AdminDashboard: React.FC = () => {
                             setEditMatchStatus(m.status);
                             setEditScoreA(m.score_a?.toString() || '0');
                             setEditScoreB(m.score_b?.toString() || '0');
+                            setEditMatchDate(m.date || '');
+                            setEditMatchTime(m.time || '');
                           }} className="action-btn bg-surface-border text-dark-bg hover:bg-surface-border border-surface-border"><Edit set="bold" className="w-3.5 h-3.5" /> Edit</button>
                           
                           {m.status !== 'FULL_TIME' && <button onClick={() => handleConfirmResult(m.id)} className="action-btn bg-status-completed/10 text-status-completed hover:bg-status-completed/20 border-status-completed/30"><TickSquare set="bold" className="w-3.5 h-3.5" /> Confirm FT</button>}
@@ -693,7 +784,7 @@ export const AdminDashboard: React.FC = () => {
                         <div><label className="admin-label">Team B *</label><select value={teamBId} onChange={(e) => setTeamBId(e.target.value)} className="admin-input" required>{teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}</select></div>
                       </div>
                       <div className="grid grid-cols-3 gap-4">
-                        <div><label className="admin-label">Status *</label><select value={matchStatus} onChange={(e) => setMatchStatus(e.target.value as any)} className="admin-input"><option value="LIVE">LIVE</option><option value="SCHEDULED">SCHEDULED</option><option value="FULL_TIME">FULL TIME</option></select></div>
+                        <div><label className="admin-label">Status *</label><select value={matchStatus} onChange={(e) => setMatchStatus(e.target.value as any)} className="admin-input"><option value="SCHEDULED">SCHEDULED</option><option value="LIVE">LIVE</option><option value="HALF_TIME">HALF TIME</option><option value="FULL_TIME">FULL TIME</option><option value="POSTPONED">POSTPONED</option><option value="CANCELLED">CANCELLED</option></select></div>
                         <div><label className="admin-label">Score A</label><input type="number" min="0" value={scoreA} onChange={(e) => setScoreA(e.target.value)} className="admin-input text-center" /></div>
                         <div><label className="admin-label">Score B</label><input type="number" min="0" value={scoreB} onChange={(e) => setScoreB(e.target.value)} className="admin-input text-center" /></div>
                       </div>
@@ -789,7 +880,7 @@ export const AdminDashboard: React.FC = () => {
                           <button onClick={() => openMessageModal(t)} className="p-1.5 rounded bg-brand/10 text-brand hover:bg-brand hover:text-black transition-colors" title="Send Message">
                             <Message set="bold" className="w-4 h-4" />
                           </button>
-                          <button onClick={() => handleDeleteTeam(t.id)} className="p-1.5 rounded bg-status-error/10 text-status-error hover:bg-status-error hover:text-white transition-colors" title="Delete Team">
+                          <button onClick={() => handleDeleteTeam(t.id)} className="p-1.5 rounded bg-status-error/10 text-status-error hover:bg-status-error hover:text-dark-bg transition-colors" title="Delete Team">
                             <Delete set="bold" className="w-4 h-4" />
                           </button>
                         </td>
@@ -839,7 +930,7 @@ export const AdminDashboard: React.FC = () => {
                           <button onClick={() => setViewingPlayer(p)} className="action-btn bg-brand/10 text-brand border-brand/30 hover:bg-brand/20" title="View Details">Details</button>
                           {p.status !== 'APPROVED' && <button onClick={() => handleUpdatePlayerStatus(p.id, 'APPROVED')} className="action-btn bg-status-completed/10 text-status-completed border-status-completed/30 hover:bg-status-completed/20">Approve</button>}
                           {p.status !== 'REJECTED' && <button onClick={() => handleUpdatePlayerStatus(p.id, 'REJECTED')} className="action-btn bg-status-error/10 text-status-error border-status-error/30 hover:bg-status-error/20">Reject</button>}
-                          <button onClick={() => handleDeletePlayer(p.id)} className="p-1.5 rounded bg-status-error/10 text-status-error hover:bg-status-error hover:text-white transition-colors" title="Delete Player">
+                          <button onClick={() => handleDeletePlayer(p.id)} className="p-1.5 rounded bg-status-error/10 text-status-error hover:bg-status-error hover:text-dark-bg transition-colors" title="Delete Player">
                             <Delete set="bold" className="w-4 h-4" />
                           </button>
                         </td>
@@ -857,6 +948,7 @@ export const AdminDashboard: React.FC = () => {
           {activeTab === 'PREDICTIONS' && <PredictionsModule />}
           {activeTab === 'MANAGERS' && <ManagersModule />}
           {activeTab === 'EXPORTS' && <ExportsModule />}
+          {activeTab === 'LINEUPS' && <AdminLineupsModule />}
 
         </div>
       )}
@@ -880,8 +972,10 @@ export const AdminDashboard: React.FC = () => {
                 <select className="input-field" value={editMatchStatus} onChange={e => setEditMatchStatus(e.target.value as any)}>
                   <option value="SCHEDULED">SCHEDULED</option>
                   <option value="LIVE">LIVE</option>
-                  <option value="HALF_TIME">HALF_TIME</option>
-                  <option value="FULL_TIME">FULL_TIME</option>
+                  <option value="HALF_TIME">HALF TIME</option>
+                  <option value="FULL_TIME">FULL TIME</option>
+                  <option value="POSTPONED">POSTPONED</option>
+                  <option value="CANCELLED">CANCELLED</option>
                 </select>
               </div>
 
@@ -895,6 +989,85 @@ export const AdminDashboard: React.FC = () => {
                   <input type="number" min="0" className="input-field" value={editScoreB} onChange={e => setEditScoreB(e.target.value)} />
                 </div>
               </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-dark-muted uppercase tracking-widest mb-1.5">Date</label>
+                  <input type="date" className="input-field" value={editMatchDate} onChange={e => setEditMatchDate(e.target.value)} />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-dark-muted uppercase tracking-widest mb-1.5">Time</label>
+                  <input type="time" className="input-field" value={editMatchTime} onChange={e => setEditMatchTime(e.target.value)} />
+                </div>
+              </div>
+
+              <div className="border-t border-surface-border pt-4">
+                <label className="block text-xs font-bold text-dark-muted uppercase tracking-widest mb-3">Record Match Event</label>
+                
+                <div className="grid grid-cols-2 gap-4 mb-3">
+                  <div>
+                    <label className="block text-[10px] font-bold text-dark-muted uppercase mb-1">Minute</label>
+                    <input type="number" min="1" max="120" className="input-field" value={editEventMinute} onChange={e => setEditEventMinute(e.target.value)} />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-dark-muted uppercase mb-1">Event Type</label>
+                    <select className="input-field" value={editEventType} onChange={e => setEditEventType(e.target.value)}>
+                      <option value="GOAL">Goal</option>
+                      <option value="YELLOW_CARD">Yellow Card</option>
+                      <option value="RED_CARD">Red Card</option>
+                      <option value="SUBSTITUTION">Substitution</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 mb-3">
+                  <div>
+                    <label className="block text-[10px] font-bold text-dark-muted uppercase mb-1">Team</label>
+                    <select className="input-field" value={editEventTeam} onChange={e => {
+                      setEditEventTeam(e.target.value);
+                      setEditEventPlayer('');
+                      setEditEventSecondary('');
+                    }}>
+                      <option value="">Select Team...</option>
+                      <option value={editingMatch.team_a_id}>{editingMatch.team_a_name}</option>
+                      <option value={editingMatch.team_b_id}>{editingMatch.team_b_name}</option>
+                    </select>
+                  </div>
+                  {editEventTeam && (
+                    <div>
+                      <label className="block text-[10px] font-bold text-dark-muted uppercase mb-1">Primary Player</label>
+                      <select className="input-field" value={editEventPlayer} onChange={e => setEditEventPlayer(e.target.value)}>
+                        <option value="">Select Player...</option>
+                        {players.filter(p => p.team_id === editEventTeam || p.team_name === (editEventTeam === editingMatch.team_a_id ? editingMatch.team_a_name : editingMatch.team_b_name)).map(p => (
+                          <option key={p.id} value={p.id}>{p.full_name}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                </div>
+
+                {editEventTeam && (editEventType === 'GOAL' || editEventType === 'SUBSTITUTION') && (
+                  <div className="mb-3">
+                    <label className="block text-[10px] font-bold text-dark-muted uppercase mb-1">
+                      {editEventType === 'GOAL' ? 'Assist (Optional)' : 'Sub Out Player'}
+                    </label>
+                    <select className="input-field" value={editEventSecondary} onChange={e => setEditEventSecondary(e.target.value)}>
+                      <option value="">{editEventType === 'GOAL' ? 'No Assist' : 'Select Player...'}</option>
+                      {players.filter(p => p.team_id === editEventTeam || p.team_name === (editEventTeam === editingMatch.team_a_id ? editingMatch.team_a_name : editingMatch.team_b_name)).map(p => (
+                        <option key={p.id} value={p.id}>{p.full_name}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+                
+                <button 
+                  onClick={handleRecordEvent} 
+                  disabled={!editEventTeam || !editEventPlayer || (editEventType === 'SUBSTITUTION' && !editEventSecondary)}
+                  className="w-full py-2 bg-brand/10 text-brand font-bold rounded-lg text-sm hover:bg-brand/20 disabled:opacity-50 transition-colors"
+                >
+                  Save Event
+                </button>
+              </div>
             </div>
 
             <div className="flex items-center justify-end gap-3 border-t border-surface-border pt-4 mt-6">
@@ -905,7 +1078,9 @@ export const AdminDashboard: React.FC = () => {
                     status: editMatchStatus,
                     score_a: parseInt(editScoreA, 10),
                     score_b: parseInt(editScoreB, 10),
-                    minute_text: editingMatch.minute_text
+                    minute_text: editingMatch.minute_text,
+                    date: editMatchDate,
+                    time: editMatchTime
                   });
                   loadAllAdminData();
                   setEditingMatch(null);
@@ -941,7 +1116,11 @@ export const AdminDashboard: React.FC = () => {
             <div className="flex items-center justify-end gap-3 border-t border-surface-border pt-4 mt-6">
               <button onClick={() => setExtraTimeMatch(null)} className="px-5 py-2.5 rounded-lg text-sm font-bold text-dark-muted hover:text-dark-bg transition-colors">Cancel</button>
               <button onClick={() => {
-                handleLiveClockControl(extraTimeMatch.id, extraTimeMatch.live_period === '2ND_HALF' ? 'SET_STOPPAGE_2ND' : 'SET_STOPPAGE_1ST', parseInt(extraMins));
+                let action = 'SET_STOPPAGE_1ST';
+                if (extraTimeMatch.live_period === 'SECOND_HALF' || extraTimeMatch.live_period === '2ND_HALF') action = 'SET_STOPPAGE_2ND';
+                if (extraTimeMatch.live_period === 'EXTRA_TIME_FIRST_HALF') action = 'SET_STOPPAGE_ET1';
+                if (extraTimeMatch.live_period === 'EXTRA_TIME_SECOND_HALF') action = 'SET_STOPPAGE_ET2';
+                handleLiveClockControl(extraTimeMatch.id, action, parseInt(extraMins));
                 setExtraTimeMatch(null);
               }} className="btn-primary py-2.5 px-6">Confirm</button>
             </div>

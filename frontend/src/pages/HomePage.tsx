@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { api } from '../lib/api';
 import { getMatchLiveClock } from '../lib/liveClock';
 import { Star, ShieldDone, User, Calendar, Location, ChevronRight, TickSquare, Activity, Discovery } from 'react-iconly';
+import { staggerContainer, fadeUp, scaleIn } from '../lib/animations';
 
 const heroImages = [
   '/images/hero.jpg?v=2',
@@ -135,20 +136,25 @@ export const HomePage: React.FC = () => {
             />
           </AnimatePresence>
         </div>
-        <div className="absolute inset-0 bg-black/60 backdrop-blur-[1px] z-0"></div>
+        <div className="absolute inset-0 bg-[var(--color-hero-overlay)] backdrop-blur-[1px] z-0 transition-colors duration-500"></div>
         <div className="absolute inset-0 bg-gradient-to-t from-surface-bg via-transparent to-transparent z-0"></div>
         
-        <div className="relative z-10 w-full max-w-4xl px-4 text-center space-y-5">
+        <motion.div 
+          variants={staggerContainer}
+          initial="initial"
+          animate="animate"
+          className="relative z-10 w-full max-w-4xl px-4 text-center space-y-5"
+        >
 
-          <h1 className="font-heading font-black uppercase text-3xl sm:text-4xl md:text-6xl lg:text-[5rem] text-dark-bg tracking-tight leading-none flex flex-col items-center gap-1 sm:gap-2">
+          <motion.h1 variants={fadeUp} className="font-heading font-black uppercase text-3xl sm:text-4xl md:text-6xl lg:text-[5rem] text-dark-bg tracking-tight leading-none flex flex-col items-center gap-1 sm:gap-2">
             <span className="drop-shadow-lg">BEYOND BORDERS</span>
             <span className="text-brand drop-shadow-[0_0_30px_rgba(253,224,71,0.7)]">UNITED BY FOOTBALL</span>
-          </h1>
+          </motion.h1>
 
-          <p className="text-slate-200 text-[10px] sm:text-xs md:text-sm lg:text-base max-w-3xl mx-auto font-bold tracking-[0.2em] sm:tracking-[0.25em] uppercase mt-6 drop-shadow">
+          <motion.p variants={fadeUp} className="text-dark-surface text-[10px] sm:text-xs md:text-sm lg:text-base max-w-3xl mx-auto font-bold tracking-[0.2em] sm:tracking-[0.25em] uppercase mt-6 drop-shadow">
             ONE CAMPUS. MANY NATIONS. ONE CHAMPION.
-          </p>
-        </div>
+          </motion.p>
+        </motion.div>
       </section>
 
       {/* FLOATING INTERACTIVE MATCH PANEL */}
@@ -233,52 +239,64 @@ export const HomePage: React.FC = () => {
         </div>
 
       {/* QUICK STATS SECTION */}
-      <section className="w-full max-w-[96%] mx-auto px-4 py-4 md:py-8 grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-        <div className="data-card p-4 sm:p-5 flex flex-col items-center text-center">
+      <motion.section 
+        variants={staggerContainer}
+        initial="initial"
+        whileInView="animate"
+        viewport={{ once: true, amount: 0.2 }}
+        className="w-full max-w-[96%] mx-auto px-4 py-4 md:py-8 grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4"
+      >
+        <motion.div variants={scaleIn} className="data-card p-4 sm:p-5 flex flex-col items-center text-center">
           <ShieldDone set="bold" className="w-6 h-6 text-brand mb-2 opacity-80" />
           <h3 className="text-2xl font-heading text-dark-bg">{summary?.teamsCount || 0}</h3>
           <p className="text-xs text-dark-muted font-bold uppercase tracking-wider">Teams</p>
-        </div>
-        <div className="data-card p-4 sm:p-5 flex flex-col items-center text-center">
+        </motion.div>
+        <motion.div variants={scaleIn} className="data-card p-4 sm:p-5 flex flex-col items-center text-center">
           <User set="bold" className="w-6 h-6 text-brand mb-2 opacity-80" />
           <h3 className="text-2xl font-heading text-dark-bg">{summary?.playersCount || 0}</h3>
           <p className="text-xs text-dark-muted font-bold uppercase tracking-wider">Players</p>
-        </div>
-        <div className="data-card p-4 sm:p-5 flex flex-col items-center text-center">
+        </motion.div>
+        <motion.div variants={scaleIn} className="data-card p-4 sm:p-5 flex flex-col items-center text-center">
           <Calendar set="bold" className="w-6 h-6 text-brand mb-2 opacity-80" />
           <h3 className="text-2xl font-heading text-dark-bg">{summary?.matchesCount || 0}</h3>
           <p className="text-xs text-dark-muted font-bold uppercase tracking-wider">Matches</p>
-        </div>
-        <div className="data-card p-4 sm:p-5 flex flex-col items-center text-center">
+        </motion.div>
+        <motion.div variants={scaleIn} className="data-card p-4 sm:p-5 flex flex-col items-center text-center">
           <Location set="bold" className="w-6 h-6 text-brand mb-2 opacity-80" />
           <h3 className="text-2xl font-heading text-dark-bg">1</h3>
           <p className="text-xs text-dark-muted font-bold uppercase tracking-wider">Venue</p>
-        </div>
-      </section>
+        </motion.div>
+      </motion.section>
 
       {/* ABOUT THE TOURNAMENT SECTION */}
-      <section className="w-full max-w-[96%] mx-auto px-4 py-8 md:py-12 space-y-12">
+      <motion.section 
+        variants={staggerContainer}
+        initial="initial"
+        whileInView="animate"
+        viewport={{ once: true, amount: 0.1 }}
+        className="w-full max-w-[96%] mx-auto px-4 py-8 md:py-12 space-y-12"
+      >
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="data-card p-6 space-y-2 border-t-2 border-brand text-center">
+          <motion.div variants={fadeUp} className="data-card p-6 space-y-2 border-t-2 border-brand text-center">
             <Location set="bold" className="w-8 h-8 text-brand mx-auto" />
             <h3 className="font-heading font-bold text-dark-bg text-base">HOST VENUE</h3>
             <p className="text-xs text-dark-muted">Railway Pitch, Madhapar, Rajkot</p>
-          </div>
+          </motion.div>
 
-          <div className="data-card p-6 space-y-2 border-t-2 border-brand text-center">
+          <motion.div variants={fadeUp} className="data-card p-6 space-y-2 border-t-2 border-brand text-center">
             <Calendar set="bold" className="w-8 h-8 text-brand mx-auto" />
             <h3 className="font-heading font-bold text-dark-bg text-base">OFFICIAL DATES</h3>
             <p className="text-xs text-dark-muted">26 September – 10 October 2026</p>
-          </div>
+          </motion.div>
 
-          <div className="data-card p-6 space-y-2 border-t-2 border-brand text-center">
+          <motion.div variants={fadeUp} className="data-card p-6 space-y-2 border-t-2 border-brand text-center">
             <Discovery set="bold" className="w-8 h-8 text-brand mx-auto" />
             <h3 className="font-heading font-bold text-dark-bg text-base">NATIONS</h3>
             <p className="text-xs text-dark-muted">7 Participating University Nations</p>
-          </div>
+          </motion.div>
         </div>
 
-        <div className="data-card p-8 space-y-6">
+        <motion.div variants={fadeUp} className="data-card p-8 space-y-6">
           <div className="text-center mb-6">
             <h2 className="font-heading text-2xl md:text-3xl font-black text-dark-bg tracking-tight uppercase">
               ABOUT <span className="text-brand">THE TOURNAMENT</span>
@@ -317,8 +335,8 @@ export const HomePage: React.FC = () => {
               ))}
             </div>
           </div>
-        </div>
-      </section>
+        </motion.div>
+      </motion.section>
 
       {/* OFFICIAL SPONSORS SECTION */}
       {(() => {
@@ -340,7 +358,13 @@ export const HomePage: React.FC = () => {
         }
 
         return (
-          <section className="w-full max-w-[96%] mx-auto px-4 py-8">
+          <motion.section 
+            variants={staggerContainer}
+            initial="initial"
+            whileInView="animate"
+            viewport={{ once: true, amount: 0.1 }}
+            className="w-full max-w-[96%] mx-auto px-4 py-8"
+          >
             <div className="text-center mb-6">
               <h2 className="font-heading text-2xl md:text-3xl font-black uppercase text-dark-bg tracking-tight">
                 OFFICIAL <span className="text-brand text-glow">SPONSORS & PARTNERS</span>
@@ -354,7 +378,7 @@ export const HomePage: React.FC = () => {
               <div className={`grid ${gridClass} gap-4 sm:gap-6 items-center`}>
                 {validSponsors.map((s) => {
                   const CardContent = (
-                    <div className="data-card relative flex flex-col justify-end overflow-hidden hover:border-brand/50 hover:-translate-y-1 transition-all duration-300 group aspect-[4/5] sm:aspect-[3/4]">
+                    <motion.div variants={scaleIn} className="data-card relative flex flex-col justify-end overflow-hidden hover:border-brand/50 hover:-translate-y-1 transition-all duration-300 group aspect-[4/5] sm:aspect-[3/4]">
                       <img 
                         src={s.logo_url} 
                         alt={s.name} 
@@ -368,12 +392,12 @@ export const HomePage: React.FC = () => {
                       <div className="absolute inset-x-0 bottom-0 h-3/5 z-10 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/70 to-transparent"></div>
                       
                       <div className="relative z-20 p-4 text-center flex flex-col items-center w-full">
-                        <p className="font-heading text-sm font-bold text-white group-hover:text-brand transition-colors line-clamp-1 drop-shadow-md">{s.name}</p>
+                        <p className="font-heading text-sm font-bold text-dark-bg group-hover:text-brand transition-colors line-clamp-1 drop-shadow-md">{s.name}</p>
                         <span className="inline-block mt-1.5 text-[9px] font-extrabold uppercase tracking-widest px-2 py-0.5 rounded bg-brand/10 text-brand border border-brand/20 shadow-sm">
                           {s.tier || 'PARTNER'}
                         </span>
                       </div>
-                    </div>
+                    </motion.div>
                   );
 
                   return s.website ? (
@@ -388,12 +412,18 @@ export const HomePage: React.FC = () => {
                 })}
               </div>
             </div>
-          </section>
+          </motion.section>
         );
       })()}
 
       {/* CALL TO ACTION */}
-      <section className="w-full max-w-4xl mx-auto px-4 py-12 text-center">
+      <motion.section 
+        initial="initial"
+        whileInView="animate"
+        viewport={{ once: true, amount: 0.2 }}
+        variants={fadeUp}
+        className="w-full max-w-4xl mx-auto px-4 py-12 text-center"
+      >
         <div className="data-card p-8 sm:p-12 bg-surface-card flex flex-col items-center">
           <Discovery set="bold" className="w-10 h-10 text-brand mb-4" />
           <h2 className="font-heading text-2xl md:text-3xl font-bold text-dark-bg mb-2">Explore the Tournament</h2>
@@ -409,7 +439,7 @@ export const HomePage: React.FC = () => {
             </Link>
           </div>
         </div>
-      </section>
+      </motion.section>
     </div>
   );
 };

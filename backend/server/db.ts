@@ -162,7 +162,10 @@ export async function initDatabase() {
     'ALTER TABLE players ADD COLUMN preferred_foot TEXT DEFAULT \'Right\';',
     'ALTER TABLE players ADD COLUMN medical_conditions TEXT;',
     'ALTER TABLE players ADD COLUMN emergency_contact_name TEXT;',
-    'ALTER TABLE players ADD COLUMN emergency_contact_phone TEXT;'
+    'ALTER TABLE players ADD COLUMN emergency_contact_phone TEXT;',
+    'ALTER TABLE matches ADD COLUMN stoppage_time_et1 INTEGER DEFAULT 0;',
+    'ALTER TABLE matches ADD COLUMN stoppage_time_et2 INTEGER DEFAULT 0;',
+    'ALTER TABLE matches ADD COLUMN is_test_mode INTEGER DEFAULT 0;'
   ];
   for (const sql of additions) {
     try { await getClient().execute(sql); } catch { /* column already exists */ }

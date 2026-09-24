@@ -188,4 +188,137 @@ router.delete('/players/:id', authenticateManager, async (req: AuthenticatedRequ
   }
 });
 
+// ── Manager Lineup Endpoints ──
+
+// GET upcoming matches for the manager's team
+router.get('/matches', authenticateManager, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const manager = req.manager!;
+    const nation = await db.prepare('SELECT * FROM participating_nations WHERE id = ?').get(manager.nation_id) as any;
+    if (!nation) return res.status(404).json({ error: 'Nation not found.' });
+
+    const team = await db.prepare('SELECT * FROM teams WHERE country = ? COLLATE NOCASE').get(nation.name) as any;
+    if (!team) return res.json([]);
+
+    const matches = await db.prepare(`
+      SELECT m.*, md.name as match_day_name,
+             ta.name as team_a_name, ta.logo_url as team_a_logo, ta.country as team_a_country,
+             tb.name as team_b_name, tb.logo_url as team_b_logo, tb.country as team_b_country
+      FROM matches m
+      JOIN match_days md ON m.match_day_id = md.id
+      JOIN teams ta ON m.team_a_id = ta.id
+      JOIN teams tb ON m.team_b_id = tb.id
+      WHERE (m.team_a_id = ? OR m.team_b_id = ?)
+        AND m.status IN ('SCHEDULED', 'LIVE', 'HALF_TIME', 'POSTPONED')
+      ORDER BY m.date ASC, m.time ASC
+    `).all(team.id, team.id);
+
+    // Attach lineup status for each match
+    for (const m of matches as any[]) {
+      const lineup = await db.prepare(
+        'SELECT id, formation, approval_status, submitted_at FROM match_lineups WHERE match_id = ? AND team_id = ?'
+      ).get(m.id, team.id) as any;
+      m.lineup_status = lineup ? lineup.approval_status : null;
+      m.lineup_id = lineup?.id || null;
+    }
+
+    return res.json(matches);
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message || 'Failed to fetch matches' });
+  }
+});
+
+// GET lineup for a specific match
+router.get('/matches/:matchId/lineup', authenticateManager, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const manager = req.manager!;
+    const nation = await db.prepare('SELECT * FROM participating_nations WHERE id = ?').get(manager.nation_id) as any;
+    const team = await db.prepare('SELECT * FROM teams WHERE country = ? COLLATE NOCASE').get(nation?.name) as any;
+    if (!team) return res.status(404).json({ error: 'Team not found.' });
+
+    const lineup = await db.prepare(
+      'SELECT * FROM match_lineups WHERE match_id = ? AND team_id = ?'
+    ).get(req.params.matchId, team.id) as any;
+
+    if (!lineup) return res.json({ lineup: null, players: [] });
+
+    const players = await db.prepare(`
+      SELECT mlp.*, p.full_name, p.jersey_number, p.photo_url, p.position as registered_position
+      FROM match_lineup_players mlp
+      JOIN players p ON mlp.player_id = p.id
+      WHERE mlp.lineup_id = ?
+      ORDER BY mlp.is_starting DESC, mlp.display_order ASC
+    `).all(lineup.id);
+
+    return res.json({ lineup, players });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message || 'Failed to fetch lineup' });
+  }
+});
+
+// POST/PUT lineup submission
+router.post('/matches/:matchId/lineup', authenticateManager, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const manager = req.manager!;
+    const nation = await db.prepare('SELECT * FROM participating_nations WHERE id = ?').get(manager.nation_id) as any;
+    const team = await db.prepare('SELECT * FROM teams WHERE country = ? COLLATE NOCASE').get(nation?.name) as any;
+    if (!team) return res.status(403).json({ error: 'Team not found.' });
+
+    const { formation, players } = req.body;
+    // players = [{ player_id, is_starting, position, display_order }]
+
+    if (!formation || !players || !Array.isArray(players) || players.length === 0) {
+      return res.status(400).json({ error: 'Formation and at least one player are required.' });
+    }
+
+    const starters = players.filter((p: any) => p.is_starting);
+    if (starters.length !== 11) {
+      return res.status(400).json({ error: 'Exactly 11 starting players are required.' });
+    }
+
+    // Verify all players belong to this team
+    for (const p of players) {
+      const player = await db.prepare('SELECT id FROM players WHERE id = ? AND team_id = ?').get(p.player_id, team.id);
+      if (!player) return res.status(400).json({ error: `Player ${p.player_id} does not belong to your team.` });
+    }
+
+    // Check if lineup already exists
+    const existing = await db.prepare(
+      'SELECT id FROM match_lineups WHERE match_id = ? AND team_id = ?'
+    ).get(req.params.matchId, team.id) as any;
+
+    let lineupId: string;
+
+    if (existing) {
+      lineupId = existing.id;
+      // Update existing lineup - reset to PENDING
+      await db.prepare(
+        'UPDATE match_lineups SET formation = ?, approval_status = ?, submitted_at = CURRENT_TIMESTAMP, reviewed_at = NULL WHERE id = ?'
+      ).run(formation, 'PENDING', lineupId);
+      // Remove old players
+      await db.prepare('DELETE FROM match_lineup_players WHERE lineup_id = ?').run(lineupId);
+    } else {
+      lineupId = crypto.randomUUID();
+      await db.prepare(
+        'INSERT INTO match_lineups (id, match_id, team_id, formation, approval_status) VALUES (?, ?, ?, ?, ?)'
+      ).run(lineupId, req.params.matchId, team.id, formation, 'PENDING');
+    }
+
+    // Insert players
+    const insertStmt = db.prepare(
+      'INSERT INTO match_lineup_players (id, lineup_id, player_id, is_starting, position, display_order) VALUES (?, ?, ?, ?, ?, ?)'
+    );
+    for (const p of players) {
+      await insertStmt.run(
+        crypto.randomUUID(), lineupId, p.player_id,
+        p.is_starting ? 1 : 0, p.position || 'MID', p.display_order || 0
+      );
+    }
+
+    return res.json({ success: true, message: 'Lineup submitted for approval.' });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message || 'Failed to submit lineup' });
+  }
+});
+
 export default router;

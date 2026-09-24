@@ -8,28 +8,28 @@ export default {
     extend: {
       colors: {
         brand: {
-          DEFAULT: '#FDE047', // Vivid Gold (Yellow 300)
-          light: '#FEF08A',
-          dark: '#EAB308',
+          DEFAULT: 'var(--color-brand)',
+          light: 'var(--color-brand-light)',
+          dark: 'var(--color-brand-dark)',
         },
         gold: {
-          DEFAULT: '#FDE047',
-          light: '#FEF08A',
-          dark: '#EAB308',
-          hover: '#FEF08A',
+          DEFAULT: 'var(--color-brand)',
+          light: 'var(--color-brand-light)',
+          dark: 'var(--color-brand-dark)',
+          hover: 'var(--color-brand-light)',
         },
         surface: {
-          bg: '#0D0E11',     // Deep black background
-          card: '#16181D',   // Dark card background
-          border: '#2E323D', // Dark border
-          hover: '#242730',  // Dark hover
+          bg: 'var(--color-surface-bg)',
+          card: 'var(--color-surface-card)',
+          border: 'var(--color-surface-border)',
+          hover: 'var(--color-surface-hover)',
         },
         dark: {
-          bg: '#FFFFFF',       // Pure white for headings & primary text
-          surface: '#F1F5F9',  // Off-white / light slate for subheadings & nav links
-          card: '#F8FAFC',     // Bright light text
-          muted: '#CBD5E1',    // Slate 300 for crisp muted text
-          border: '#2E323D',   // Dark border
+          bg: 'var(--color-dark-bg)',
+          surface: 'var(--color-dark-surface)',
+          card: 'var(--color-dark-card)',
+          muted: 'var(--color-dark-muted)',
+          border: 'var(--color-dark-border)',
         },
         status: {
           live: '#DC2626',     // Red for live matches

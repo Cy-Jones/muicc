@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { api } from '../../lib/api';
 import { ShieldDone, User, ArrowRight, Document, Edit, CloseSquare, Delete, Plus, Camera, Upload } from 'react-iconly';
 import { motion } from 'framer-motion';
+import { ManagerMatchesSection } from './ManagerMatchesSection';
 
 const getCountryFlag = (country: string) => {
   const map: Record<string, string> = {
@@ -590,6 +591,7 @@ export const ManagerDashboardPage: React.FC = () => {
         </div>
       )}
 
+      <ManagerMatchesSection team={team} players={players} />
     </motion.div>
   );
 };

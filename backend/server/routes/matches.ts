@@ -195,7 +195,24 @@ router.get('/:id', async (req, res) => {
     ORDER BY me.minute ASC
   `).all(req.params.id);
 
-  return res.json({ match, events });
+  // Fetch approved lineups
+  const lineups = await db.prepare(`
+    SELECT id, team_id, formation
+    FROM match_lineups
+    WHERE match_id = ? AND approval_status = 'APPROVED'
+  `).all(req.params.id) as any[];
+
+  for (const lineup of lineups) {
+    lineup.players = await db.prepare(`
+      SELECT mlp.is_starting, mlp.position, mlp.display_order, p.full_name, p.jersey_number, p.photo_url
+      FROM match_lineup_players mlp
+      JOIN players p ON mlp.player_id = p.id
+      WHERE mlp.lineup_id = ?
+      ORDER BY mlp.is_starting DESC, mlp.display_order ASC
+    `).all(lineup.id);
+  }
+
+  return res.json({ match, events, lineups });
 });
 
 router.post('/admin/save', authenticateAdmin, async (req: AuthenticatedRequest, res: Response) => {
@@ -277,42 +294,49 @@ router.put('/admin/:id/live-clock', authenticateAdmin, async (req: Authenticated
   const now = Date.now();
 
   if (action === 'START_1ST_HALF') {
-    await db.prepare(`
-      UPDATE matches
-      SET status = 'LIVE', live_period = '1ST_HALF', live_start_timestamp = ?, live_pause_elapsed_seconds = 0, minute_text = '0'''
-      WHERE id = ?
-    `).run(now, matchId);
-    return res.json({ success: true, message: 'First Half Started! Match clock running automatically from 0\'.' });
-  } else if (action === 'PAUSE_HALF_TIME') {
-    await db.prepare(`
-      UPDATE matches
-      SET status = 'HALF_TIME', live_period = 'HALF_TIME', minute_text = 'HT'
-      WHERE id = ?
-    `).run(matchId);
-    return res.json({ success: true, message: 'First Half Paused! Status set to HALF TIME (HT).' });
+    await db.prepare(`UPDATE matches SET status = 'LIVE', live_period = 'FIRST_HALF', live_start_timestamp = ?, live_pause_elapsed_seconds = 0, minute_text = '0''' WHERE id = ?`).run(now, matchId);
+    return res.json({ success: true, message: 'First Half Started!' });
+  } else if (action === 'END_1ST_HALF' || action === 'PAUSE_HALF_TIME') {
+    await db.prepare(`UPDATE matches SET status = 'HALF_TIME', live_period = 'HALF_TIME', minute_text = 'HT' WHERE id = ?`).run(matchId);
+    return res.json({ success: true, message: 'First Half Ended (HT).' });
   } else if (action === 'START_2ND_HALF') {
-    await db.prepare(`
-      UPDATE matches
-      SET status = 'LIVE', live_period = '2ND_HALF', live_start_timestamp = ?, live_pause_elapsed_seconds = 0, minute_text = '45'''
-      WHERE id = ?
-    `).run(now, matchId);
-    return res.json({ success: true, message: 'Second Half Resumed! Match clock running automatically from 45\'.' });
-  } else if (action === 'SET_STOPPAGE_1ST') {
-    const stop1 = parseInt(stoppage_time || '0', 10);
-    await db.prepare('UPDATE matches SET stoppage_time_1st = ? WHERE id = ?').run(stop1, matchId);
-    return res.json({ success: true, message: `1st Half Stoppage Time set to +${stop1} mins.` });
-  } else if (action === 'SET_STOPPAGE_2ND') {
-    const stop2 = parseInt(stoppage_time || '0', 10);
-    await db.prepare('UPDATE matches SET stoppage_time_2nd = ? WHERE id = ?').run(stop2, matchId);
-    return res.json({ success: true, message: `2nd Half Stoppage Time set to +${stop2} mins.` });
+    await db.prepare(`UPDATE matches SET status = 'LIVE', live_period = 'SECOND_HALF', live_start_timestamp = ?, live_pause_elapsed_seconds = 0, minute_text = '45''' WHERE id = ?`).run(now, matchId);
+    return res.json({ success: true, message: 'Second Half Started!' });
+  } else if (action === 'END_2ND_HALF') {
+    await db.prepare(`UPDATE matches SET status = 'FULL_TIME', live_period = 'FULL_TIME', minute_text = 'FT' WHERE id = ?`).run(matchId);
+    return res.json({ success: true, message: 'Second Half Ended (FT).' });
+  } else if (action === 'START_ET_1') {
+    await db.prepare(`UPDATE matches SET status = 'LIVE', live_period = 'EXTRA_TIME_FIRST_HALF', live_start_timestamp = ?, live_pause_elapsed_seconds = 0, minute_text = '90''' WHERE id = ?`).run(now, matchId);
+    return res.json({ success: true, message: 'Extra Time 1st Half Started!' });
+  } else if (action === 'END_ET_1') {
+    await db.prepare(`UPDATE matches SET status = 'LIVE', live_period = 'EXTRA_TIME_HALF_TIME', minute_text = 'HT ET' WHERE id = ?`).run(matchId);
+    return res.json({ success: true, message: 'Extra Time 1st Half Ended.' });
+  } else if (action === 'START_ET_2') {
+    await db.prepare(`UPDATE matches SET status = 'LIVE', live_period = 'EXTRA_TIME_SECOND_HALF', live_start_timestamp = ?, live_pause_elapsed_seconds = 0, minute_text = '105''' WHERE id = ?`).run(now, matchId);
+    return res.json({ success: true, message: 'Extra Time 2nd Half Started!' });
+  } else if (action === 'START_PENALTIES') {
+    await db.prepare(`UPDATE matches SET status = 'LIVE', live_period = 'PENALTY_SHOOTOUT', minute_text = 'Pens' WHERE id = ?`).run(matchId);
+    return res.json({ success: true, message: 'Penalty Shootout Started!' });
   } else if (action === 'END_MATCH') {
-    await db.prepare(`
-      UPDATE matches
-      SET status = 'FULL_TIME', live_period = 'FULL_TIME', minute_text = 'FT', confirmed_result = 1
-      WHERE id = ?
-    `).run(matchId);
+    await db.prepare(`UPDATE matches SET status = 'FULL_TIME', live_period = 'COMPLETED', minute_text = 'FT', confirmed_result = 1 WHERE id = ?`).run(matchId);
     await updateAllStandings(db);
-    return res.json({ success: true, message: 'Match Finished! Status set to FULL TIME (FT).' });
+    return res.json({ success: true, message: 'Match Finished and Completed!' });
+  } else if (action === 'SET_STOPPAGE_1ST') {
+    await db.prepare('UPDATE matches SET stoppage_time_1st = ? WHERE id = ?').run(parseInt(stoppage_time || '0', 10), matchId);
+    return res.json({ success: true, message: `1st Half Stoppage Time set.` });
+  } else if (action === 'SET_STOPPAGE_2ND') {
+    await db.prepare('UPDATE matches SET stoppage_time_2nd = ? WHERE id = ?').run(parseInt(stoppage_time || '0', 10), matchId);
+    return res.json({ success: true, message: `2nd Half Stoppage Time set.` });
+  } else if (action === 'SET_STOPPAGE_ET1') {
+    await db.prepare('UPDATE matches SET stoppage_time_et1 = ? WHERE id = ?').run(parseInt(stoppage_time || '0', 10), matchId);
+    return res.json({ success: true, message: `ET 1st Half Stoppage Time set.` });
+  } else if (action === 'SET_STOPPAGE_ET2') {
+    await db.prepare('UPDATE matches SET stoppage_time_et2 = ? WHERE id = ?').run(parseInt(stoppage_time || '0', 10), matchId);
+    return res.json({ success: true, message: `ET 2nd Half Stoppage Time set.` });
+  } else if (action === 'TOGGLE_TEST_MODE') {
+    const isTestMode = match.is_test_mode === 1 ? 0 : 1;
+    await db.prepare('UPDATE matches SET is_test_mode = ? WHERE id = ?').run(isTestMode, matchId);
+    return res.json({ success: true, message: `Test mode ${isTestMode ? 'enabled' : 'disabled'}.` });
   }
 
   return res.status(400).json({ error: 'Invalid live clock action.' });
@@ -349,14 +373,20 @@ router.post('/admin/:id/events', authenticateAdmin, async (req: AuthenticatedReq
 });
 
 router.put('/admin/:id/status', authenticateAdmin, async (req: AuthenticatedRequest, res: Response) => {
-  const { status, score_a, score_b, potm_player_id, minute_text } = req.body;
+  const { status, score_a, score_b, potm_player_id, minute_text, date, time } = req.body;
   
   const match = await db.prepare('SELECT group_id FROM matches WHERE id = ?').get(req.params.id) as any;
   await db.prepare(`
     UPDATE matches
-    SET status = ?, score_a = COALESCE(?, score_a), score_b = COALESCE(?, score_b), potm_player_id = COALESCE(?, potm_player_id), minute_text = COALESCE(?, minute_text)
+    SET status = ?, 
+        score_a = COALESCE(?, score_a), 
+        score_b = COALESCE(?, score_b), 
+        potm_player_id = COALESCE(?, potm_player_id), 
+        minute_text = COALESCE(?, minute_text),
+        date = COALESCE(?, date),
+        time = COALESCE(?, time)
     WHERE id = ?
-  `).run(status, score_a, score_b, potm_player_id, minute_text, req.params.id);
+  `).run(status, score_a, score_b, potm_player_id, minute_text, date, time, req.params.id);
 
   if (status === 'FULL_TIME' && match && match.group_id) {
     await db.prepare("UPDATE matches SET confirmed_result = 1 WHERE id = ?").run(req.params.id);

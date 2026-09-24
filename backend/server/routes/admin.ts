@@ -356,4 +356,74 @@ router.post('/teams/:id/admin-message', authenticateAdmin, async (req: Authentic
   }
 });
 
+// ── Admin Lineup Endpoints ──
+
+// GET all match lineups (for admin review)
+router.get('/lineups', authenticateAdmin, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const lineups = await db.prepare(`
+      SELECT ml.*, m.date, m.time, m.match_code, t.name as team_name, t.logo_url as team_logo
+      FROM match_lineups ml
+      JOIN matches m ON ml.match_id = m.id
+      JOIN teams t ON ml.team_id = t.id
+      ORDER BY ml.submitted_at DESC
+    `).all();
+    return res.json(lineups);
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// GET specific lineup details (players)
+router.get('/lineups/:id', authenticateAdmin, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const lineup = await db.prepare(`
+      SELECT ml.*, m.date, m.time, m.match_code, t.name as team_name, t.logo_url as team_logo
+      FROM match_lineups ml
+      JOIN matches m ON ml.match_id = m.id
+      JOIN teams t ON ml.team_id = t.id
+      WHERE ml.id = ?
+    `).get(id) as any;
+
+    if (!lineup) return res.status(404).json({ error: 'Lineup not found' });
+
+    const players = await db.prepare(`
+      SELECT mlp.*, p.full_name, p.jersey_number, p.photo_url, p.position as registered_position
+      FROM match_lineup_players mlp
+      JOIN players p ON mlp.player_id = p.id
+      WHERE mlp.lineup_id = ?
+      ORDER BY mlp.is_starting DESC, mlp.display_order ASC
+    `).all(id);
+
+    return res.json({ lineup, players });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// Update lineup approval status
+router.put('/lineups/:id/status', authenticateAdmin, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { approval_status } = req.body;
+    
+    if (!['PENDING', 'APPROVED', 'REJECTED'].includes(approval_status)) {
+      return res.status(400).json({ error: 'Invalid approval status' });
+    }
+
+    const result = await db.prepare(
+      'UPDATE match_lineups SET approval_status = ?, reviewed_at = CURRENT_TIMESTAMP WHERE id = ?'
+    ).run(approval_status, id);
+
+    if (result.changes === 0) {
+      return res.status(404).json({ error: 'Lineup not found' });
+    }
+
+    return res.json({ success: true, message: 'Lineup status updated' });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
 export default router;

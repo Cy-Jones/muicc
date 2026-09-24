@@ -47,40 +47,40 @@ const ProtectedManagerRoute: React.FC<{ children: React.ReactNode }> = ({ childr
 export const App: React.FC = () => {
   return (
     <Routes>
-      {/* Public Routes with Public Layout */}
-      <Route element={<PublicLayout />}>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/about" element={<AboutPage />} />
-        <Route path="/teams" element={<TeamsPage />} />
-        <Route path="/players" element={<PlayersPage />} />
-        <Route path="/matches" element={<FixturesResultsPage />} />
-        <Route path="/live" element={<Navigate to="/matches" replace />} />
-        <Route path="/draw" element={<DrawBracketPage />} />
-        <Route path="/predict" element={<PredictWinPage />} />
-        <Route path="/news" element={<NewsPage />} />
-        <Route path="/gallery" element={<GalleryPage />} />
-      </Route>
+        {/* Public Routes with Public Layout */}
+        <Route element={<PublicLayout />}>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/teams" element={<TeamsPage />} />
+          <Route path="/players" element={<PlayersPage />} />
+          <Route path="/matches" element={<FixturesResultsPage />} />
+          <Route path="/live" element={<Navigate to="/matches" replace />} />
+          <Route path="/draw" element={<DrawBracketPage />} />
+          <Route path="/predict" element={<PredictWinPage />} />
+          <Route path="/news" element={<NewsPage />} />
+          <Route path="/gallery" element={<GalleryPage />} />
+        </Route>
 
-      {/* Standalone Admin Login (No Layout) */}
-      <Route path="/admin/login" element={<AdminLoginPage />} />
+        {/* Standalone Admin Login (No Layout) */}
+        <Route path="/admin/login" element={<AdminLoginPage />} />
 
-      {/* Protected Admin Routes with Admin Layout */}
-      <Route path="/admin" element={<ProtectedAdminRoute><AdminLayout /></ProtectedAdminRoute>}>
-        <Route index element={<AdminDashboard />} />
-        <Route path="dashboard" element={<Navigate to="/admin" replace />} />
-        {/* Placeholder for future admin routes to be added */}
-      </Route>
+        {/* Protected Admin Routes with Admin Layout */}
+        <Route path="/admin" element={<ProtectedAdminRoute><AdminLayout /></ProtectedAdminRoute>}>
+          <Route index element={<AdminDashboard />} />
+          <Route path="dashboard" element={<Navigate to="/admin" replace />} />
+          {/* Placeholder for future admin routes to be added */}
+        </Route>
 
-      {/* Manager Portal */}
-      <Route path="/manager/login" element={<ManagerLoginPage />} />
-      <Route path="/manager" element={<ProtectedManagerRoute><ManagerLayout /></ProtectedManagerRoute>}>
-        <Route index element={<ManagerDashboardPage />} />
-        <Route path="register-team" element={<TeamRegistrationPage />} />
-        <Route path="verify-player/:playerId" element={<PlayerVerificationPage />} />
-      </Route>
+        {/* Manager Portal */}
+        <Route path="/manager/login" element={<ManagerLoginPage />} />
+        <Route path="/manager" element={<ProtectedManagerRoute><ManagerLayout /></ProtectedManagerRoute>}>
+          <Route index element={<ManagerDashboardPage />} />
+          <Route path="register-team" element={<TeamRegistrationPage />} />
+          <Route path="verify-player/:playerId" element={<PlayerVerificationPage />} />
+        </Route>
 
-      {/* Fallback */}
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+        {/* Fallback */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
   );
 };

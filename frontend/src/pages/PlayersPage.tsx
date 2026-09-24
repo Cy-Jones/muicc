@@ -56,7 +56,7 @@ export const PlayersPage: React.FC = () => {
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-8 pb-12">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-surface-border">
         <div>
-          <h1 className="font-heading text-3xl sm:text-4xl font-black text-dark-bg uppercase tracking-tight">
+          <h1 className="font-heading text-3xl sm:text-4xl font-black text-white uppercase tracking-tight">
             Player Directory
           </h1>
           <p className="text-sm text-dark-surface mt-1 font-medium">Search and verify official approved student athletes participating in MIUCC 2026.</p>
@@ -297,13 +297,13 @@ export const PlayersPage: React.FC = () => {
         {showScannerModal && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 bg-dark-bg/50 backdrop-blur-sm flex items-center justify-center p-4">
             <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="bg-surface-card max-w-md w-full rounded-xl p-6 sm:p-8 space-y-6 relative border border-surface-border shadow-2xl">
-              <button onClick={() => setShowScannerModal(false)} className="absolute top-4 right-4 text-dark-muted hover:text-dark-bg transition-colors p-2 rounded-full hover:bg-surface-hover">
+              <button onClick={() => setShowScannerModal(false)} className="absolute top-4 right-4 text-dark-muted hover:text-white transition-colors p-2 rounded-full hover:bg-surface-hover">
                 <CloseSquare set="bold" className="w-5 h-5" />
               </button>
               
               <div className="text-center space-y-2">
                 <Scan set="bold" className="w-12 h-12 text-brand mx-auto mb-4 opacity-80" />
-                <h2 className="font-heading text-xl font-black text-dark-bg uppercase tracking-tight">Scan Player Card</h2>
+                <h2 className="font-heading text-xl font-black text-white uppercase tracking-tight">Scan Player Card</h2>
                 <p className="text-sm text-dark-surface font-medium">Use a physical barcode scanner or enter the Player ID manually.</p>
               </div>
 
