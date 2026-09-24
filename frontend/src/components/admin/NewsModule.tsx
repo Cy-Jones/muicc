@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { EditSquare, Delete, Plus } from 'react-iconly';
+import { EditSquare, Delete, Plus, Show, Hide } from 'react-iconly';
 import { api } from '../../lib/api';
 
 export const NewsModule: React.FC = () => {
@@ -89,6 +89,23 @@ export const NewsModule: React.FC = () => {
     }
   };
 
+  const handleTogglePublish = async (item: any) => {
+    try {
+      await api.adminSaveNews({
+        id: item.id,
+        title: item.title,
+        category: item.category,
+        content: item.content,
+        image_url: item.image_url || '',
+        is_published: !item.is_published,
+        publish_date: item.publish_date
+      });
+      fetchNews();
+    } catch (err) {
+      alert('Error updating news status');
+    }
+  };
+
   const handleDelete = async (id: string) => {
     if (!window.confirm('Are you sure you want to delete this news article?')) return;
     try {
@@ -152,10 +169,17 @@ export const NewsModule: React.FC = () => {
                     </span>
                   </td>
                   <td className="p-4 text-right space-x-2">
-                    <button onClick={() => openModal(item)} className="p-1.5 text-brand hover:bg-brand/10 rounded transition-colors">
+                    <button 
+                      onClick={() => handleTogglePublish(item)} 
+                      className={`p-1.5 rounded transition-colors ${item.is_published ? 'text-status-warning hover:bg-status-warning/10' : 'text-status-completed hover:bg-status-completed/10'}`}
+                      title={item.is_published ? 'Hide Article' : 'Publish Article'}
+                    >
+                      {item.is_published ? <Hide set="bold" className="w-4 h-4" /> : <Show set="bold" className="w-4 h-4" />}
+                    </button>
+                    <button onClick={() => openModal(item)} className="p-1.5 text-brand hover:bg-brand/10 rounded transition-colors" title="Edit Article">
                       <EditSquare set="bold" className="w-4 h-4" />
                     </button>
-                    <button onClick={() => handleDelete(item.id)} className="p-1.5 text-status-error hover:bg-status-error/10 rounded transition-colors">
+                    <button onClick={() => handleDelete(item.id)} className="p-1.5 text-status-error hover:bg-status-error/10 rounded transition-colors" title="Delete Article">
                       <Delete set="bold" className="w-4 h-4" />
                     </button>
                   </td>

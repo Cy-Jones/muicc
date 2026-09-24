@@ -82,7 +82,7 @@ export const AboutPage: React.FC = () => {
               The <strong>MULSU ICC '26 Champions Cup</strong> represents the premier collegiate football tournament uniting student athletes across 7 nations: <strong>Liberia, Eswatini, Tanzania, South Sudan, Zimbabwe, Nigeria, and Uganda</strong>.
             </p>
             <p>
-              Hosted at the state-of-the-art facilities of <strong>Railway Pitch, Madhapar, Rajkot</strong>, the 14-day tournament showcases group stage competition, knockout rounds, and the championship grand final.
+              Hosted at the state-of-the-art facilities of <strong>Railway Pitch, Madhapar, Rajkot</strong>, the 9-day tournament showcases group stage competition, knockout rounds, and the championship grand final.
             </p>
           </div>
 
