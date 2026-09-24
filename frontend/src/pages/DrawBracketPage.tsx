@@ -61,7 +61,7 @@ export const DrawBracketPage: React.FC = () => {
     }
   }
 
-  const getTeamFlag = (teamName: string, countryName?: string, logoUrl?: string) => {
+  const getTeamFlag = (teamName: string, countryName?: string, logoUrl?: string, customClassName?: string) => {
     let src = logoUrl;
     if (!src) {
       const key = Object.keys(FLAG_MAP).find(k => 
@@ -71,7 +71,7 @@ export const DrawBracketPage: React.FC = () => {
       if (key) src = FLAG_MAP[key];
     }
     if (src) {
-      return <img src={src} alt={teamName} className="w-5 h-3.5 object-cover rounded-sm border border-surface-border shadow-sm" />;
+      return <img src={src} alt={teamName} className={customClassName || "w-5 h-3.5 object-cover rounded-sm border border-surface-border shadow-sm"} />;
     }
     return <span className="text-[10px] uppercase font-bold text-dark-muted">{teamName.substring(0,3)}</span>;
   };
@@ -113,62 +113,67 @@ export const DrawBracketPage: React.FC = () => {
         </div>
       )}
 
-      {/* Info Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-10">
-        <div className="card-dark p-4 border-l-2 border-brand">
-          <h4 className="font-heading font-black text-sm text-white mb-1 uppercase tracking-wide">SEMI-FINALISTS</h4>
-          <p className="text-xs text-dark-muted leading-relaxed">The 1st and 2nd placed teams in Group A and Group B advance to the Semi-Finals.</p>
-        </div>
-        <div className="card-dark p-4 border-l-2 border-green-500">
-          <h4 className="font-heading font-black text-sm text-white mb-1 uppercase tracking-wide">4-TEAM KNOCKOUT</h4>
-          <p className="text-xs text-dark-muted leading-relaxed">4 Teams battle in Semi-Finals ➔ Championship Final.</p>
-        </div>
-      </div>
-
-      {loading ? (
+          {loading ? (
         <div className="py-20 text-center text-dark-muted font-bold">Loading Draw Data...</div>
       ) : (
         <div className="space-y-12">
-          
           {/* GROUPS */}
           <div className="space-y-6">
             <h2 className="font-heading text-xl font-black text-dark-bg uppercase">
               Group Stage
             </h2>
             
-            {draw.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {draw.map((group) => (
-                  <div key={group.groupName} className="data-card overflow-hidden">
-                    <div className="bg-surface-bg px-4 py-3 border-b border-surface-border flex justify-between items-center">
-                      <h3 className="font-heading text-lg font-black text-dark-bg uppercase tracking-tight">{group.groupName}</h3>
-                      <span className="text-[10px] font-bold text-dark-muted uppercase tracking-widest">{group.teams.length} TEAMS</span>
-                    </div>
-                    <div className="p-0 bg-surface-card">
-                      {group.teams.map((t: any, index: number) => (
-                        <div key={t.id} className="flex items-center gap-3 p-3 border-b border-surface-border last:border-0 hover:bg-surface-hover transition-colors">
-                          <span className="text-xs font-bold text-dark-muted w-4">{index + 1}</span>
-                          {getTeamFlag(t.name, t.country, t.logo_url)}
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-bold text-dark-bg truncate">{t.name}</p>
-                            <p className="text-[10px] text-dark-surface uppercase font-bold">{t.country || 'Unknown'}</p>
+            {(() => {
+              const displayDraw = draw.length > 0 ? draw : [
+                {
+                  groupName: 'GROUP A',
+                  teams: [
+                    { id: '1', name: 'LIBERIA', country: 'Liberia', logo_url: null, pot: 'POT_1' },
+                    { id: '2', name: 'TANZANIA', country: 'Tanzania', logo_url: null, pot: 'POT_2' },
+                    { id: '3', name: 'SOUTH SUDAN', country: 'South Sudan', logo_url: null, pot: 'POT_3' },
+                    { id: '4', name: 'NIGERIA', country: 'Nigeria', logo_url: null, pot: 'POT_4' },
+                  ]
+                },
+                {
+                  groupName: 'GROUP B',
+                  teams: [
+                    { id: '5', name: 'ZIMBABWE', country: 'Zimbabwe', logo_url: null, pot: 'POT_1' },
+                    { id: '6', name: 'ESWATINI', country: 'Eswatini', logo_url: null, pot: 'POT_2' },
+                    { id: '7', name: 'UGANDA', country: 'Uganda', logo_url: null, pot: 'POT_3' },
+                  ]
+                }
+              ];
+
+              return (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {displayDraw.map((group) => (
+                    <div key={group.groupName} className="data-card overflow-hidden">
+                      <div className="bg-surface-bg px-4 py-3 border-b border-surface-border flex justify-between items-center">
+                        <h3 className="font-heading text-lg font-black text-brand uppercase tracking-tight">{group.groupName}</h3>
+                        <span className="text-[10px] font-bold text-dark-muted uppercase tracking-widest">{group.teams.length} TEAMS</span>
+                      </div>
+                      <div className="p-0 bg-surface-card">
+                        {group.teams.map((t: any, index: number) => (
+                          <div key={t.id} className="flex items-center gap-3 p-3 border-b border-surface-border last:border-0 hover:bg-surface-hover transition-colors">
+                            <span className="text-xs font-bold text-dark-muted w-4">{index + 1}</span>
+                            {getTeamFlag(t.name, t.country, t.logo_url)}
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-bold text-dark-bg truncate">{t.name}</p>
+                              <p className="text-[10px] text-dark-surface uppercase font-bold">{t.country || 'Unknown'}</p>
+                            </div>
+                            {t.pot && (
+                              <span className="text-[10px] font-bold bg-surface-bg px-2 py-0.5 rounded text-dark-muted border border-surface-border">
+                                {t.pot.replace(/_/g, ' ')}
+                              </span>
+                            )}
                           </div>
-                          {t.pot && (
-                            <span className="text-[10px] font-bold bg-surface-bg px-2 py-0.5 rounded text-dark-muted border border-surface-border">
-                              {t.pot.replace(/_/g, ' ')}
-                            </span>
-                          )}
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="data-card p-12 text-center text-dark-muted font-medium border-dashed border-surface-border">
-                Official draw has not been conducted yet.
-              </div>
-            )}
+                  ))}
+                </div>
+              );
+            })()}
           </div>
 
           {/* KNOCKOUT BRACKET */}
@@ -177,64 +182,140 @@ export const DrawBracketPage: React.FC = () => {
               Knockout Stage
             </h2>
             
-            {bracket && bracket.semiFinals?.length > 0 ? (
-              <div className="data-card p-6 overflow-x-auto bg-surface-bg/50">
-                <div className="min-w-[600px] flex justify-between items-stretch">
-                  
-                  {/* SF */}
-                  <div className="flex flex-col justify-around w-64 gap-16">
-                    <div className="text-center text-xs font-bold text-dark-muted uppercase tracking-widest mb-4">Semi-Finals</div>
-                    {bracket.semiFinals.map((match: any, i: number) => (
-                      <div key={`sf-${i}`} className="bg-surface-card rounded border border-surface-border shadow-sm overflow-hidden">
-                        <div className="flex justify-between items-center px-3 py-1 bg-surface-bg border-b border-surface-border text-[10px] font-bold text-dark-muted uppercase">
-                          <span>Semi {i + 1}</span>
-                        </div>
-                        <div className="p-2 space-y-1">
-                          <div className="flex justify-between items-center text-sm font-bold text-dark-bg">
-                            <span className="truncate pr-2">{match.team_a_name || 'TBD'}</span>
-                            <span className="text-brand">{match.score_a ?? '-'}</span>
-                          </div>
-                          <div className="flex justify-between items-center text-sm font-bold text-dark-bg">
-                            <span className="truncate pr-2">{match.team_b_name || 'TBD'}</span>
-                            <span className="text-brand">{match.score_b ?? '-'}</span>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+            {(() => {
+              const displayBracket = bracket || {
+                semiFinals: [{}, {}],
+                final: {}
+              };
 
-                  {/* Connectors (Simplified) */}
-                  <div className="flex flex-col justify-around w-16 text-center items-center">
-                    <div className="w-full h-[2px] bg-surface-border mt-32" />
-                  </div>
+              return (
+                <div className="w-full bg-surface-bg rounded-xl overflow-hidden relative border border-surface-border shadow-lg">
+                  <div className="relative p-4 md:p-10 flex flex-col items-center justify-center min-h-[400px] md:min-h-[500px]">
+                    
+                    {/* Labels Header */}
+                    <div className="w-full flex justify-between px-4 md:px-12 absolute top-6">
+                      <div className="text-dark-muted font-bold tracking-widest text-[10px] md:text-xs border-b border-surface-border pb-1">SEMI-FINAL</div>
+                      <div className="text-dark-muted font-bold tracking-widest text-[10px] md:text-xs border-b border-surface-border pb-1">SEMI-FINAL</div>
+                    </div>
 
-                  {/* Final */}
-                  <div className="flex flex-col justify-center w-72">
-                    <div className="text-center text-xs font-bold text-dark-muted uppercase tracking-widest mb-4">Championship Final</div>
-                    <div className="bg-surface-card rounded border border-brand shadow-md overflow-hidden relative">
-                      <div className="flex justify-between items-center px-3 py-1 bg-brand/5 border-b border-brand/20 text-[10px] font-bold text-brand-dark uppercase">
-                        <span>Grand Final</span>
-                      </div>
-                      <div className="p-3 space-y-2 relative z-10">
-                        <div className="flex justify-between items-center text-base font-black text-dark-bg">
-                          <span className="truncate pr-2">{bracket.final?.team_a_name || 'TBD'}</span>
-                          <span className="text-brand">{bracket.final?.score_a ?? '-'}</span>
+                    <div className="flex h-[240px] md:h-[320px] w-full max-w-5xl mx-auto mt-8 md:mt-12">
+                      
+                      {/* LEFT SEMI-FINAL */}
+                      <div className="flex-1 flex">
+                        <div className="flex flex-col justify-between z-10 shrink-0">
+                          {/* Top Team */}
+                          <div className="flex flex-col items-start relative">
+                            <div className="flex items-center gap-2 md:gap-4 flex-row">
+                              <div className="w-10 h-10 md:w-16 md:h-16 rounded-full overflow-hidden border-[1.5px] md:border-2 border-surface-border shadow-sm bg-surface-bg shrink-0">
+                                {getTeamFlag(displayBracket.semiFinals[0]?.team_a_name || 'TBD', displayBracket.semiFinals[0]?.team_a_country, undefined, "w-full h-full object-cover")}
+                              </div>
+                              <div className="bg-surface-bg text-dark-bg font-mono font-bold text-sm md:text-xl w-7 h-9 md:w-10 md:h-12 flex items-center justify-center rounded border border-surface-border shadow-inner">
+                                {displayBracket.semiFinals[0]?.score_a ?? '-'}
+                              </div>
+                            </div>
+                            <div className="text-dark-bg text-[8px] md:text-xs font-bold uppercase mt-1 tracking-widest ml-1 max-w-[70px] md:max-w-[120px] truncate">
+                              {displayBracket.semiFinals[0]?.team_a_name || 'TBD'}
+                            </div>
+                          </div>
+                          
+                          {/* Bottom Team */}
+                          <div className="flex flex-col items-start relative">
+                            <div className="flex items-center gap-2 md:gap-4 flex-row">
+                              <div className="w-10 h-10 md:w-16 md:h-16 rounded-full overflow-hidden border-[1.5px] md:border-2 border-surface-border shadow-sm bg-surface-bg shrink-0">
+                                {getTeamFlag(displayBracket.semiFinals[0]?.team_b_name || 'TBD', displayBracket.semiFinals[0]?.team_b_country, undefined, "w-full h-full object-cover")}
+                              </div>
+                              <div className="bg-surface-bg text-dark-bg font-mono font-bold text-sm md:text-xl w-7 h-9 md:w-10 md:h-12 flex items-center justify-center rounded border border-surface-border shadow-inner">
+                                {displayBracket.semiFinals[0]?.score_b ?? '-'}
+                              </div>
+                            </div>
+                            <div className="text-dark-bg text-[8px] md:text-xs font-bold uppercase mt-1 tracking-widest ml-1 max-w-[70px] md:max-w-[120px] truncate">
+                              {displayBracket.semiFinals[0]?.team_b_name || 'TBD'}
+                            </div>
+                          </div>
                         </div>
-                        <div className="flex justify-between items-center text-base font-black text-dark-bg">
-                          <span className="truncate pr-2">{bracket.final?.team_b_name || 'TBD'}</span>
-                          <span className="text-brand">{bracket.final?.score_b ?? '-'}</span>
+                        
+                        {/* Bracket Lines Left */}
+                        <div className="flex-1 relative min-w-[20px] mx-2 md:mx-4">
+                           <div className="absolute left-0 top-[20px] md:top-[32px] bottom-[20px] md:bottom-[32px] right-0 border-r-2 border-t-2 border-b-2 border-surface-border rounded-r-lg"></div>
+                           <div className="absolute right-[-10px] md:right-[-20px] top-1/2 w-[10px] md:w-[20px] border-t-2 border-surface-border"></div>
+                           
+                           {/* Finalist Logo Slot */}
+                           <div className="absolute right-[-20px] md:right-[-28px] top-1/2 -translate-y-1/2 flex flex-col items-center z-10">
+                             <div className="w-10 h-10 md:w-14 md:h-14 rounded-full border-[1.5px] md:border-2 border-surface-border bg-surface-bg flex items-center justify-center overflow-hidden shadow-sm">
+                               {getTeamFlag(displayBracket.final?.team_a_name || 'TBD', displayBracket.final?.team_a_country, undefined, "w-full h-full object-cover")}
+                             </div>
+                             <div className="absolute top-[100%] pt-1 text-dark-bg text-[8px] md:text-[10px] font-bold uppercase tracking-widest text-center w-24 truncate">
+                               {displayBracket.final?.team_a_name || 'TBD'}
+                             </div>
+                           </div>
                         </div>
                       </div>
+
+                      {/* CENTER TROPHY */}
+                      <div className="w-[100px] md:w-[220px] flex flex-col items-center justify-center z-20 shrink-0">
+                        <img src="/logo.png" alt="Trophy" className="w-16 h-16 md:w-36 md:h-36 object-contain drop-shadow-md" />
+                        <h2 className="text-dark-bg font-black text-xl md:text-4xl mt-3 md:mt-4 tracking-tighter">FINAL</h2>
+                        <p className="text-dark-muted text-[7px] md:text-xs tracking-widest mt-1 md:mt-2 uppercase text-center font-bold">
+                          GRAND FINALE<br/>
+                          <span className="text-brand">TO BE DECIDED</span>
+                        </p>
+                      </div>
+
+                      {/* RIGHT SEMI-FINAL */}
+                      <div className="flex-1 flex flex-row-reverse">
+                        <div className="flex flex-col justify-between z-10 shrink-0">
+                          {/* Top Team */}
+                          <div className="flex flex-col items-end relative">
+                            <div className="flex items-center gap-2 md:gap-4 flex-row-reverse">
+                              <div className="w-10 h-10 md:w-16 md:h-16 rounded-full overflow-hidden border-[1.5px] md:border-2 border-surface-border shadow-sm bg-surface-bg shrink-0">
+                                {getTeamFlag(displayBracket.semiFinals[1]?.team_a_name || 'TBD', displayBracket.semiFinals[1]?.team_a_country, undefined, "w-full h-full object-cover")}
+                              </div>
+                              <div className="bg-surface-bg text-dark-bg font-mono font-bold text-sm md:text-xl w-7 h-9 md:w-10 md:h-12 flex items-center justify-center rounded border border-surface-border shadow-inner">
+                                {displayBracket.semiFinals[1]?.score_a ?? '-'}
+                              </div>
+                            </div>
+                            <div className="text-dark-bg text-[8px] md:text-xs font-bold uppercase mt-1 tracking-widest mr-1 max-w-[70px] md:max-w-[120px] text-right truncate">
+                              {displayBracket.semiFinals[1]?.team_a_name || 'TBD'}
+                            </div>
+                          </div>
+                          
+                          {/* Bottom Team */}
+                          <div className="flex flex-col items-end relative">
+                            <div className="flex items-center gap-2 md:gap-4 flex-row-reverse">
+                              <div className="w-10 h-10 md:w-16 md:h-16 rounded-full overflow-hidden border-[1.5px] md:border-2 border-surface-border shadow-sm bg-surface-bg shrink-0">
+                                {getTeamFlag(displayBracket.semiFinals[1]?.team_b_name || 'TBD', displayBracket.semiFinals[1]?.team_b_country, undefined, "w-full h-full object-cover")}
+                              </div>
+                              <div className="bg-surface-bg text-dark-bg font-mono font-bold text-sm md:text-xl w-7 h-9 md:w-10 md:h-12 flex items-center justify-center rounded border border-surface-border shadow-inner">
+                                {displayBracket.semiFinals[1]?.score_b ?? '-'}
+                              </div>
+                            </div>
+                            <div className="text-dark-bg text-[8px] md:text-xs font-bold uppercase mt-1 tracking-widest mr-1 max-w-[70px] md:max-w-[120px] text-right truncate">
+                              {displayBracket.semiFinals[1]?.team_b_name || 'TBD'}
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Bracket Lines Right */}
+                        <div className="flex-1 relative min-w-[20px] mx-2 md:mx-4">
+                           <div className="absolute right-0 top-[20px] md:top-[32px] bottom-[20px] md:bottom-[32px] left-0 border-l-2 border-t-2 border-b-2 border-surface-border rounded-l-lg"></div>
+                           <div className="absolute left-[-10px] md:left-[-20px] top-1/2 w-[10px] md:w-[20px] border-t-2 border-surface-border"></div>
+                           
+                           <div className="absolute left-[-20px] md:left-[-28px] top-1/2 -translate-y-1/2 flex flex-col items-center z-10">
+                             <div className="w-10 h-10 md:w-14 md:h-14 rounded-full border-[1.5px] md:border-2 border-surface-border bg-surface-bg flex items-center justify-center overflow-hidden shadow-sm">
+                               {getTeamFlag(displayBracket.final?.team_b_name || 'TBD', displayBracket.final?.team_b_country, undefined, "w-full h-full object-cover")}
+                             </div>
+                             <div className="absolute top-[100%] pt-1 text-dark-bg text-[8px] md:text-[10px] font-bold uppercase tracking-widest text-center w-24 truncate">
+                               {displayBracket.final?.team_b_name || 'TBD'}
+                             </div>
+                           </div>
+                        </div>
+                      </div>
+                      
                     </div>
                   </div>
-
                 </div>
-              </div>
-            ) : (
-              <div className="data-card p-12 text-center text-dark-muted font-medium border-dashed border-surface-border">
-                Knockout bracket will be generated automatically once the Group Stage concludes.
-              </div>
-            )}
+              );
+            })()}
           </div>
         </div>
       )}

@@ -61,6 +61,67 @@ async function updateAllStandings(tx: any) {
       await tx.prepare('UPDATE standings SET position = ? WHERE id = ?').run(index + 1, st.id);
     }
   }
+
+  // AUTO ADVANCE TO KNOCKOUTS
+  try {
+    const groupsObj = await tx.prepare("SELECT id, name FROM groups").all() as any[];
+    const grpA = groupsObj.find((g: any) => g.name === 'Group A');
+    const grpB = groupsObj.find((g: any) => g.name === 'Group B');
+
+    let a1, a2, b1, b2;
+
+    const checkFinished = async (groupId: string) => {
+      // Must have at least 1 match to be considered finished, and 0 pending
+      const stats = await tx.prepare(`
+        SELECT COUNT(*) as total, SUM(CASE WHEN confirmed_result = 0 THEN 1 ELSE 0 END) as pending
+        FROM matches WHERE group_id = ?
+      `).get(groupId) as any;
+      return stats && stats.total > 0 && stats.pending === 0;
+    };
+
+    if (grpA && await checkFinished(grpA.id)) {
+      const std = await tx.prepare("SELECT team_id FROM standings WHERE group_id = ? ORDER BY position ASC LIMIT 2").all(grpA.id) as any[];
+      if (std.length >= 2) { a1 = std[0].team_id; a2 = std[1].team_id; }
+    }
+
+    if (grpB && await checkFinished(grpB.id)) {
+      const std = await tx.prepare("SELECT team_id FROM standings WHERE group_id = ? ORDER BY position ASC LIMIT 2").all(grpB.id) as any[];
+      if (std.length >= 2) { b1 = std[0].team_id; b2 = std[1].team_id; }
+    }
+
+    // MIUCC-SF1: Group A Winner vs Group B Runner-Up
+    if (a1) await tx.prepare("UPDATE matches SET team_a_id = ? WHERE match_code = 'MIUCC-SF1'").run(a1);
+    if (b2) await tx.prepare("UPDATE matches SET team_b_id = ? WHERE match_code = 'MIUCC-SF1'").run(b2);
+    
+    // MIUCC-SF2: Group B Winner vs Group A Runner-Up
+    if (b1) await tx.prepare("UPDATE matches SET team_a_id = ? WHERE match_code = 'MIUCC-SF2'").run(b1);
+    if (a2) await tx.prepare("UPDATE matches SET team_b_id = ? WHERE match_code = 'MIUCC-SF2'").run(a2);
+
+    // Auto advance to Finals / Third Place
+    const getWinnerLoser = (m: any) => {
+      if (!m) return { w: null, l: null };
+      const scoreA = m.score_a + (m.penalty_a || 0);
+      const scoreB = m.score_b + (m.penalty_b || 0);
+      if (scoreA > scoreB) return { w: m.team_a_id, l: m.team_b_id };
+      if (scoreB > scoreA) return { w: m.team_b_id, l: m.team_a_id };
+      return { w: null, l: null };
+    };
+
+    const sf1 = await tx.prepare("SELECT * FROM matches WHERE match_code = 'MIUCC-SF1' AND confirmed_result = 1").get() as any;
+    const sf2 = await tx.prepare("SELECT * FROM matches WHERE match_code = 'MIUCC-SF2' AND confirmed_result = 1").get() as any;
+
+    const res1 = getWinnerLoser(sf1);
+    const res2 = getWinnerLoser(sf2);
+
+    if (res1.w) await tx.prepare("UPDATE matches SET team_a_id = ? WHERE match_code = 'MIUCC-FNL'").run(res1.w);
+    if (res2.w) await tx.prepare("UPDATE matches SET team_b_id = ? WHERE match_code = 'MIUCC-FNL'").run(res2.w);
+    
+    if (res1.l) await tx.prepare("UPDATE matches SET team_a_id = ? WHERE match_code = 'MIUCC-3RD'").run(res1.l);
+    if (res2.l) await tx.prepare("UPDATE matches SET team_b_id = ? WHERE match_code = 'MIUCC-3RD'").run(res2.l);
+
+  } catch (err) {
+    console.error("Auto-advance error:", err);
+  }
 }
 
 

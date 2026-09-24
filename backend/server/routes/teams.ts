@@ -15,7 +15,7 @@ router.get('/', async (req, res) => {
     FROM teams t
     LEFT JOIN group_teams gt ON gt.team_id = t.id
     LEFT JOIN groups g ON g.id = gt.group_id
-    WHERE t.status = 'APPROVED'
+    WHERE t.status = 'APPROVED' AND t.name NOT LIKE '%WINNER%' AND t.name NOT LIKE '%LOSER%' AND t.name NOT LIKE '%RUNNER-UP%'
     ORDER BY t.name ASC
   `).all();
 
@@ -409,6 +409,7 @@ router.get('/admin/all', authenticateAdmin, async (req, res) => {
     FROM teams t
     LEFT JOIN group_teams gt ON gt.team_id = t.id
     LEFT JOIN groups g ON g.id = gt.group_id
+    WHERE t.name NOT LIKE '%WINNER%' AND t.name NOT LIKE '%LOSER%' AND t.name NOT LIKE '%RUNNER-UP%'
     ORDER BY t.created_at DESC
   `).all();
 
