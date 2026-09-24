@@ -177,38 +177,10 @@ export const DrawBracketPage: React.FC = () => {
               Knockout Stage
             </h2>
             
-            {bracket && bracket.quarterFinals?.length > 0 ? (
+            {bracket && bracket.semiFinals?.length > 0 ? (
               <div className="data-card p-6 overflow-x-auto bg-surface-bg/50">
-                <div className="min-w-[800px] flex justify-between items-stretch">
+                <div className="min-w-[600px] flex justify-between items-stretch">
                   
-                  {/* QF */}
-                  <div className="flex flex-col justify-around w-64 gap-8">
-                    <div className="text-center text-xs font-bold text-dark-muted uppercase tracking-widest mb-4">Quarter-Finals</div>
-                    {bracket.quarterFinals.map((match: any, i: number) => (
-                      <div key={`qf-${i}`} className="bg-surface-card rounded border border-surface-border shadow-sm overflow-hidden">
-                        <div className="flex justify-between items-center px-3 py-1 bg-surface-bg border-b border-surface-border text-[10px] font-bold text-dark-muted uppercase">
-                          <span>Match {i + 1}</span>
-                        </div>
-                        <div className="p-2 space-y-1">
-                          <div className="flex justify-between items-center text-sm font-bold text-dark-bg">
-                            <span className="truncate pr-2">{match.team_a_name || 'TBD'}</span>
-                            <span className="text-brand">{match.score_a ?? '-'}</span>
-                          </div>
-                          <div className="flex justify-between items-center text-sm font-bold text-dark-bg">
-                            <span className="truncate pr-2">{match.team_b_name || 'TBD'}</span>
-                            <span className="text-brand">{match.score_b ?? '-'}</span>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Connectors (Simplified) */}
-                  <div className="flex flex-col justify-around w-16 text-center items-center">
-                    <div className="w-full h-[2px] bg-surface-border mt-12" />
-                    <div className="w-full h-[2px] bg-surface-border mt-24" />
-                  </div>
-
                   {/* SF */}
                   <div className="flex flex-col justify-around w-64 gap-16">
                     <div className="text-center text-xs font-bold text-dark-muted uppercase tracking-widest mb-4">Semi-Finals</div>

@@ -17,14 +17,17 @@ function getTeamRegion(team: any): string {
 }
 
 router.get('/', async (req, res) => {
-  // Ensure Groups A, B, C exist
+  // Ensure Groups A, B exist
   let groups = await db.prepare('SELECT * FROM groups ORDER BY name ASC').all() as any[];
-  if (groups.length < 3) {
+  if (groups.length < 2) {
     await db.prepare("INSERT OR IGNORE INTO groups (id, name) VALUES ('grp-a', 'Group A')").run();
     await db.prepare("INSERT OR IGNORE INTO groups (id, name) VALUES ('grp-b', 'Group B')").run();
-    await db.prepare("INSERT OR IGNORE INTO groups (id, name) VALUES ('grp-c', 'Group C')").run();
     groups = await db.prepare('SELECT * FROM groups ORDER BY name ASC').all() as any[];
   }
+  
+  // Clean up Group C if it exists in DB just in case
+  await db.prepare("DELETE FROM groups WHERE name = 'Group C'").run();
+  groups = groups.filter(g => g.name !== 'Group C');
   
   const drawData: any[] = [];
   for (const g of groups) {
@@ -41,14 +44,13 @@ router.get('/', async (req, res) => {
     });
   }
 
-  // 8-TEAM QUARTER-FINAL KNOCKOUT BRACKET CALCULATION
+  // 4-TEAM SEMI-FINAL KNOCKOUT BRACKET CALCULATION
   const grpA = groups.find(g => g.name === 'Group A');
   const grpB = groups.find(g => g.name === 'Group B');
-  const grpC = groups.find(g => g.name === 'Group C');
 
   let knockoutBracket: any = null;
 
-  if (grpA && grpB && grpC) {
+  if (grpA && grpB) {
     const getGroupStandings = async (groupId: string) => {
       return await db.prepare(`
         SELECT s.*, t.name as team_name, t.logo_url as team_logo, t.country as team_country
@@ -61,32 +63,13 @@ router.get('/', async (req, res) => {
 
     const stdA = await getGroupStandings(grpA.id) as any[];
     const stdB = await getGroupStandings(grpB.id) as any[];
-    const stdC = await getGroupStandings(grpC.id) as any[];
 
-    // Top 2 Teams per Group (6 automatic qualifiers)
+    // Top 2 Teams per Group (4 automatic qualifiers)
     const a1 = stdA[0] || null;
     const a2 = stdA[1] || null;
 
     const b1 = stdB[0] || null;
     const b2 = stdB[1] || null;
-
-    const c1 = stdC[0] || null;
-    const c2 = stdC[1] || null;
-
-    // 3rd Place Teams (Ranked to pick 2 Best Losers)
-    const thirdA = stdA[2] || null;
-    const thirdB = stdB[2] || null;
-    const thirdC = stdC[2] || null;
-
-    const thirdPlaces = [thirdA, thirdB, thirdC].filter(Boolean);
-    thirdPlaces.sort((x, y) => 
-      (y.points - x.points) || 
-      (y.goal_difference - x.goal_difference) || 
-      (y.goals_for - x.goals_for)
-    );
-
-    const wc1 = thirdPlaces[0] || null; // Best 3rd Place / Best Loser 1
-    const wc2 = thirdPlaces[1] || null; // 2nd Best 3rd Place / Best Loser 2
 
     const formatTeam = (teamObj: any, fallbackName: string, seedLabel: string) => {
       if (teamObj) {
@@ -101,59 +84,26 @@ router.get('/', async (req, res) => {
     };
 
     knockoutBracket = {
-      quarterFinals: {
-        qf1: {
-          matchCode: 'MIUCC-QF1',
-          title: 'Quarter-Final 1 (Group A Winner vs 2nd Best Loser)',
-          teamA: formatTeam(a1, 'Winner Group A (A1)', 'Group A 1st'),
-          teamB: formatTeam(wc2, '2nd Best Loser (WC2)', 'Wildcard #2')
-        },
-        qf2: {
-          matchCode: 'MIUCC-QF2',
-          title: 'Quarter-Final 2 (Group B Winner vs Group C Runner-Up)',
-          teamA: formatTeam(b1, 'Winner Group B (B1)', 'Group B 1st'),
-          teamB: formatTeam(c2, 'Runner-Up Group C (C2)', 'Group C 2nd')
-        },
-        qf3: {
-          matchCode: 'MIUCC-QF3',
-          title: 'Quarter-Final 3 (Group C Winner vs 1st Best Loser)',
-          teamA: formatTeam(c1, 'Winner Group C (C1)', 'Group C 1st'),
-          teamB: formatTeam(wc1, '1st Best Loser (WC1)', 'Wildcard #1')
-        },
-        qf4: {
-          matchCode: 'MIUCC-QF4',
-          title: 'Quarter-Final 4 (Group A Runner-Up vs Group B Runner-Up)',
-          teamA: formatTeam(a2, 'Runner-Up Group A (A2)', 'Group A 2nd'),
-          teamB: formatTeam(b2, 'Runner-Up Group B (B2)', 'Group B 2nd')
-        }
-      },
-      semiFinals: {
-        sf1: {
+      quarterFinals: [],
+      semiFinals: [
+        {
           matchCode: 'MIUCC-SF1',
-          title: 'Semi-Final 1 (Winner QF1 vs Winner QF2)',
-          teamA: { name: 'Winner Quarter-Final 1', seed: 'QF1 Winner' },
-          teamB: { name: 'Winner Quarter-Final 2', seed: 'QF2 Winner' }
+          title: 'Semi-Final 1 (Group A Winner vs Group B Runner-Up)',
+          teamA: formatTeam(a1, 'Winner Group A (A1)', 'Group A 1st'),
+          teamB: formatTeam(b2, 'Runner-Up Group B (B2)', 'Group B 2nd')
         },
-        sf2: {
+        {
           matchCode: 'MIUCC-SF2',
-          title: 'Semi-Final 2 (Winner QF3 vs Winner QF4)',
-          teamA: { name: 'Winner Quarter-Final 3', seed: 'QF3 Winner' },
-          teamB: { name: 'Winner Quarter-Final 4', seed: 'QF4 Winner' }
+          title: 'Semi-Final 2 (Group B Winner vs Group A Runner-Up)',
+          teamA: formatTeam(b1, 'Winner Group B (B1)', 'Group B 1st'),
+          teamB: formatTeam(a2, 'Runner-Up Group A (A2)', 'Group A 2nd')
         }
-      },
-      finals: {
-        bronze: {
-          matchCode: 'MIUCC-3RD',
-          title: 'Third Place Playoff (Loser SF1 vs Loser SF2)',
-          teamA: { name: 'Runner-Up Semi-Final 1', seed: 'SF1 Loser' },
-          teamB: { name: 'Runner-Up Semi-Final 2', seed: 'SF2 Loser' }
-        },
-        gold: {
-          matchCode: 'MIUCC-FNL',
-          title: 'Grand Final (Winner SF1 vs Winner SF2)',
-          teamA: { name: 'Winner Semi-Final 1', seed: 'SF1 Winner' },
-          teamB: { name: 'Winner Semi-Final 2', seed: 'SF2 Winner' }
-        }
+      ],
+      final: {
+        matchCode: 'MIUCC-FNL',
+        title: 'Grand Final (Winner SF1 vs Winner SF2)',
+        teamA: { name: 'Winner Semi-Final 1', seed: 'SF1 Winner' },
+        teamB: { name: 'Winner Semi-Final 2', seed: 'SF2 Winner' }
       }
     };
   }
