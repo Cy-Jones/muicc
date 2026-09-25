@@ -254,9 +254,16 @@ router.post('/admin/save', authenticateAdmin, async (req: AuthenticatedRequest, 
     if (status === 'FULL_TIME') {
       try {
         await db.prepare("UPDATE matches SET confirmed_result = 1 WHERE id = ?").run(id);
-        await updateAllStandings(db);
+      } catch (e) {}
+    } else {
+      try {
+        await db.prepare("UPDATE matches SET confirmed_result = 0 WHERE id = ?").run(id);
       } catch (e) {}
     }
+
+    try {
+      await updateAllStandings(db);
+    } catch (e) {}
 
     return res.json({ success: true, message: 'Match updated successfully.' });
   } else {
