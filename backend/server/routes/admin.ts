@@ -426,4 +426,29 @@ router.put('/lineups/:id/status', authenticateAdmin, async (req: AuthenticatedRe
   }
 });
 
+router.get('/force-reset-standings', async (req, res) => {
+  try {
+    await db.prepare("UPDATE matches SET confirmed_result = 0 WHERE status != 'FULL_TIME'").run();
+    await db.prepare("UPDATE standings SET played=0, won=0, drawn=0, lost=0, goals_for=0, goals_against=0, goal_difference=0, points=0").run();
+    
+    // now we recalculate
+    const allMatches = await db.prepare("SELECT * FROM matches WHERE confirmed_result = 1 AND status = 'FULL_TIME'").all() as any[];
+    for (const m of allMatches) {
+      let pointsA = 0, pointsB = 0, wonA = 0, wonB = 0, drawnA = 0, drawnB = 0, lostA = 0, lostB = 0;
+      if (m.score_a > m.score_b) { wonA = 1; pointsA = 3; lostB = 1; } 
+      else if (m.score_b > m.score_a) { wonB = 1; pointsB = 3; lostA = 1; } 
+      else { drawnA = 1; pointsA = 1; drawnB = 1; pointsB = 1; }
+      
+      await db.prepare("UPDATE standings SET played=played+1, won=won+?, drawn=drawn+?, lost=lost+?, goals_for=goals_for+?, goals_against=goals_against+?, goal_difference=goal_difference+?, points=points+? WHERE team_id = ?")
+        .run(wonA, drawnA, lostA, m.score_a, m.score_b, m.score_a - m.score_b, pointsA, m.team_a_id);
+      
+      await db.prepare("UPDATE standings SET played=played+1, won=won+?, drawn=drawn+?, lost=lost+?, goals_for=goals_for+?, goals_against=goals_against+?, goal_difference=goal_difference+?, points=points+? WHERE team_id = ?")
+        .run(wonB, drawnB, lostB, m.score_b, m.score_a, m.score_b - m.score_a, pointsB, m.team_b_id);
+    }
+    return res.json({ success: true, recalculated: allMatches.length });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
 export default router;
