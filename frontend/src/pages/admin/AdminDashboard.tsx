@@ -642,6 +642,27 @@ export const AdminDashboard: React.FC = () => {
                   ))}
                 </div>
                 <button
+                  onClick={async () => {
+                    if (window.confirm("Are you sure you want to completely wipe all unconfirmed points and reset standings?")) {
+                      try {
+                        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/force-reset-standings`);
+                        const data = await res.json();
+                        if (data.success) {
+                          alert('Standings have been forcefully reset and recalculated.');
+                          window.location.reload();
+                        } else {
+                          alert('Error: ' + data.error);
+                        }
+                      } catch (err) {
+                        alert('Failed to reset: ' + err);
+                      }
+                    }
+                  }}
+                  className="px-4 py-2 bg-status-error/10 text-status-error border border-status-error/30 rounded font-bold text-[10px] uppercase tracking-widest hover:bg-status-error hover:text-dark-bg transition-colors"
+                >
+                  Force Reset Standings
+                </button>
+                <button
                   onClick={() => setShowCreateMatchModal(true)}
                   className="btn-primary px-4 py-2 text-[10px] flex items-center gap-1.5 shadow-sm"
                 >
