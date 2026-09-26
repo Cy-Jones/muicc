@@ -369,6 +369,17 @@ router.post('/admin/:id/events', authenticateAdmin, async (req: AuthenticatedReq
     return res.status(400).json({ error: 'Team, player, and event type are required.' });
   }
 
+  if (player_id.startsWith('COACH: ')) {
+    const existingCoach = await db.prepare('SELECT id FROM players WHERE id = ?').get(player_id) as any;
+    if (!existingCoach) {
+      const coachName = player_id.replace('COACH: ', '');
+      await db.prepare(`
+        INSERT INTO players (id, team_id, full_name, dob, nationality, student_id, university, position, jersey_number)
+        VALUES (?, ?, ?, '1900-01-01', 'Unknown', 'COACH', 'Unknown', 'Coach', 0)
+      `).run(player_id, team_id, coachName);
+    }
+  }
+
   const eventId = crypto.randomUUID();
   const minVal = parseInt(minute || '1', 10);
 
