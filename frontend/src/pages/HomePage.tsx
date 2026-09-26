@@ -9,20 +9,11 @@ import { staggerContainer, fadeUp, scaleIn } from '../lib/animations';
 const heroImages = [
   '/images/hero.jpg?v=2',
   '/images/hero1.jpg',
-  '/images/hero2.jpg'
+  '/images/hero2.jpg',
+  '/images/hero3.jpg'
 ];
 
-const SYSTEM_FLAGS: Record<string, string> = {
-  liberia: '/images/flags/lbr.png',
-  eswatini: '/images/flags/swz.png',
-  tanzania: '/images/flags/tza.png',
-  'south sudan': '/images/flags/ssd.png',
-  zimbabwe: '/images/flags/zwe.png',
-  india: '/images/flags/ind.png',
-  nigeria: '/images/flags/nga.png',
-  uganda: '/images/flags/uga.png',
-  zambia: '/images/flags/zmb.png'
-};
+import { getTeamFlagImage } from '../lib/flags';
 
 export const HomePage: React.FC = () => {
   const [summary, setSummary] = useState<any>(null);
@@ -90,16 +81,8 @@ export const HomePage: React.FC = () => {
 
   const renderTeamFlag = (teamName: string, countryName?: string, logoUrl?: string) => {
     let flagSrc = logoUrl;
-    if (!flagSrc && systemNations.length > 0) {
-      const dbNation = systemNations.find((n: any) => 
-        (countryName && n.name.toLowerCase() === countryName.toLowerCase()) ||
-        (n.name.toLowerCase() === teamName.toLowerCase())
-      );
-      if (dbNation?.flag_url) flagSrc = dbNation.flag_url;
-    }
     if (!flagSrc) {
-      const fallbackKey = Object.keys(SYSTEM_FLAGS).find(k => teamName.toLowerCase().includes(k) || (countryName && countryName.toLowerCase().includes(k)));
-      if (fallbackKey) flagSrc = SYSTEM_FLAGS[fallbackKey];
+      flagSrc = getTeamFlagImage(countryName, teamName) || undefined;
     }
     
     if (flagSrc) {
@@ -132,7 +115,7 @@ export const HomePage: React.FC = () => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 1.5 }}
-              className="absolute inset-0 w-full h-full object-cover object-top"
+              className="absolute inset-0 w-full h-full object-cover object-center"
             />
           </AnimatePresence>
         </div>

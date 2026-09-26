@@ -5,17 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { api } from '../../lib/api';
 import { getMatchLiveClock } from '../../lib/liveClock';
 
-const SYSTEM_FLAGS: Record<string, string> = {
-  liberia: '/images/flags/lbr.png',
-  eswatini: '/images/flags/swz.png',
-  tanzania: '/images/flags/tza.png',
-  'south sudan': '/images/flags/ssd.png',
-  zimbabwe: '/images/flags/zwe.png',
-  india: '/images/flags/ind.png',
-  nigeria: '/images/flags/nga.png',
-  uganda: '/images/flags/uga.png',
-  zambia: '/images/flags/zmb.png'
-};
+import { getTeamFlagImage } from '../../lib/flags';
 
 export const Header: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -94,19 +84,8 @@ export const Header: React.FC = () => {
 
   const renderTeamFlag = (teamName: string, countryName?: string, logoUrl?: string) => {
     let flagSrc = logoUrl;
-    if (!flagSrc && systemNations.length > 0) {
-      const dbNation = systemNations.find((n: any) => 
-        (countryName && n.name.toLowerCase() === countryName.toLowerCase()) ||
-        (teamName && teamName.toLowerCase().includes(n.name.toLowerCase()))
-      );
-      if (dbNation?.flag_image) flagSrc = dbNation.flag_image;
-    }
     if (!flagSrc) {
-      const matchedKey = Object.keys(SYSTEM_FLAGS).find(k => 
-        (countryName && countryName.toLowerCase().includes(k)) ||
-        (teamName && teamName.toLowerCase().includes(k))
-      );
-      if (matchedKey) flagSrc = SYSTEM_FLAGS[matchedKey];
+      flagSrc = getTeamFlagImage(countryName, teamName) || undefined;
     }
 
     if (flagSrc) {

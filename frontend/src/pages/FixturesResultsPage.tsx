@@ -6,18 +6,7 @@ import { Calendar, TickSquare, TimeCircle } from 'react-iconly';
 import { MatchDetailModal } from '../components/MatchDetailModal';
 import { staggerContainer, fadeUp } from '../lib/animations';
 
-const SYSTEM_FLAGS: Record<string, string> = {
-  liberia: '/images/flags/lbr.png',
-  eswatini: '/images/flags/swz.png',
-  tanzania: '/images/flags/tza.png',
-  tazania: '/images/flags/tza.png',
-  'south sudan': '/images/flags/ssd.png',
-  zimbabwe: '/images/flags/zwe.png',
-  india: '/images/flags/ind.png',
-  nigeria: '/images/flags/nga.png',
-  uganda: '/images/flags/uga.png',
-  zambia: '/images/flags/zmb.png'
-};
+import { getTeamFlagImage } from '../lib/flags';
 
 export const FixturesResultsPage: React.FC = () => {
   const [matches, setMatches] = useState<any[]>([]);
@@ -75,16 +64,8 @@ export const FixturesResultsPage: React.FC = () => {
 
   const renderTeamFlag = (teamName: string, countryName?: string, logoUrl?: string, sizeClass: string = "w-8 h-8") => {
     let flagSrc = logoUrl;
-    if (!flagSrc && systemNations.length > 0) {
-      const dbNation = systemNations.find((n: any) => 
-        (countryName && n.name.toLowerCase() === countryName.toLowerCase()) ||
-        (n.name.toLowerCase() === teamName.toLowerCase())
-      );
-      if (dbNation?.flag_url) flagSrc = dbNation.flag_url;
-    }
     if (!flagSrc) {
-      const fallbackKey = Object.keys(SYSTEM_FLAGS).find(k => teamName.toLowerCase().includes(k) || (countryName && countryName.toLowerCase().includes(k)));
-      if (fallbackKey) flagSrc = SYSTEM_FLAGS[fallbackKey];
+      flagSrc = getTeamFlagImage(countryName, teamName) || undefined;
     }
     
     if (flagSrc) {
@@ -254,7 +235,7 @@ export const FixturesResultsPage: React.FC = () => {
                         <div key={team.team_id} className={`grid grid-cols-12 gap-2 p-3 items-center border-b border-surface-border last:border-0 hover:bg-surface-hover transition-colors \${idx < 2 ? 'border-l-4 border-l-status-completed' : 'border-l-4 border-l-transparent'}`}>
                           <div className="col-span-1 text-center text-xs font-bold text-dark-muted">{idx + 1}</div>
                           <div className="col-span-5 flex items-center gap-2">
-                            {renderTeamFlag(team.team_name, undefined, team.team_logo, "w-5 h-5")}
+                            {renderTeamFlag(team.team_name, team.team_country, team.team_logo, "w-5 h-5")}
                             <span className="text-xs font-bold text-dark-bg truncate">{team.team_name}</span>
                           </div>
                           <div className="col-span-1 text-center text-xs text-dark-surface font-medium">{team.played}</div>
