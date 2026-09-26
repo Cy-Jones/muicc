@@ -4,14 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { api } from '../lib/api';
 import { Home, Location, TwoUsers, CloseSquare, ShieldDone, Document, Plus } from 'react-iconly';
 
-const getCountryFlag = (country: string) => {
-  const map: Record<string, string> = {
-    'Liberia': '🇱🇷', 'Eswatini': '🇸🇿', 'Tanzania': '🇹🇿',
-    'South Sudan': '🇸🇸', 'Zimbabwe': '🇿🇼',
-    'Nigeria': '🇳🇬', 'Uganda': '🇺🇬'
-  };
-  return map[country] || '🏳️';
-};
+import { getTeamFlagImage } from '../lib/flags';
 
 export const TeamsPage: React.FC = () => {
   const [teams, setTeams] = useState<any[]>([]);
@@ -72,8 +65,10 @@ export const TeamsPage: React.FC = () => {
                 <div className="w-16 h-16 bg-surface-bg rounded-lg border border-surface-border shrink-0 flex items-center justify-center overflow-hidden">
                   {team.logo_url ? (
                     <img src={team.logo_url} alt={team.name} className="max-h-full object-contain p-2" />
+                  ) : getTeamFlagImage(team.country, team.name) ? (
+                    <img src={getTeamFlagImage(team.country, team.name)!} alt={team.country} className="w-10 h-10 object-contain drop-shadow-md" />
                   ) : (
-                    <span className="text-[3.5rem] leading-none pt-1" title={team.country}>{getCountryFlag(team.country)}</span>
+                    <span className="text-xl font-black text-dark-muted">{team.name.substring(0, 2).toUpperCase()}</span>
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -120,8 +115,10 @@ export const TeamsPage: React.FC = () => {
                 <div className="w-24 h-24 bg-surface-bg rounded-lg border border-surface-border flex items-center justify-center shrink-0 overflow-hidden">
                   {selectedTeam.logo_url ? (
                     <img src={selectedTeam.logo_url} alt="" className="max-h-full object-contain p-4" />
+                  ) : getTeamFlagImage(selectedTeam.country, selectedTeam.name) ? (
+                    <img src={getTeamFlagImage(selectedTeam.country, selectedTeam.name)!} alt={selectedTeam.country} className="w-20 h-20 object-contain drop-shadow-md" />
                   ) : (
-                    <span className="text-[5.5rem] leading-none pt-2" title={selectedTeam.country}>{getCountryFlag(selectedTeam.country)}</span>
+                    <span className="text-4xl font-black text-dark-muted">{selectedTeam.name.substring(0, 2).toUpperCase()}</span>
                   )}
                 </div>
                 <div>
