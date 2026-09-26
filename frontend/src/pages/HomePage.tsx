@@ -115,7 +115,7 @@ export const HomePage: React.FC = () => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 1.5 }}
-              className="absolute inset-0 w-full h-full object-cover object-center"
+              className={`absolute inset-0 w-full h-full object-cover ${heroImages[currentHeroIndex].includes('hero3') ? 'object-center' : 'object-top'}`}
             />
           </AnimatePresence>
         </div>
