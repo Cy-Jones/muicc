@@ -138,6 +138,7 @@ CREATE TABLE IF NOT EXISTS matches (
   potm_player_id TEXT,
   confirmed_result INTEGER DEFAULT 0,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  live_timer_is_paused INTEGER DEFAULT 0,
   FOREIGN KEY (match_day_id) REFERENCES match_days(id),
   FOREIGN KEY (team_a_id) REFERENCES teams(id),
   FOREIGN KEY (team_b_id) REFERENCES teams(id)

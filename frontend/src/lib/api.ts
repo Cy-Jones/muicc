@@ -109,6 +109,7 @@ export const api = {
   adminDeleteMatch: (matchId: string) => request<any>(`/api/matches/admin/${matchId}`, { method: 'DELETE' }),
   adminControlLiveClock: (matchId: string, payload: { action: string; stoppage_time?: number }) => request<any>(`/api/matches/admin/${matchId}/live-clock`, { method: 'PUT', body: JSON.stringify(payload) }),
   adminRecordMatchEvent: (matchId: string, payload: any) => request<any>(`/api/matches/admin/${matchId}/events`, { method: 'POST', body: JSON.stringify(payload) }),
+  adminDeleteMatchEvent: (matchId: string, eventId: string) => request<any>(`/api/matches/admin/${matchId}/events/${eventId}`, { method: 'DELETE' }),
   adminUpdateMatchStatus: (matchId: string, payload: any) => request<any>(`/api/matches/admin/${matchId}/status`, { method: 'PUT', body: JSON.stringify(payload) }),
   adminConfirmMatchResult: (matchId: string) => request<any>(`/api/matches/admin/${matchId}/confirm-result`, { method: 'POST' }),
 

@@ -11,7 +11,7 @@ router.get('/settings', async (req, res) => {
 });
 
 router.get('/summary', async (req, res) => {
-  const teamsCount = (await db.prepare("SELECT COUNT(*) as count FROM teams WHERE status = 'APPROVED'").get() as any)?.count || 0;
+  const teamsCount = (await db.prepare("SELECT COUNT(*) as count FROM teams WHERE status = 'APPROVED' AND country != 'TBD'").get() as any)?.count || 0;
   const playersCount = (await db.prepare("SELECT COUNT(*) as count FROM players WHERE status = 'APPROVED'").get() as any)?.count || 0;
   const matchesCount = (await db.prepare("SELECT COUNT(*) as count FROM matches").get() as any)?.count || 0;
   const completedMatchesCount = (await db.prepare("SELECT COUNT(*) as count FROM matches WHERE status = 'FULL_TIME'").get() as any)?.count || 0;

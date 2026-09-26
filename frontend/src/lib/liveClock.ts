@@ -26,7 +26,10 @@ export function getMatchLiveClock(match: any): { display: string; minuteNum: num
   let startTs = match.live_start_timestamp ? Number(match.live_start_timestamp) : now;
   if (isNaN(startTs) || startTs <= 0) startTs = now;
   
-  const realElapsedSec = Math.max(0, Math.floor((now - startTs) / 1000) + (match.live_pause_elapsed_seconds || 0));
+  let realElapsedSec = match.live_pause_elapsed_seconds || 0;
+  if (match.live_timer_is_paused !== 1) {
+    realElapsedSec += Math.max(0, Math.floor((now - startTs) / 1000));
+  }
 
   // Test mode: 1 real second = 1 in-game minute => 60 in-game seconds
   const inGameElapsedSec = match.is_test_mode === 1 ? realElapsedSec * 60 : realElapsedSec;

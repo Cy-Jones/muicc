@@ -88,6 +88,8 @@ export const AdminDashboard: React.FC = () => {
   const [editEventTeam, setEditEventTeam] = useState('');
   const [editEventPlayer, setEditEventPlayer] = useState('');
   const [editEventSecondary, setEditEventSecondary] = useState('');
+  const [editMatchEvents, setEditMatchEvents] = useState<any[]>([]);
+  const [isSavingEvent, setIsSavingEvent] = useState(false);
 
   // Extra Time State
   const [extraTimeMatch, setExtraTimeMatch] = useState<any>(null);
@@ -277,7 +279,8 @@ export const AdminDashboard: React.FC = () => {
   };
 
   const handleRecordEvent = async () => {
-    if (!editingMatch || !editEventTeam || !editEventPlayer || !editEventType) return;
+    if (!editingMatch || !editEventTeam || !editEventPlayer || !editEventType || isSavingEvent) return;
+    setIsSavingEvent(true);
     try {
       await api.adminRecordMatchEvent(editingMatch.id, {
         team_id: editEventTeam,
@@ -289,6 +292,23 @@ export const AdminDashboard: React.FC = () => {
       setMessage(`Recorded ${editEventType.replace('_', ' ')} successfully.`);
       setEditEventPlayer('');
       setEditEventSecondary('');
+      
+      const details = await api.getMatchDetail(editingMatch.id);
+      if (details.events) setEditMatchEvents(details.events);
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
+      setIsSavingEvent(false);
+    }
+  };
+
+  const handleDeleteEvent = async (eventId: string) => {
+    if (!editingMatch || !window.confirm('Are you sure you want to delete this event?')) return;
+    try {
+      await api.adminDeleteMatchEvent(editingMatch.id, eventId);
+      setMessage('Event deleted successfully.');
+      const details = await api.getMatchDetail(editingMatch.id);
+      if (details.events) setEditMatchEvents(details.events);
     } catch (err: any) {
       alert(err.message);
     }
@@ -764,20 +784,37 @@ export const AdminDashboard: React.FC = () => {
                           )}
 
                           {liveClock.phase !== 'COMPLETED' && (
-                            <button onClick={() => handleLiveClockControl(m.id, 'TOGGLE_TEST_MODE')} className={`action-btn ${m.is_test_mode ? 'bg-red-500/20 text-red-400 border-red-500/50' : 'bg-gray-500/10 text-gray-400 border-gray-500/30'}`}>
-                              {m.is_test_mode === 1 ? 'Test Mode: ON' : 'Test Mode: OFF'}
-                            </button>
+                            <>
+                              <button onClick={() => handleLiveClockControl(m.id, 'TOGGLE_TEST_MODE')} className={`action-btn ${m.is_test_mode ? 'bg-red-500/20 text-red-400 border-red-500/50' : 'bg-gray-500/10 text-gray-400 border-gray-500/30'}`}>
+                                {m.is_test_mode === 1 ? 'Test Mode: ON' : 'Test Mode: OFF'}
+                              </button>
+                              
+                              {['FIRST_HALF', 'SECOND_HALF', 'EXTRA_TIME_FIRST_HALF', 'EXTRA_TIME_SECOND_HALF'].includes(liveClock.phase) && (
+                                <button 
+                                  onClick={() => handleLiveClockControl(m.id, m.live_timer_is_paused === 1 ? 'RESUME_TIMER' : 'PAUSE_TIMER')} 
+                                  className={`action-btn ${m.live_timer_is_paused === 1 ? 'bg-status-completed/10 text-status-completed border-status-completed/30' : 'bg-status-warning/10 text-status-warning border-status-warning/30'}`}
+                                >
+                                  {m.live_timer_is_paused === 1 ? <><Play set="bold" className="w-3.5 h-3.5" /> Resume Clock</> : <><CloseSquare set="bold" className="w-3.5 h-3.5" /> Pause Clock</>}
+                                </button>
+                              )}
+                            </>
                           )}
                         </div>
 
                         <div className="flex items-center gap-2">
-                          <button onClick={() => {
+                          <button onClick={async () => {
                             setEditingMatch(m);
                             setEditMatchStatus(m.status);
                             setEditScoreA(m.score_a?.toString() || '0');
                             setEditScoreB(m.score_b?.toString() || '0');
                             setEditMatchDate(m.date || '');
                             setEditMatchTime(m.time || '');
+                            try {
+                              const details = await api.getMatchDetail(m.id);
+                              if (details.events) setEditMatchEvents(details.events);
+                            } catch (e) {
+                              console.error(e);
+                            }
                           }} className="action-btn bg-surface-border text-dark-bg hover:bg-surface-border border-surface-border"><Edit set="bold" className="w-3.5 h-3.5" /> Edit</button>
                           
                           {m.status !== 'FULL_TIME' && <button onClick={() => handleConfirmResult(m.id)} className="action-btn bg-status-completed/10 text-status-completed hover:bg-status-completed/20 border-status-completed/30"><TickSquare set="bold" className="w-3.5 h-3.5" /> Confirm FT</button>}
@@ -1059,6 +1096,11 @@ export const AdminDashboard: React.FC = () => {
                       <label className="block text-[10px] font-bold text-dark-muted uppercase mb-1">Primary Player</label>
                       <select className="input-field" value={editEventPlayer} onChange={e => setEditEventPlayer(e.target.value)}>
                         <option value="">Select Player...</option>
+                        {(editEventType === 'YELLOW_CARD' || editEventType === 'RED_CARD') && teams.find(t => t.id === editEventTeam)?.coach_name && (
+                          <option value={`COACH: ${teams.find(t => t.id === editEventTeam)?.coach_name}`}>
+                            Coach: {teams.find(t => t.id === editEventTeam)?.coach_name}
+                          </option>
+                        )}
                         {players.filter(p => p.team_id === editEventTeam || p.team_name === (editEventTeam === editingMatch.team_a_id ? editingMatch.team_a_name : editingMatch.team_b_name)).map(p => (
                           <option key={p.id} value={p.id}>{p.full_name}</option>
                         ))}
@@ -1083,12 +1125,34 @@ export const AdminDashboard: React.FC = () => {
                 
                 <button 
                   onClick={handleRecordEvent} 
-                  disabled={!editEventTeam || !editEventPlayer || (editEventType === 'SUBSTITUTION' && !editEventSecondary)}
-                  className="w-full py-2 bg-brand/10 text-brand font-bold rounded-lg text-sm hover:bg-brand/20 disabled:opacity-50 transition-colors"
+                  disabled={!editEventTeam || !editEventPlayer || (editEventType === 'SUBSTITUTION' && !editEventSecondary) || isSavingEvent}
+                  className="btn-primary w-full disabled:opacity-50"
                 >
-                  Save Event
+                  {isSavingEvent ? 'Saving...' : 'Save Event'}
                 </button>
               </div>
+
+              {editMatchEvents.length > 0 && (
+                <div className="border-t border-surface-border pt-4">
+                  <label className="block text-xs font-bold text-dark-muted uppercase tracking-widest mb-3">Recorded Events</label>
+                  <div className="space-y-2 max-h-40 overflow-y-auto">
+                    {editMatchEvents.map(ev => (
+                      <div key={ev.id} className="flex items-center justify-between bg-surface-bg p-2 rounded border border-surface-border">
+                        <div className="text-xs">
+                          <span className="font-bold text-brand">{ev.minute}'</span>
+                          <span className="mx-2 text-dark-muted">|</span>
+                          <span className="font-medium text-dark-bg">{ev.player_name || ev.player_id}</span>
+                          <span className="mx-2 text-dark-muted">|</span>
+                          <span className="text-dark-muted">{ev.event_type.replace('_', ' ')}</span>
+                        </div>
+                        <button onClick={() => handleDeleteEvent(ev.id)} className="p-1 rounded bg-status-error/10 text-status-error hover:bg-status-error hover:text-dark-bg transition-colors" title="Delete Event">
+                          <Delete set="bold" className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="flex items-center justify-end gap-3 border-t border-surface-border pt-4 mt-6">

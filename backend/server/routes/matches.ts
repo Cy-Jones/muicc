@@ -188,7 +188,7 @@ router.get('/:id', async (req, res) => {
     SELECT me.*, p.full_name as player_name, p.jersey_number as player_jersey,
            p2.full_name as secondary_player_name, t.name as team_name
     FROM match_events me
-    JOIN players p ON me.player_id = p.id
+    LEFT JOIN players p ON me.player_id = p.id
     JOIN teams t ON me.team_id = t.id
     LEFT JOIN players p2 ON me.secondary_player_id = p2.id
     WHERE me.match_id = ?
@@ -344,6 +344,18 @@ router.put('/admin/:id/live-clock', authenticateAdmin, async (req: Authenticated
     const isTestMode = match.is_test_mode === 1 ? 0 : 1;
     await db.prepare('UPDATE matches SET is_test_mode = ? WHERE id = ?').run(isTestMode, matchId);
     return res.json({ success: true, message: `Test mode ${isTestMode ? 'enabled' : 'disabled'}.` });
+  } else if (action === 'PAUSE_TIMER') {
+    if (match.live_timer_is_paused === 1) return res.json({ success: true, message: 'Timer already paused.' });
+    let startTs = match.live_start_timestamp ? Number(match.live_start_timestamp) : now;
+    if (isNaN(startTs) || startTs <= 0) startTs = now;
+    const realElapsedSec = Math.max(0, Math.floor((now - startTs) / 1000));
+    const new_elapsed = (match.live_pause_elapsed_seconds || 0) + realElapsedSec;
+    await db.prepare('UPDATE matches SET live_timer_is_paused = 1, live_pause_elapsed_seconds = ? WHERE id = ?').run(new_elapsed, matchId);
+    return res.json({ success: true, message: 'Timer Paused.' });
+  } else if (action === 'RESUME_TIMER') {
+    if (match.live_timer_is_paused !== 1) return res.json({ success: true, message: 'Timer already running.' });
+    await db.prepare('UPDATE matches SET live_timer_is_paused = 0, live_start_timestamp = ? WHERE id = ?').run(now, matchId);
+    return res.json({ success: true, message: 'Timer Resumed.' });
   }
 
   return res.status(400).json({ error: 'Invalid live clock action.' });
@@ -377,6 +389,31 @@ router.post('/admin/:id/events', authenticateAdmin, async (req: AuthenticatedReq
   }
 
   return res.status(201).json({ success: true, message: 'Match event recorded.' });
+});
+
+router.delete('/admin/:matchId/events/:eventId', authenticateAdmin, async (req: AuthenticatedRequest, res: Response) => {
+  const { matchId, eventId } = req.params;
+
+  const event = await db.prepare('SELECT * FROM match_events WHERE id = ? AND match_id = ?').get(eventId, matchId) as any;
+  if (!event) {
+    return res.status(404).json({ error: 'Event not found.' });
+  }
+
+  await db.prepare('DELETE FROM match_events WHERE id = ?').run(eventId);
+
+  // Revert score if it was a goal
+  if (event.event_type === 'GOAL') {
+    const match = await db.prepare('SELECT * FROM matches WHERE id = ?').get(matchId) as any;
+    if (match) {
+      if (event.team_id === match.team_a_id) {
+        await db.prepare('UPDATE matches SET score_a = MAX(0, score_a - 1) WHERE id = ?').run(matchId);
+      } else if (event.team_id === match.team_b_id) {
+        await db.prepare('UPDATE matches SET score_b = MAX(0, score_b - 1) WHERE id = ?').run(matchId);
+      }
+    }
+  }
+
+  return res.json({ success: true, message: 'Event deleted.' });
 });
 
 router.put('/admin/:id/status', authenticateAdmin, async (req: AuthenticatedRequest, res: Response) => {

@@ -11,9 +11,9 @@ import fs from 'fs';
 const router = asyncRouter();
 
 router.get('/dashboard-stats', authenticateAdmin, async (req: AuthenticatedRequest, res: Response) => {
-  const totalTeams = (await db.prepare('SELECT COUNT(*) as count FROM teams').get() as any)?.count || 0;
-  const approvedTeams = (await db.prepare("SELECT COUNT(*) as count FROM teams WHERE status = 'APPROVED'").get() as any)?.count || 0;
-  const pendingTeams = (await db.prepare("SELECT COUNT(*) as count FROM teams WHERE status = 'PENDING'").get() as any)?.count || 0;
+  const totalTeams = (await db.prepare("SELECT COUNT(*) as count FROM teams WHERE country != 'TBD'").get() as any)?.count || 0;
+  const approvedTeams = (await db.prepare("SELECT COUNT(*) as count FROM teams WHERE status = 'APPROVED' AND country != 'TBD'").get() as any)?.count || 0;
+  const pendingTeams = (await db.prepare("SELECT COUNT(*) as count FROM teams WHERE status = 'PENDING' AND country != 'TBD'").get() as any)?.count || 0;
 
   const totalPlayers = (await db.prepare('SELECT COUNT(*) as count FROM players').get() as any)?.count || 0;
   const approvedPlayers = (await db.prepare("SELECT COUNT(*) as count FROM players WHERE status = 'APPROVED'").get() as any)?.count || 0;
