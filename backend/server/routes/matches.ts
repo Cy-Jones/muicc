@@ -374,8 +374,8 @@ router.post('/admin/:id/events', authenticateAdmin, async (req: AuthenticatedReq
     if (!existingCoach) {
       const coachName = player_id.replace('COACH: ', '');
       await db.prepare(`
-        INSERT INTO players (id, team_id, full_name, dob, nationality, student_id, university, position, jersey_number)
-        VALUES (?, ?, ?, '1900-01-01', 'Unknown', 'COACH', 'Unknown', 'Coach', 0)
+        INSERT INTO players (id, team_id, full_name, dob, nationality, student_id, university, position, jersey_number, status)
+        VALUES (?, ?, ?, '1900-01-01', 'Unknown', 'COACH', 'Unknown', 'Coach', 0, 'APPROVED')
       `).run(player_id, team_id, coachName);
     }
   }

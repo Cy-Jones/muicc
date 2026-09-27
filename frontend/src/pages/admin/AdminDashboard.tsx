@@ -398,6 +398,7 @@ export const AdminDashboard: React.FC = () => {
     { key: 'DRAW', label: 'Tournament Draw', icon: Star },
     { key: 'TEAMS', label: 'Teams', icon: ShieldDone },
     { key: 'PLAYERS', label: 'Players', icon: TwoUsers },
+    { key: 'COACHES', label: 'Coaches', icon: TwoUsers },
     { key: 'NEWS', label: 'News', icon: Star },
     { key: 'GALLERY', label: 'Gallery', icon: Image },
     { key: 'SPONSORS', label: 'Sponsors', icon: Star },
@@ -420,6 +421,9 @@ export const AdminDashboard: React.FC = () => {
       )
     );
   });
+
+  const displayPlayers = filteredPlayers.filter(p => p.position !== 'Coach');
+  const displayCoaches = filteredPlayers.filter(p => p.position === 'Coach');
 
   return (
     <div className="space-y-6">
@@ -953,7 +957,7 @@ export const AdminDashboard: React.FC = () => {
           {activeTab === 'PLAYERS' && (
             <div className="bg-surface-card rounded-xl border border-surface-border overflow-hidden">
               <div className="p-4 border-b border-surface-border bg-surface-bg flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <h2 className="font-heading text-lg font-black text-dark-bg uppercase tracking-widest">Player Approvals ({filteredPlayers.length})</h2>
+                <h2 className="font-heading text-lg font-black text-dark-bg uppercase tracking-widest">Player Approvals ({displayPlayers.length})</h2>
                 <div className="relative w-full md:w-auto">
                   <Search set="light" className="w-4 h-4 text-dark-muted absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
@@ -971,7 +975,7 @@ export const AdminDashboard: React.FC = () => {
                     <tr><th className="p-4">Player ID</th><th className="p-4">Athlete Name</th><th className="p-4">Team</th><th className="p-4">Pos</th><th className="p-4">Jersey</th><th className="p-4">Status</th><th className="p-4 text-right">Actions</th></tr>
                   </thead>
                   <tbody className="divide-y divide-surface-border">
-                    {filteredPlayers.map((p) => (
+                    {displayPlayers.map((p) => (
                       <tr key={p.id} className="hover:bg-surface-bg transition-colors">
                         <td className="p-4 text-brand font-mono">{p.player_id || 'PENDING'}</td>
                         <td className="p-4 text-dark-bg flex items-center gap-3">
@@ -994,6 +998,61 @@ export const AdminDashboard: React.FC = () => {
                         </td>
                       </tr>
                     ))}
+                    {displayPlayers.length === 0 && (
+                      <tr><td colSpan={7} className="p-8 text-center text-dark-muted">No players found.</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'COACHES' && (
+            <div className="bg-surface-card rounded-xl border border-surface-border overflow-hidden">
+              <div className="p-4 border-b border-surface-border bg-surface-bg flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <h2 className="font-heading text-lg font-black text-dark-bg uppercase tracking-widest">Coaches ({displayCoaches.length})</h2>
+                <div className="relative w-full md:w-auto">
+                  <Search set="light" className="w-4 h-4 text-dark-muted absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    placeholder="Search name, ID, team..."
+                    value={playerSearchQuery}
+                    onChange={(e) => setPlayerSearchQuery(e.target.value)}
+                    className="admin-input !pl-10 text-xs w-full md:w-64"
+                  />
+                </div>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-[10px] font-bold uppercase tracking-widest text-dark-bg">
+                  <thead className="bg-surface-bg text-dark-muted border-b border-surface-border">
+                    <tr><th className="p-4">Coach ID</th><th className="p-4">Name</th><th className="p-4">Team</th><th className="p-4">Pos</th><th className="p-4">Status</th><th className="p-4 text-right">Actions</th></tr>
+                  </thead>
+                  <tbody className="divide-y divide-surface-border">
+                    {displayCoaches.map((p) => (
+                      <tr key={p.id} className="hover:bg-surface-bg transition-colors">
+                        <td className="p-4 text-brand font-mono">{p.player_id || 'PENDING'}</td>
+                        <td className="p-4 text-dark-bg flex items-center gap-3">
+                          <div className="w-6 h-6 rounded-full bg-surface-bg border border-surface-border overflow-hidden flex-shrink-0">
+                            {p.photo_url && <img src={p.photo_url} alt="" className="w-full h-full object-cover" />}
+                          </div>
+                          {p.full_name}
+                        </td>
+                        <td className="p-4 text-dark-muted">{p.team_name}</td>
+                        <td className="p-4">{p.position}</td>
+                        <td className="p-4"><span className={`status-badge ${p.status === 'APPROVED' ? 'status-completed' : p.status === 'REJECTED' ? 'status-error' : 'status-warning'}`}>{p.status}</span></td>
+                        <td className="p-4 text-right space-x-2 flex items-center justify-end">
+                          <button onClick={() => setViewingPlayer(p)} className="action-btn bg-brand/10 text-brand border-brand/30 hover:bg-brand/20" title="View Details">Details</button>
+                          {p.status !== 'APPROVED' && <button onClick={() => handleUpdatePlayerStatus(p.id, 'APPROVED')} className="action-btn bg-status-completed/10 text-status-completed border-status-completed/30 hover:bg-status-completed/20">Approve</button>}
+                          {p.status !== 'REJECTED' && <button onClick={() => handleUpdatePlayerStatus(p.id, 'REJECTED')} className="action-btn bg-status-error/10 text-status-error border-status-error/30 hover:bg-status-error/20">Reject</button>}
+                          <button onClick={() => handleDeletePlayer(p.id)} className="p-1.5 rounded bg-status-error/10 text-status-error hover:bg-status-error hover:text-dark-bg transition-colors" title="Delete Coach">
+                            <Delete set="bold" className="w-4 h-4" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                    {displayCoaches.length === 0 && (
+                      <tr><td colSpan={6} className="p-8 text-center text-dark-muted">No coaches found.</td></tr>
+                    )}
                   </tbody>
                 </table>
               </div>

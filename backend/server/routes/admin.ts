@@ -31,7 +31,7 @@ router.get('/dashboard-stats', authenticateAdmin, async (req: AuthenticatedReque
     SELECT p.id, p.full_name, p.nationality, p.position, p.status, p.created_at, t.name as team_name
     FROM players p
     JOIN teams t ON p.team_id = t.id
-    WHERE p.status IN ('SUBMITTED', 'UNDER_REVIEW')
+    WHERE p.status IN ('SUBMITTED', 'UNDER_REVIEW') AND p.position != 'Coach'
     ORDER BY p.created_at DESC
     LIMIT 5
   `).all();
