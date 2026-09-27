@@ -219,7 +219,7 @@ async function ensureCoachesExist() {
 }
 
 async function fixCoachIds() {
-  const coaches = await db.prepare("SELECT id FROM players WHERE position = 'Coach' AND player_id LIKE 'MULSU-PLY-%'").all() as any[];
+  const coaches = await db.prepare("SELECT id, player_id FROM players WHERE position = 'Coach' AND player_id LIKE 'MULSU-PLY-%'").all() as any[];
   if (coaches.length > 0) {
     console.log(`Fixing ${coaches.length} coach IDs...`);
     for (const coach of coaches) {
@@ -233,6 +233,10 @@ async function fixCoachIds() {
         candidate = `MULSU-COACH-${(countRow + 1 + offset).toString().padStart(4, '0')}`;
         existing = await db.prepare('SELECT id FROM players WHERE player_id = ?').get(candidate);
         offset++;
+      }
+      
+      if (coach.player_id) {
+        await db.prepare('DELETE FROM player_cards WHERE player_id = ?').run(coach.player_id);
       }
       
       await db.prepare('UPDATE players SET player_id = ? WHERE id = ?').run(candidate, coach.id);
