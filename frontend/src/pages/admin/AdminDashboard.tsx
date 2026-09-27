@@ -665,33 +665,35 @@ export const AdminDashboard: React.FC = () => {
                     </button>
                   ))}
                 </div>
-                <button
-                  onClick={async () => {
-                    if (window.confirm("Are you sure you want to completely wipe all unconfirmed points and reset standings?")) {
-                      try {
-                        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/force-reset-standings`);
-                        const data = await res.json();
-                        if (data.success) {
-                          alert('Standings have been forcefully reset and recalculated.');
-                          window.location.reload();
-                        } else {
-                          alert('Error: ' + data.error);
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={async () => {
+                      if (window.confirm("Are you sure you want to completely wipe all unconfirmed points and reset standings?")) {
+                        try {
+                          const res = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/force-reset-standings`);
+                          const data = await res.json();
+                          if (data.success) {
+                            alert('Standings have been forcefully reset and recalculated.');
+                            window.location.reload();
+                          } else {
+                            alert('Error: ' + data.error);
+                          }
+                        } catch (err) {
+                          alert('Failed to reset: ' + err);
                         }
-                      } catch (err) {
-                        alert('Failed to reset: ' + err);
                       }
-                    }
-                  }}
-                  className="px-4 py-2 bg-status-error/10 text-status-error border border-status-error/30 rounded font-bold text-[10px] uppercase tracking-widest hover:bg-status-error hover:text-dark-bg transition-colors"
-                >
-                  Force Reset Standings
-                </button>
-                <button
-                  onClick={() => setShowCreateMatchModal(true)}
-                  className="btn-primary px-4 py-2 text-[10px] flex items-center gap-1.5 shadow-sm"
-                >
-                  <Plus set="bold" className="w-3.5 h-3.5" /> Create Match
-                </button>
+                    }}
+                    className="px-4 py-2 bg-status-error/10 text-status-error border border-status-error/30 rounded font-bold text-[10px] uppercase tracking-widest hover:bg-status-error hover:text-dark-bg transition-colors"
+                  >
+                    Force Reset Standings
+                  </button>
+                  <button
+                    onClick={() => setShowCreateMatchModal(true)}
+                    className="btn-primary px-4 py-2 text-[10px] flex items-center gap-1.5 shadow-sm"
+                  >
+                    <Plus set="bold" className="w-3.5 h-3.5" /> Create Match
+                  </button>
+                </div>
               </div>
 
               <div className="space-y-4">
@@ -742,64 +744,68 @@ export const AdminDashboard: React.FC = () => {
 
                       <div className="p-3 bg-surface-bg border-t border-surface-border flex flex-wrap items-center justify-between gap-3">
                         <div className="flex flex-wrap items-center gap-2">
-                          {liveClock.phase === 'PRE_MATCH' && <button onClick={() => handleLiveClockControl(m.id, 'START_1ST_HALF')} className="action-btn bg-status-completed/10 text-status-completed border-status-completed/30"><Play set="bold" className="w-3.5 h-3.5" /> Start 1st Half</button>}
-                          
-                          {liveClock.phase === 'FIRST_HALF' && (
+                          {m.confirmed_result !== 1 && (
                             <>
-                              <button onClick={() => handleLiveClockControl(m.id, 'END_1ST_HALF')} className="action-btn bg-status-warning/10 text-status-warning border-status-warning/30"><CloseSquare set="bold" className="w-3.5 h-3.5" /> End 1st Half</button>
-                              <button onClick={() => { setExtraTimeMatch(m); setExtraMins('3'); }} className="action-btn bg-purple-500/10 text-purple-400 border-purple-500/30"><Play set="bold" className="w-3.5 h-3.5" /> +Time</button>
-                            </>
-                          )}
-                          
-                          {liveClock.phase === 'HALF_TIME' && <button onClick={() => handleLiveClockControl(m.id, 'START_2ND_HALF')} className="action-btn bg-blue-500/10 text-blue-400 border-blue-500/30"><Play set="bold" className="w-3.5 h-3.5" /> Start 2nd Half</button>}
-                          
-                          {liveClock.phase === 'SECOND_HALF' && (
-                            <>
-                              <button onClick={() => handleLiveClockControl(m.id, 'END_2ND_HALF')} className="action-btn bg-status-error/10 text-status-error border-status-error/30"><TickSquare set="bold" className="w-3.5 h-3.5" /> Full Time</button>
-                              <button onClick={() => { setExtraTimeMatch(m); setExtraMins('3'); }} className="action-btn bg-purple-500/10 text-purple-400 border-purple-500/30"><Play set="bold" className="w-3.5 h-3.5" /> +Time</button>
-                            </>
-                          )}
-                          
-                          {liveClock.phase === 'FULL_TIME' && (
-                            <>
-                              <button onClick={() => handleLiveClockControl(m.id, 'START_ET_1')} className="action-btn bg-orange-500/10 text-orange-400 border-orange-500/30"><Play set="bold" className="w-3.5 h-3.5" /> Start ET1</button>
-                            </>
-                          )}
-                          
-                          {liveClock.phase === 'EXTRA_TIME_FIRST_HALF' && (
-                            <>
-                              <button onClick={() => handleLiveClockControl(m.id, 'END_ET_1')} className="action-btn bg-status-warning/10 text-status-warning border-status-warning/30"><CloseSquare set="bold" className="w-3.5 h-3.5" /> End ET1</button>
-                              <button onClick={() => { setExtraTimeMatch(m); setExtraMins('1'); }} className="action-btn bg-purple-500/10 text-purple-400 border-purple-500/30"><Play set="bold" className="w-3.5 h-3.5" /> +Time</button>
-                            </>
-                          )}
-                          
-                          {liveClock.phase === 'EXTRA_TIME_HALF_TIME' && <button onClick={() => handleLiveClockControl(m.id, 'START_ET_2')} className="action-btn bg-blue-500/10 text-blue-400 border-blue-500/30"><Play set="bold" className="w-3.5 h-3.5" /> Start ET2</button>}
-
-                          {liveClock.phase === 'EXTRA_TIME_SECOND_HALF' && (
-                            <>
-                              <button onClick={() => handleLiveClockControl(m.id, 'START_PENALTIES')} className="action-btn bg-purple-500/10 text-purple-400 border-purple-500/30"><Play set="bold" className="w-3.5 h-3.5" /> Pens</button>
-                              <button onClick={() => handleLiveClockControl(m.id, 'END_MATCH')} className="action-btn bg-status-error/10 text-status-error border-status-error/30"><TickSquare set="bold" className="w-3.5 h-3.5" /> End Match</button>
-                              <button onClick={() => { setExtraTimeMatch(m); setExtraMins('1'); }} className="action-btn bg-purple-500/10 text-purple-400 border-purple-500/30"><Play set="bold" className="w-3.5 h-3.5" /> +Time</button>
-                            </>
-                          )}
-                          
-                          {liveClock.phase === 'PENALTY_SHOOTOUT' && (
-                            <button onClick={() => handleLiveClockControl(m.id, 'END_MATCH')} className="action-btn bg-status-error/10 text-status-error border-status-error/30"><TickSquare set="bold" className="w-3.5 h-3.5" /> End Match</button>
-                          )}
-
-                          {liveClock.phase !== 'COMPLETED' && (
-                            <>
-                              <button onClick={() => handleLiveClockControl(m.id, 'TOGGLE_TEST_MODE')} className={`action-btn ${m.is_test_mode ? 'bg-red-500/20 text-red-400 border-red-500/50' : 'bg-gray-500/10 text-gray-400 border-gray-500/30'}`}>
-                                {m.is_test_mode === 1 ? 'Test Mode: ON' : 'Test Mode: OFF'}
-                              </button>
+                              {liveClock.phase === 'PRE_MATCH' && <button onClick={() => handleLiveClockControl(m.id, 'START_1ST_HALF')} className="action-btn bg-status-completed/10 text-status-completed border-status-completed/30"><Play set="bold" className="w-3.5 h-3.5" /> Start 1st Half</button>}
                               
-                              {['FIRST_HALF', 'SECOND_HALF', 'EXTRA_TIME_FIRST_HALF', 'EXTRA_TIME_SECOND_HALF'].includes(liveClock.phase) && (
-                                <button 
-                                  onClick={() => handleLiveClockControl(m.id, m.live_timer_is_paused === 1 ? 'RESUME_TIMER' : 'PAUSE_TIMER')} 
-                                  className={`action-btn ${m.live_timer_is_paused === 1 ? 'bg-status-completed/10 text-status-completed border-status-completed/30' : 'bg-status-warning/10 text-status-warning border-status-warning/30'}`}
-                                >
-                                  {m.live_timer_is_paused === 1 ? <><Play set="bold" className="w-3.5 h-3.5" /> Resume Clock</> : <><CloseSquare set="bold" className="w-3.5 h-3.5" /> Pause Clock</>}
-                                </button>
+                              {liveClock.phase === 'FIRST_HALF' && (
+                                <>
+                                  <button onClick={() => handleLiveClockControl(m.id, 'END_1ST_HALF')} className="action-btn bg-status-warning/10 text-status-warning border-status-warning/30"><CloseSquare set="bold" className="w-3.5 h-3.5" /> End 1st Half</button>
+                                  <button onClick={() => { setExtraTimeMatch(m); setExtraMins('3'); }} className="action-btn bg-purple-500/10 text-purple-400 border-purple-500/30"><Play set="bold" className="w-3.5 h-3.5" /> +Time</button>
+                                </>
+                              )}
+                              
+                              {liveClock.phase === 'HALF_TIME' && <button onClick={() => handleLiveClockControl(m.id, 'START_2ND_HALF')} className="action-btn bg-blue-500/10 text-blue-400 border-blue-500/30"><Play set="bold" className="w-3.5 h-3.5" /> Start 2nd Half</button>}
+                              
+                              {liveClock.phase === 'SECOND_HALF' && (
+                                <>
+                                  <button onClick={() => handleLiveClockControl(m.id, 'END_2ND_HALF')} className="action-btn bg-status-error/10 text-status-error border-status-error/30"><TickSquare set="bold" className="w-3.5 h-3.5" /> Full Time</button>
+                                  <button onClick={() => { setExtraTimeMatch(m); setExtraMins('3'); }} className="action-btn bg-purple-500/10 text-purple-400 border-purple-500/30"><Play set="bold" className="w-3.5 h-3.5" /> +Time</button>
+                                </>
+                              )}
+                              
+                              {liveClock.phase === 'FULL_TIME' && (
+                                <>
+                                  <button onClick={() => handleLiveClockControl(m.id, 'START_ET_1')} className="action-btn bg-orange-500/10 text-orange-400 border-orange-500/30"><Play set="bold" className="w-3.5 h-3.5" /> Start ET1</button>
+                                </>
+                              )}
+                              
+                              {liveClock.phase === 'EXTRA_TIME_FIRST_HALF' && (
+                                <>
+                                  <button onClick={() => handleLiveClockControl(m.id, 'END_ET_1')} className="action-btn bg-status-warning/10 text-status-warning border-status-warning/30"><CloseSquare set="bold" className="w-3.5 h-3.5" /> End ET1</button>
+                                  <button onClick={() => { setExtraTimeMatch(m); setExtraMins('1'); }} className="action-btn bg-purple-500/10 text-purple-400 border-purple-500/30"><Play set="bold" className="w-3.5 h-3.5" /> +Time</button>
+                                </>
+                              )}
+                              
+                              {liveClock.phase === 'EXTRA_TIME_HALF_TIME' && <button onClick={() => handleLiveClockControl(m.id, 'START_ET_2')} className="action-btn bg-blue-500/10 text-blue-400 border-blue-500/30"><Play set="bold" className="w-3.5 h-3.5" /> Start ET2</button>}
+
+                              {liveClock.phase === 'EXTRA_TIME_SECOND_HALF' && (
+                                <>
+                                  <button onClick={() => handleLiveClockControl(m.id, 'START_PENALTIES')} className="action-btn bg-purple-500/10 text-purple-400 border-purple-500/30"><Play set="bold" className="w-3.5 h-3.5" /> Pens</button>
+                                  <button onClick={() => handleLiveClockControl(m.id, 'END_MATCH')} className="action-btn bg-status-error/10 text-status-error border-status-error/30"><TickSquare set="bold" className="w-3.5 h-3.5" /> End Match</button>
+                                  <button onClick={() => { setExtraTimeMatch(m); setExtraMins('1'); }} className="action-btn bg-purple-500/10 text-purple-400 border-purple-500/30"><Play set="bold" className="w-3.5 h-3.5" /> +Time</button>
+                                </>
+                              )}
+                              
+                              {liveClock.phase === 'PENALTY_SHOOTOUT' && (
+                                <button onClick={() => handleLiveClockControl(m.id, 'END_MATCH')} className="action-btn bg-status-error/10 text-status-error border-status-error/30"><TickSquare set="bold" className="w-3.5 h-3.5" /> End Match</button>
+                              )}
+
+                              {liveClock.phase !== 'COMPLETED' && (
+                                <>
+                                  <button onClick={() => handleLiveClockControl(m.id, 'TOGGLE_TEST_MODE')} className={`action-btn ${m.is_test_mode ? 'bg-red-500/20 text-red-400 border-red-500/50' : 'bg-gray-500/10 text-gray-400 border-gray-500/30'}`}>
+                                    {m.is_test_mode === 1 ? 'Test Mode: ON' : 'Test Mode: OFF'}
+                                  </button>
+                                  
+                                  {['FIRST_HALF', 'SECOND_HALF', 'EXTRA_TIME_FIRST_HALF', 'EXTRA_TIME_SECOND_HALF'].includes(liveClock.phase) && (
+                                    <button 
+                                      onClick={() => handleLiveClockControl(m.id, m.live_timer_is_paused === 1 ? 'RESUME_TIMER' : 'PAUSE_TIMER')} 
+                                      className={`action-btn ${m.live_timer_is_paused === 1 ? 'bg-status-completed/10 text-status-completed border-status-completed/30' : 'bg-status-warning/10 text-status-warning border-status-warning/30'}`}
+                                    >
+                                      {m.live_timer_is_paused === 1 ? <><Play set="bold" className="w-3.5 h-3.5" /> Resume Clock</> : <><CloseSquare set="bold" className="w-3.5 h-3.5" /> Pause Clock</>}
+                                    </button>
+                                  )}
+                                </>
                               )}
                             </>
                           )}
@@ -821,7 +827,7 @@ export const AdminDashboard: React.FC = () => {
                             }
                           }} className="action-btn bg-surface-border text-dark-bg hover:bg-surface-border border-surface-border"><Edit set="bold" className="w-3.5 h-3.5" /> Edit</button>
                           
-                          {m.status !== 'FULL_TIME' && <button onClick={() => handleConfirmResult(m.id)} className="action-btn bg-status-completed/10 text-status-completed hover:bg-status-completed/20 border-status-completed/30"><TickSquare set="bold" className="w-3.5 h-3.5" /> Confirm FT</button>}
+                          {m.confirmed_result !== 1 && <button onClick={() => handleConfirmResult(m.id)} className="action-btn bg-status-completed/10 text-status-completed hover:bg-status-completed/20 border-status-completed/30"><TickSquare set="bold" className="w-3.5 h-3.5" /> Confirm FT</button>}
                           
                           <button onClick={() => handleDeleteMatch(m.id, m.match_code)} className="action-btn bg-status-error/10 text-status-error hover:bg-status-error/20 border-status-error/30 px-2"><Delete set="bold" className="w-3.5 h-3.5" /></button>
                         </div>
