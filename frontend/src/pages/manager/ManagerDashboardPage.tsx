@@ -4,7 +4,8 @@ import { api } from '../../lib/api';
 import { ShieldDone, User, ArrowRight, Document, Edit, CloseSquare, Delete, Plus, Camera, Upload } from 'react-iconly';
 import { motion } from 'framer-motion';
 import { ManagerMatchesSection } from './ManagerMatchesSection';
-
+import { ManagerEditTeamModal } from './ManagerEditTeamModal';
+import { ManagerPlayerModal } from './ManagerPlayerModal';
 const getCountryFlag = (country: string) => {
   const map: Record<string, string> = {
     'Liberia': '🇱🇷', 'Eswatini': '🇸🇿', 'Tanzania': '🇹🇿',
@@ -32,45 +33,6 @@ export const ManagerDashboardPage: React.FC = () => {
   const [isEditingTeam, setIsEditingTeam] = useState(false);
   const [teamForm, setTeamForm] = useState<any>({});
 
-  const handlePhotoFileUpload = async (formType: 'add' | 'edit', event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        alert('Player photo file size must be less than 5MB.');
-        return;
-      }
-      try {
-        const res = await api.uploadImage(file);
-        if (res && res.url) {
-          if (formType === 'add') {
-            setAddForm(prev => ({ ...prev, photo_url: res.url }));
-          } else {
-            setEditForm(prev => ({ ...prev, photo_url: res.url }));
-          }
-        }
-      } catch (err: any) {
-        alert(err.message || 'Failed to upload photo.');
-      }
-    }
-  };
-
-  const handleTeamLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        alert('Team logo file size must be less than 5MB.');
-        return;
-      }
-      try {
-        const res = await api.uploadImage(file);
-        if (res && res.url) {
-          setTeamForm((prev: any) => ({ ...prev, logo_url: res.url }));
-        }
-      } catch (err: any) {
-        alert(err.message || 'Failed to upload logo.');
-      }
-    }
-  };
 
   const fetchData = async () => {
     try {
@@ -104,29 +66,6 @@ export const ManagerDashboardPage: React.FC = () => {
     });
   };
 
-  const handleUpdateSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingPlayer) return;
-    try {
-      await api.managerUpdatePlayer(editingPlayer.id, editForm);
-      setEditingPlayer(null);
-      fetchData(); // reload data
-    } catch (err: any) {
-      alert(err.message || 'Failed to update player');
-    }
-  };
-
-  const handleAddSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      await api.managerAddPlayer(addForm);
-      setIsAddingPlayer(false);
-      setAddForm(defaultPlayerForm);
-      fetchData();
-    } catch (err: any) {
-      alert(err.message || 'Failed to add player');
-    }
-  };
 
   const handleDeletePlayer = async (id: string) => {
     if (!window.confirm('Are you sure you want to delete this player?')) return;
@@ -151,16 +90,6 @@ export const ManagerDashboardPage: React.FC = () => {
     setIsEditingTeam(true);
   };
 
-  const handleTeamUpdateSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      await api.managerUpdateTeam(teamForm);
-      setIsEditingTeam(false);
-      fetchData();
-    } catch (err: any) {
-      alert(err.message || 'Failed to update team details');
-    }
-  };
 
   if (loading) {
     return (
@@ -309,286 +238,43 @@ export const ManagerDashboardPage: React.FC = () => {
       </div>
 
       {isEditingTeam && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-fade-in">
-          <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} className="bg-surface-card w-full max-w-lg rounded-2xl border border-surface-border shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="flex items-center justify-between p-6 border-b border-surface-border shrink-0">
-              <h2 className="font-heading text-lg font-black text-dark-bg uppercase tracking-widest">Edit Team Details</h2>
-              <button onClick={() => setIsEditingTeam(false)} className="text-dark-muted hover:text-dark-bg transition-colors">
-                <CloseSquare set="bold" className="w-6 h-6" />
-              </button>
-            </div>
-            <form onSubmit={handleTeamUpdateSubmit} className="p-6 space-y-4 overflow-y-auto no-scrollbar">
-              <div>
-                <label className="text-[10px] font-black text-dark-muted uppercase tracking-widest mb-2 block">Team Name <span className="text-status-error">*</span></label>
-                <input required type="text" value={teamForm.name} onChange={e => setTeamForm({...teamForm, name: e.target.value})} className="w-full bg-surface-bg border border-surface-border rounded px-4 py-2 text-sm text-dark-bg focus:border-brand focus:outline-none" />
-              </div>
-              <div>
-                <label className="text-[10px] font-black text-dark-muted uppercase tracking-widest mb-2 block">University <span className="text-status-error">*</span></label>
-                <input required type="text" value={teamForm.university} onChange={e => setTeamForm({...teamForm, university: e.target.value})} className="w-full bg-surface-bg border border-surface-border rounded px-4 py-2 text-sm text-dark-bg focus:border-brand focus:outline-none" />
-              </div>
-              <div>
-                <label className="text-[10px] font-black text-dark-muted uppercase tracking-widest mb-2 block">Head Coach Name <span className="text-status-error">*</span></label>
-                <input required type="text" value={teamForm.coach_name} onChange={e => setTeamForm({...teamForm, coach_name: e.target.value})} className="w-full bg-surface-bg border border-surface-border rounded px-4 py-2 text-sm text-dark-bg focus:border-brand focus:outline-none" />
-              </div>
-              <div>
-                <label className="text-[10px] font-black text-dark-muted uppercase tracking-widest mb-2 block">Manager Name <span className="text-status-error">*</span></label>
-                <input required type="text" value={teamForm.manager_name} onChange={e => setTeamForm({...teamForm, manager_name: e.target.value})} className="w-full bg-surface-bg border border-surface-border rounded px-4 py-2 text-sm text-dark-bg focus:border-brand focus:outline-none" />
-              </div>
-              <div>
-                <label className="text-[10px] font-black text-dark-muted uppercase tracking-widest mb-2 block">Manager Email <span className="text-status-error">*</span></label>
-                <input required type="email" value={teamForm.manager_email} onChange={e => setTeamForm({...teamForm, manager_email: e.target.value})} className="w-full bg-surface-bg border border-surface-border rounded px-4 py-2 text-sm text-dark-bg focus:border-brand focus:outline-none" />
-              </div>
-              <div>
-                <label className="text-[10px] font-black text-dark-muted uppercase tracking-widest mb-2 block">Manager Phone <span className="text-status-error">*</span></label>
-                <input required type="tel" value={teamForm.manager_phone} onChange={e => {
-                  let val = e.target.value;
-                  if (!val.startsWith('+91 ')) val = '+91 ';
-                  if (val.length > 14) val = val.substring(0, 14);
-                  setTeamForm({...teamForm, manager_phone: val});
-                }} className="w-full bg-surface-bg border border-surface-border rounded px-4 py-2 text-sm text-dark-bg focus:border-brand focus:outline-none" />
-              </div>
-              <div>
-                <label className="text-[10px] font-black text-dark-muted uppercase tracking-widest mb-2 block">Team Logo (Optional)</label>
-                <div className="flex items-center gap-4">
-                  {teamForm.logo_url && (
-                    <img src={teamForm.logo_url} alt="Logo Preview" className="w-12 h-12 rounded object-contain bg-surface-bg border border-surface-border p-1" />
-                  )}
-                  <label className="btn-outline px-4 py-2 text-xs cursor-pointer inline-flex items-center gap-2">
-                    <Upload className="w-4 h-4" /> Upload Logo
-                    <input type="file" accept="image/*" onChange={handleTeamLogoUpload} className="hidden" />
-                  </label>
-                  {teamForm.logo_url && (
-                    <button type="button" onClick={() => setTeamForm({...teamForm, logo_url: ''})} className="text-xs text-status-error hover:underline">Remove</button>
-                  )}
-                </div>
-              </div>
-              <div className="pt-4 border-t border-surface-border flex justify-end gap-3">
-                <button type="button" onClick={() => setIsEditingTeam(false)} className="btn-outline px-6 py-2 text-xs">Cancel</button>
-                <button type="submit" className="btn-primary px-6 py-2 text-xs">Save Changes</button>
-              </div>
-            </form>
-          </motion.div>
-        </div>
+        <ManagerEditTeamModal
+          teamForm={teamForm}
+          setTeamForm={setTeamForm}
+          onClose={() => setIsEditingTeam(false)}
+          onSaved={() => {
+            setIsEditingTeam(false);
+            fetchData();
+          }}
+        />
       )}
 
       {editingPlayer && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-fade-in">
-          <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} className="bg-surface-card w-full max-w-2xl rounded-2xl border border-surface-border shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="flex items-center justify-between p-6 border-b border-surface-border shrink-0">
-              <h2 className="font-heading text-lg font-black text-dark-bg uppercase tracking-widest">Edit Player</h2>
-              <button onClick={() => setEditingPlayer(null)} className="text-dark-muted hover:text-dark-bg transition-colors">
-                <CloseSquare set="bold" className="w-6 h-6" />
-              </button>
-            </div>
-            <form onSubmit={handleUpdateSubmit} className="p-6 space-y-6 overflow-y-auto no-scrollbar">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="sm:col-span-2">
-                  <label className="block text-[9px] font-black uppercase tracking-widest text-dark-muted mb-1.5">Full Name</label>
-                  <input type="text" value={editForm.full_name} onChange={e => setEditForm(prev => ({ ...prev, full_name: e.target.value }))} className="input-field" required />
-                </div>
-                <div>
-                  <label className="block text-[9px] font-black uppercase tracking-widest text-dark-muted mb-1.5">Jersey Number</label>
-                  <input type="number" value={editForm.jersey_number} onChange={e => setEditForm(prev => ({ ...prev, jersey_number: e.target.value }))} className="input-field" required min="1" max="99" />
-                </div>
-                <div>
-                  <label className="block text-[9px] font-black uppercase tracking-widest text-dark-muted mb-1.5">Position</label>
-                  <select value={editForm.position} onChange={e => setEditForm(prev => ({ ...prev, position: e.target.value }))} className="input-field" required>
-                    <option value="Forward">Forward</option>
-                    <option value="Midfielder">Midfielder</option>
-                    <option value="Defender">Defender</option>
-                    <option value="Goalkeeper">Goalkeeper</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-[9px] font-black uppercase tracking-widest text-dark-muted mb-1.5">Nationality</label>
-                  <input type="text" value={editForm.nationality} onChange={e => setEditForm(prev => ({ ...prev, nationality: e.target.value }))} className="input-field" required />
-                </div>
-                <div>
-                  <label className="block text-[9px] font-black uppercase tracking-widest text-dark-muted mb-1.5">Date of Birth</label>
-                  <input type="date" value={editForm.dob} onChange={e => setEditForm(prev => ({ ...prev, dob: e.target.value }))} className="input-field" required />
-                </div>
-                <div>
-                  <label className="block text-[9px] font-black uppercase tracking-widest text-dark-muted mb-1.5">Course/Program</label>
-                  <input type="text" value={editForm.course} onChange={e => setEditForm(prev => ({ ...prev, course: e.target.value }))} className="input-field" required />
-                </div>
-                <div>
-                  <label className="block text-[9px] font-black uppercase tracking-widest text-dark-muted mb-1.5">Student ID (GR#)</label>
-                  <input type="text" value={editForm.student_id} onChange={e => setEditForm(prev => ({ ...prev, student_id: e.target.value }))} className="input-field" />
-                </div>
-                <div className="sm:col-span-2">
-                  <label className="block text-[9px] font-black uppercase tracking-widest text-dark-muted mb-1.5">Photo</label>
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-full overflow-hidden bg-surface-bg border border-surface-border flex-shrink-0 flex items-center justify-center relative shadow-inner">
-                      {editForm.photo_url ? (
-                        <img src={editForm.photo_url} alt="Player" className="w-full h-full object-cover" />
-                      ) : (
-                        <Camera set="bold" className="w-4 h-4 text-dark-muted" />
-                      )}
-                    </div>
-                    <div className="flex flex-wrap items-center gap-3">
-                      <label className="px-4 py-2 bg-brand/10 hover:bg-brand/20 text-brand border border-brand/40 rounded-md text-[10px] font-black tracking-widest uppercase cursor-pointer inline-flex items-center gap-2 transition-colors">
-                        <Upload set="bold" className="w-3.5 h-3.5" /> Upload Photo
-                        <input type="file" accept="image/*" onChange={(e) => handlePhotoFileUpload('edit', e)} className="hidden" />
-                      </label>
-                      {editForm.photo_url && (
-                        <button type="button" onClick={() => setEditForm(prev => ({ ...prev, photo_url: '' }))} className="text-[10px] text-status-error/80 hover:text-status-error font-black uppercase tracking-widest transition-colors">
-                          Clear
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="border-t border-surface-border pt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="sm:col-span-2">
-                  <label className="block text-[9px] font-black uppercase tracking-widest text-dark-muted mb-1.5">Medical Conditions / Allergies</label>
-                  <input type="text" value={editForm.medical_conditions} onChange={e => setEditForm(prev => ({ ...prev, medical_conditions: e.target.value }))} placeholder="None" className="input-field" />
-                </div>
-                <div>
-                  <label className="block text-[9px] font-black uppercase tracking-widest text-dark-muted mb-1.5">Emergency Contact Name</label>
-                  <input type="text" value={editForm.emergency_contact_name} onChange={e => setEditForm(prev => ({ ...prev, emergency_contact_name: e.target.value }))} className="input-field" required />
-                </div>
-                <div>
-                  <label className="block text-[9px] font-black uppercase tracking-widest text-dark-muted mb-1.5">Emergency Contact Phone</label>
-                  <input 
-                    type="tel" 
-                    required
-                    pattern="^\+91 [0-9]{10}$"
-                    maxLength={14}
-                    title="Must be a valid 10-digit Indian phone number"
-                    value={editForm.emergency_contact_phone} 
-                    onChange={e => {
-                      let val = e.target.value;
-                      if (!val.startsWith('+91 ')) {
-                        val = '+91 ' + val.replace(/^\+?9?1?\s*/, '').replace(/\D/g, '').slice(0, 10);
-                      } else {
-                        val = '+91 ' + val.slice(4).replace(/\D/g, '').slice(0, 10);
-                      }
-                      setEditForm(prev => ({ ...prev, emergency_contact_phone: val }));
-                    }} 
-                    className="input-field" 
-                  />
-                </div>
-              </div>
-
-              <div className="pt-4 mt-4 border-t border-surface-border flex justify-end gap-3 shrink-0">
-                <button type="button" onClick={() => setEditingPlayer(null)} className="btn-outline px-6 py-2">Cancel</button>
-                <button type="submit" className="btn-primary px-6 py-2">Save Changes</button>
-              </div>
-            </form>
-          </motion.div>
-        </div>
+        <ManagerPlayerModal
+          mode="edit"
+          playerForm={editForm}
+          setPlayerForm={setEditForm}
+          editingPlayerId={editingPlayer.id}
+          onClose={() => setEditingPlayer(null)}
+          onSaved={() => {
+            setEditingPlayer(null);
+            fetchData();
+          }}
+        />
       )}
 
       {isAddingPlayer && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-fade-in">
-          <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} className="bg-surface-card w-full max-w-2xl rounded-2xl border border-surface-border shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="flex items-center justify-between p-6 border-b border-surface-border shrink-0">
-              <h2 className="font-heading text-lg font-black text-dark-bg uppercase tracking-widest">Add Player</h2>
-              <button onClick={() => setIsAddingPlayer(false)} className="text-dark-muted hover:text-dark-bg transition-colors">
-                <CloseSquare set="bold" className="w-6 h-6" />
-              </button>
-            </div>
-            <form onSubmit={handleAddSubmit} className="p-6 space-y-6 overflow-y-auto no-scrollbar">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="sm:col-span-2">
-                  <label className="block text-[9px] font-black uppercase tracking-widest text-dark-muted mb-1.5">Full Name</label>
-                  <input type="text" value={addForm.full_name} onChange={e => setAddForm(prev => ({ ...prev, full_name: e.target.value }))} className="input-field" required />
-                </div>
-                <div>
-                  <label className="block text-[9px] font-black uppercase tracking-widest text-dark-muted mb-1.5">Jersey Number</label>
-                  <input type="number" value={addForm.jersey_number} onChange={e => setAddForm(prev => ({ ...prev, jersey_number: e.target.value }))} className="input-field" required min="1" max="99" />
-                </div>
-                <div>
-                  <label className="block text-[9px] font-black uppercase tracking-widest text-dark-muted mb-1.5">Position</label>
-                  <select value={addForm.position} onChange={e => setAddForm(prev => ({ ...prev, position: e.target.value }))} className="input-field" required>
-                    <option value="Forward">Forward</option>
-                    <option value="Midfielder">Midfielder</option>
-                    <option value="Defender">Defender</option>
-                    <option value="Goalkeeper">Goalkeeper</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-[9px] font-black uppercase tracking-widest text-dark-muted mb-1.5">Nationality</label>
-                  <input type="text" value={addForm.nationality} onChange={e => setAddForm(prev => ({ ...prev, nationality: e.target.value }))} className="input-field" required />
-                </div>
-                <div>
-                  <label className="block text-[9px] font-black uppercase tracking-widest text-dark-muted mb-1.5">Date of Birth</label>
-                  <input type="date" value={addForm.dob} onChange={e => setAddForm(prev => ({ ...prev, dob: e.target.value }))} className="input-field" required />
-                </div>
-                <div>
-                  <label className="block text-[9px] font-black uppercase tracking-widest text-dark-muted mb-1.5">Course/Program</label>
-                  <input type="text" value={addForm.course} onChange={e => setAddForm(prev => ({ ...prev, course: e.target.value }))} className="input-field" required />
-                </div>
-                <div>
-                  <label className="block text-[9px] font-black uppercase tracking-widest text-dark-muted mb-1.5">Student ID (GR#)</label>
-                  <input type="text" value={addForm.student_id} onChange={e => setAddForm(prev => ({ ...prev, student_id: e.target.value }))} className="input-field" />
-                </div>
-                <div className="sm:col-span-2">
-                  <label className="block text-[9px] font-black uppercase tracking-widest text-dark-muted mb-1.5">Photo</label>
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-full overflow-hidden bg-surface-bg border border-surface-border flex-shrink-0 flex items-center justify-center relative shadow-inner">
-                      {addForm.photo_url ? (
-                        <img src={addForm.photo_url} alt="Player" className="w-full h-full object-cover" />
-                      ) : (
-                        <Camera set="bold" className="w-4 h-4 text-dark-muted" />
-                      )}
-                    </div>
-                    <div className="flex flex-wrap items-center gap-3">
-                      <label className="px-4 py-2 bg-brand/10 hover:bg-brand/20 text-brand border border-brand/40 rounded-md text-[10px] font-black tracking-widest uppercase cursor-pointer inline-flex items-center gap-2 transition-colors">
-                        <Upload set="bold" className="w-3.5 h-3.5" /> Upload Photo
-                        <input type="file" accept="image/*" onChange={(e) => handlePhotoFileUpload('add', e)} className="hidden" />
-                      </label>
-                      {addForm.photo_url && (
-                        <button type="button" onClick={() => setAddForm(prev => ({ ...prev, photo_url: '' }))} className="text-[10px] text-status-error/80 hover:text-status-error font-black uppercase tracking-widest transition-colors">
-                          Clear
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="border-t border-surface-border pt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="sm:col-span-2">
-                  <label className="block text-[9px] font-black uppercase tracking-widest text-dark-muted mb-1.5">Medical Conditions / Allergies</label>
-                  <input type="text" value={addForm.medical_conditions} onChange={e => setAddForm(prev => ({ ...prev, medical_conditions: e.target.value }))} placeholder="None" className="input-field" />
-                </div>
-                <div>
-                  <label className="block text-[9px] font-black uppercase tracking-widest text-dark-muted mb-1.5">Emergency Contact Name</label>
-                  <input type="text" value={addForm.emergency_contact_name} onChange={e => setAddForm(prev => ({ ...prev, emergency_contact_name: e.target.value }))} className="input-field" required />
-                </div>
-                <div>
-                  <label className="block text-[9px] font-black uppercase tracking-widest text-dark-muted mb-1.5">Emergency Contact Phone</label>
-                  <input 
-                    type="tel" 
-                    required
-                    pattern="^\+91 [0-9]{10}$"
-                    maxLength={14}
-                    title="Must be a valid 10-digit Indian phone number"
-                    value={addForm.emergency_contact_phone} 
-                    onChange={e => {
-                      let val = e.target.value;
-                      if (!val.startsWith('+91 ')) {
-                        val = '+91 ' + val.replace(/^\+?9?1?\s*/, '').replace(/\D/g, '').slice(0, 10);
-                      } else {
-                        val = '+91 ' + val.slice(4).replace(/\D/g, '').slice(0, 10);
-                      }
-                      setAddForm(prev => ({ ...prev, emergency_contact_phone: val }));
-                    }} 
-                    className="input-field" 
-                  />
-                </div>
-              </div>
-
-              <div className="pt-4 mt-4 border-t border-surface-border flex justify-end gap-3 shrink-0">
-                <button type="button" onClick={() => setIsAddingPlayer(false)} className="btn-outline px-6 py-2">Cancel</button>
-                <button type="submit" className="btn-primary px-6 py-2">Add Player</button>
-              </div>
-            </form>
-          </motion.div>
-        </div>
+        <ManagerPlayerModal
+          mode="add"
+          playerForm={addForm}
+          setPlayerForm={setAddForm}
+          onClose={() => setIsAddingPlayer(false)}
+          onSaved={() => {
+            setIsAddingPlayer(false);
+            setAddForm(defaultPlayerForm);
+            fetchData();
+          }}
+        />
       )}
 
       <ManagerMatchesSection team={team} players={players} />

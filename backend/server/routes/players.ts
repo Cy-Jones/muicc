@@ -24,16 +24,17 @@ async function executeWithRetry<T>(operation: () => Promise<T>, maxRetries = 5):
   throw new Error('Operation failed after retries');
 }
 
-async function generatePlayerId(isCoach = false): Promise<string> {
+export async function generatePlayerId(isCoach = false): Promise<string> {
   const prefix = isCoach ? 'MULSU-COACH-' : 'MULSU-PLY-';
+  const suffix = isCoach ? '-0007' : '';
   const countRow = (await db.prepare("SELECT COUNT(*) as count FROM players WHERE player_id IS NOT NULL AND player_id LIKE ?").get(`${prefix}%`) as any)?.count || 0;
   const seq = (countRow + 1).toString().padStart(4, '0');
-  let candidate = `${prefix}${seq}`;
+  let candidate = `${prefix}${seq}${suffix}`;
   
   let existing = await db.prepare('SELECT id FROM players WHERE player_id = ?').get(candidate);
   let offset = 1;
   while (existing) {
-    candidate = `${prefix}${(countRow + 1 + offset).toString().padStart(4, '0')}`;
+    candidate = `${prefix}${(countRow + 1 + offset).toString().padStart(4, '0')}${suffix}`;
     existing = await db.prepare('SELECT id FROM players WHERE player_id = ?').get(candidate);
     offset++;
   }

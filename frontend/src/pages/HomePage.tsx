@@ -6,14 +6,9 @@ import { getMatchLiveClock } from '../lib/liveClock';
 import { Star, ShieldDone, User, Calendar, Location, ChevronRight, TickSquare, Activity, Discovery } from 'react-iconly';
 import { staggerContainer, fadeUp, scaleIn } from '../lib/animations';
 
-const heroImages = [
-  '/images/hero.jpg?v=2',
-  '/images/hero1.jpg',
-  '/images/hero2.jpg',
-  '/images/hero3.jpg'
-];
-
-import { getTeamFlagImage } from '../lib/flags';
+import { HomePageHero } from './HomePageHero';
+import { HomePageMatchPanel } from './HomePageMatchPanel';
+import { HomePageSponsors } from './HomePageSponsors';
 
 export const HomePage: React.FC = () => {
   const [summary, setSummary] = useState<any>(null);
@@ -22,20 +17,6 @@ export const HomePage: React.FC = () => {
   const [sponsors, setSponsors] = useState<any[]>([]);
   const [systemNations, setSystemNations] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<'live' | 'today' | 'upcoming' | 'results'>('today');
-  const [tick, setTick] = useState(0);
-
-  useEffect(() => {
-    const timer = setInterval(() => setTick(t => t + 1), 1000);
-    return () => clearInterval(timer);
-  }, []);
-  const [currentHeroIndex, setCurrentHeroIndex] = useState(0);
-
-  useEffect(() => {
-    const heroInterval = setInterval(() => {
-      setCurrentHeroIndex((prev) => (prev + 1) % heroImages.length);
-    }, 10000);
-    return () => clearInterval(heroInterval);
-  }, []);
 
   useEffect(() => {
     async function loadData() {
@@ -60,166 +41,14 @@ export const HomePage: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Filter matches based on active tab
-  const getFilteredMatches = () => {
-    const now = new Date();
-    const todayStr = now.toISOString().split('T')[0];
-
-    switch (activeTab) {
-      case 'live':
-        return matches.filter(m => m.status === 'LIVE' || m.status === 'HALF_TIME');
-      case 'today':
-        return matches.filter(m => m.date === todayStr);
-      case 'upcoming':
-        return matches.filter(m => m.status === 'SCHEDULED' && m.date >= todayStr).slice(0, 5);
-      case 'results':
-        return matches.filter(m => m.status === 'FULL_TIME').slice(0, 5);
-      default:
-        return matches;
-    }
-  };
-
-  const renderTeamFlag = (teamName: string, countryName?: string, logoUrl?: string) => {
-    let flagSrc = logoUrl;
-    if (!flagSrc) {
-      flagSrc = getTeamFlagImage(countryName, teamName) || undefined;
-    }
-    
-    if (flagSrc) {
-      return <img src={flagSrc} alt={teamName} className="w-6 h-6 object-contain hidden sm:block" />;
-    }
-    return (
-      <div className="w-6 h-6 bg-surface-bg border border-surface-border rounded hidden sm:flex items-center justify-center text-[10px] font-bold text-dark-muted">
-        {teamName.substring(0, 2)}
-      </div>
-    );
-  };
-
-  const filteredMatches = getFilteredMatches();
-
   return (
     <div className="w-full flex flex-col items-center">
       
       {/* IMMERSIVE HERO SECTION */}
-      {/* Spacer to push content down since the hero is absolutely positioned */}
-      <div className="w-full h-[420px] sm:h-[550px] md:h-[650px] lg:h-[700px] -mt-8 pb-16 md:pb-0"></div>
-      
-      <section className="absolute left-0 right-0 top-16 sm:top-20 h-[420px] sm:h-[550px] md:h-[650px] lg:h-[700px] flex flex-col items-center justify-center pt-16 md:pt-24 pb-16 md:pb-0 overflow-hidden z-0">
-        <div className="absolute inset-0 w-full h-full z-0 overflow-hidden">
-          <AnimatePresence>
-            <motion.img
-              key={currentHeroIndex}
-              src={heroImages[currentHeroIndex]}
-              alt="Tournament Background"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 1.5 }}
-              className={`absolute inset-0 w-full h-full object-cover ${heroImages[currentHeroIndex].includes('hero3') ? 'object-center' : 'object-top'}`}
-            />
-          </AnimatePresence>
-        </div>
-        <div className="absolute inset-0 bg-[var(--color-hero-overlay)] backdrop-blur-[1px] z-0 transition-colors duration-500"></div>
-        <div className="absolute inset-0 bg-gradient-to-t from-surface-bg via-transparent to-transparent z-0"></div>
-        
-        <motion.div 
-          variants={staggerContainer}
-          initial="initial"
-          animate="animate"
-          className="relative z-10 w-full max-w-4xl px-4 text-center space-y-5"
-        >
-
-          <motion.h1 variants={fadeUp} className="font-heading font-black uppercase text-3xl sm:text-4xl md:text-6xl lg:text-[5rem] text-dark-bg tracking-tight leading-none flex flex-col items-center gap-1 sm:gap-2">
-            <span className="drop-shadow-lg">BEYOND BORDERS</span>
-            <span className="text-brand drop-shadow-[0_0_30px_rgba(253,224,71,0.7)]">UNITED BY FOOTBALL</span>
-          </motion.h1>
-
-          <motion.p variants={fadeUp} className="text-dark-surface text-[10px] sm:text-xs md:text-sm lg:text-base max-w-3xl mx-auto font-bold tracking-[0.2em] sm:tracking-[0.25em] uppercase mt-6 drop-shadow">
-            ONE CAMPUS. MANY NATIONS. ONE CHAMPION.
-          </motion.p>
-        </motion.div>
-      </section>
+      <HomePageHero />
 
       {/* FLOATING INTERACTIVE MATCH PANEL */}
-      <div className="w-full max-w-[96%] px-4 z-20 relative -mt-10 md:-mt-16 mb-10 md:mb-16">
-          <div className="data-card shadow-card-hover overflow-hidden">
-            {/* Panel Tabs */}
-            <div className="flex items-center border-b border-surface-border bg-surface-bg overflow-x-auto no-scrollbar">
-              {['live', 'today', 'upcoming', 'results'].map((tab) => (
-                <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab as any)}
-                  className={`flex-1 min-w-[100px] py-3 text-sm font-bold uppercase tracking-wide transition-colors ${
-                    activeTab === tab 
-                      ? 'text-black border-b-2 border-brand bg-brand' 
-                      : 'text-dark-muted hover:text-dark-bg'
-                  }`}
-                >
-                  {tab === 'live' && <span className="inline-block w-1.5 h-1.5 rounded-full bg-status-live animate-ping mr-1.5 align-middle"></span>}
-                  {tab}
-                </button>
-              ))}
-            </div>
-
-            {/* Panel Content */}
-            <div className="p-0 bg-surface-card">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={activeTab}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.15 }}
-                  className="divide-y divide-surface-border"
-                >
-                  {filteredMatches.length > 0 ? (
-                    filteredMatches.map(m => (
-                      <Link to={`/matches`} key={m.id} className="flex items-center justify-between p-3 sm:p-4 hover:bg-surface-hover transition-colors">
-                        <div className="flex items-center justify-end gap-2 sm:gap-3 w-[40%]">
-                          <span className="text-[11px] sm:text-sm font-bold text-dark-bg text-right truncate">{m.team_a_name}</span>
-                          {renderTeamFlag(m.team_a_name, m.team_a_country, m.team_a_logo)}
-                        </div>
-                        
-                        <div className="flex flex-col items-center justify-center w-[20%] px-2">
-                          {m.status === 'SCHEDULED' ? (
-                            <span className="font-heading text-sm text-dark-muted bg-surface-bg px-2 py-1 rounded border border-surface-border">{m.time}</span>
-                          ) : (
-                            <div className="flex items-center gap-2">
-                              <span className="font-heading text-xl font-bold text-dark-bg">{m.score_a ?? 0}</span>
-                              <span className="text-surface-border font-bold">-</span>
-                              <span className="font-heading text-xl font-bold text-dark-bg">{m.score_b ?? 0}</span>
-                            </div>
-                          )}
-                          <span className={`text-[9px] font-bold uppercase mt-1 tracking-wider ${m.status === 'LIVE' || m.status === 'HALF_TIME' ? 'text-status-live animate-pulse' : 'text-dark-muted'}`}>
-                            {m.status === 'LIVE' || m.status === 'HALF_TIME' ? getMatchLiveClock(m).display : m.status.replace(/_/g, ' ')}
-                          </span>
-                        </div>
-
-                        <div className="flex items-center justify-start gap-3 w-[40%]">
-                          {renderTeamFlag(m.team_b_name, m.team_b_country, m.team_b_logo)}
-                          <span className="text-[11px] sm:text-sm font-bold text-dark-bg text-left truncate">{m.team_b_name}</span>
-                        </div>
-                      </Link>
-                    ))
-                  ) : (
-                    <div className="py-10 text-center text-dark-muted flex flex-col items-center">
-                      <Calendar set="bold" className="w-8 h-8 mb-2 opacity-30" />
-                      <p className="font-medium text-sm">No matches found for this view.</p>
-                      {activeTab === 'live' && <p className="text-xs mt-1">Check today's upcoming fixtures.</p>}
-                    </div>
-                  )}
-                </motion.div>
-              </AnimatePresence>
-            </div>
-            
-            {/* Panel Footer */}
-            <div className="bg-surface-bg p-3 border-t border-surface-border text-center">
-              <Link to="/matches" className="text-xs font-bold text-brand hover:text-brand-dark transition-colors flex items-center justify-center gap-1 uppercase tracking-wider">
-                View Full Schedule <ChevronRight set="bold" className="w-4 h-4" />
-              </Link>
-            </div>
-          </div>
-        </div>
+      <HomePageMatchPanel matches={matches} />
 
       {/* QUICK STATS SECTION */}
       <motion.section 
@@ -322,82 +151,7 @@ export const HomePage: React.FC = () => {
       </motion.section>
 
       {/* OFFICIAL SPONSORS SECTION */}
-      {(() => {
-        const validSponsors = Array.isArray(sponsors) ? sponsors.filter(s => s.name && s.name.trim() !== '' && s.logo_url && s.logo_url.trim() !== '') : [];
-        if (validSponsors.length === 0) return null;
-
-        let gridClass = 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4';
-        let containerClass = 'max-w-[96%]';
-        
-        if (validSponsors.length === 1) {
-          gridClass = 'grid-cols-1';
-          containerClass = 'max-w-xs';
-        } else if (validSponsors.length === 2) {
-          gridClass = 'grid-cols-2';
-          containerClass = 'max-w-lg';
-        } else if (validSponsors.length === 3) {
-          gridClass = 'grid-cols-2 sm:grid-cols-3';
-          containerClass = 'max-w-3xl';
-        }
-
-        return (
-          <motion.section 
-            variants={staggerContainer}
-            initial="initial"
-            whileInView="animate"
-            viewport={{ once: true, amount: 0.1 }}
-            className="w-full max-w-[96%] mx-auto px-4 py-8"
-          >
-            <div className="text-center mb-6">
-              <h2 className="font-heading text-2xl md:text-3xl font-black uppercase text-dark-bg tracking-tight">
-                OFFICIAL <span className="text-brand text-glow">SPONSORS & PARTNERS</span>
-              </h2>
-              <p className="text-xs text-dark-muted font-bold uppercase tracking-widest mt-1">
-                Proudly supported by our official tournament partners
-              </p>
-            </div>
-
-            <div className={`mx-auto ${containerClass}`}>
-              <div className={`grid ${gridClass} gap-4 sm:gap-6 items-center`}>
-                {validSponsors.map((s) => {
-                  const CardContent = (
-                    <motion.div variants={scaleIn} className="data-card relative flex flex-col justify-end overflow-hidden hover:border-brand/50 hover:-translate-y-1 transition-all duration-300 group aspect-[4/5] sm:aspect-[3/4]">
-                      <img 
-                        src={s.logo_url} 
-                        alt={s.name} 
-                        className="absolute inset-0 w-full h-full object-cover object-top filter group-hover:scale-105 transition-transform duration-300 z-0"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).style.display = 'none';
-                        }}
-                      />
-                      
-                      {/* Fading Gradient Overlay */}
-                      <div className="absolute inset-x-0 bottom-0 h-3/5 z-10 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/70 to-transparent"></div>
-                      
-                      <div className="relative z-20 p-4 text-center flex flex-col items-center w-full">
-                        <p className="font-heading text-sm font-bold text-dark-bg group-hover:text-brand transition-colors line-clamp-1 drop-shadow-md">{s.name}</p>
-                        <span className="inline-block mt-1.5 text-[9px] font-extrabold uppercase tracking-widest px-2 py-0.5 rounded bg-brand/10 text-brand border border-brand/20 shadow-sm">
-                          {s.tier || 'PARTNER'}
-                        </span>
-                      </div>
-                    </motion.div>
-                  );
-
-                  return s.website ? (
-                    <a key={s.id} href={s.website} target="_blank" rel="noreferrer" className="block h-full">
-                      {CardContent}
-                    </a>
-                  ) : (
-                    <div key={s.id} className="h-full">
-                      {CardContent}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </motion.section>
-        );
-      })()}
+      <HomePageSponsors sponsors={sponsors} />
 
       {/* CALL TO ACTION */}
       <motion.section 

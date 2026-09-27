@@ -112,6 +112,7 @@ export const api = {
   adminDeleteMatchEvent: (matchId: string, eventId: string) => request<any>(`/api/matches/admin/${matchId}/events/${eventId}`, { method: 'DELETE' }),
   adminUpdateMatchStatus: (matchId: string, payload: any) => request<any>(`/api/matches/admin/${matchId}/status`, { method: 'PUT', body: JSON.stringify(payload) }),
   adminConfirmMatchResult: (matchId: string) => request<any>(`/api/matches/admin/${matchId}/confirm-result`, { method: 'POST' }),
+  adminForceResetStandings: () => request<any>('/api/admin/force-reset-standings', { method: 'GET' }),
 
   // Standings
   getStandings: () => request<any>('/api/standings'),

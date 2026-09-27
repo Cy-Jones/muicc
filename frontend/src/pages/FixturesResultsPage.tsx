@@ -1,12 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { api } from '../lib/api';
-import { getMatchLiveClock } from '../lib/liveClock';
-import { Calendar, TickSquare, TimeCircle } from 'react-iconly';
 import { MatchDetailModal } from '../components/MatchDetailModal';
-import { staggerContainer, fadeUp } from '../lib/animations';
-
-import { getTeamFlagImage } from '../lib/flags';
+import { staggerContainer } from '../lib/animations';
+import { MatchListItem } from './MatchListItem';
+import { StandingsTable } from './StandingsTable';
 
 export const FixturesResultsPage: React.FC = () => {
   const [matches, setMatches] = useState<any[]>([]);
@@ -21,6 +19,7 @@ export const FixturesResultsPage: React.FC = () => {
     const timer = setInterval(() => setTick(t => t + 1), 1000);
     return () => clearInterval(timer);
   }, []);
+  
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -60,22 +59,6 @@ export const FixturesResultsPage: React.FC = () => {
       default:
         return matches;
     }
-  };
-
-  const renderTeamFlag = (teamName: string, countryName?: string, logoUrl?: string, sizeClass: string = "w-8 h-8") => {
-    let flagSrc = logoUrl;
-    if (!flagSrc) {
-      flagSrc = getTeamFlagImage(countryName, teamName) || undefined;
-    }
-    
-    if (flagSrc) {
-      return <img src={flagSrc} alt={teamName} className={`${sizeClass} object-contain`} />;
-    }
-    return (
-      <div className={`${sizeClass} rounded bg-surface-bg border border-surface-border flex items-center justify-center`}>
-        <span className="text-[10px] text-dark-muted font-bold">{teamName.substring(0,3).toUpperCase()}</span>
-      </div>
-    );
   };
 
   const filteredMatches = getFilteredMatches();
@@ -138,64 +121,7 @@ export const FixturesResultsPage: React.FC = () => {
                 <div className="p-12 text-center text-dark-muted">Loading matches...</div>
               ) : filteredMatches.length > 0 ? (
                 filteredMatches.map(m => (
-                  <motion.div variants={fadeUp} key={m.id} onClick={() => setSelectedMatchId(m.id)} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 hover:bg-surface-hover transition-colors gap-4 cursor-pointer">
-                    
-                    {/* Date/Status Info */}
-                    <div className="flex sm:flex-col items-center sm:items-start justify-between sm:w-1/6 text-xs text-dark-muted font-bold">
-                      <span className="sm:hidden uppercase tracking-wider text-dark-bg bg-surface-bg px-2 py-1 rounded border border-surface-border">{m.stage ? m.stage.replace(/_/g, ' ') : 'Group'}</span>
-                      <div className="flex items-center gap-1.5">
-                        <Calendar set="bold" className="w-3.5 h-3.5" />
-                        <span>{new Date(m.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span>
-                      </div>
-                      <span className="hidden sm:inline-block mt-1 uppercase tracking-wider">{m.stage ? m.stage.replace(/_/g, ' ') : 'Group Stage'}</span>
-                    </div>
-
-                    {/* Main Match Score Area */}
-                    <div className="flex-1 flex items-center justify-center gap-4 sm:gap-8">
-                      {/* Home Team */}
-                      <div className="flex-1 flex flex-col sm:flex-row items-center sm:justify-end gap-2 sm:gap-3 text-center sm:text-right">
-                        <span className="text-sm font-bold text-dark-bg order-2 sm:order-1">{m.team_a_name}</span>
-                        <div className="order-1 sm:order-2">
-                          {renderTeamFlag(m.team_a_name, m.team_a_country, m.team_a_logo, "w-8 h-8")}
-                        </div>
-                      </div>
-
-                      {/* Score/Time */}
-                      <div className="flex flex-col items-center justify-center min-w-[80px]">
-                        {m.status === 'SCHEDULED' ? (
-                          <div className="flex flex-col items-center">
-                            <span className="font-heading text-lg font-bold text-dark-surface bg-surface-bg px-2 py-0.5 rounded border border-surface-border">{m.time}</span>
-                            <span className="badge badge-upcoming mt-1 flex items-center gap-1"><TimeCircle set="bold" className="w-3 h-3"/> Scheduled</span>
-                          </div>
-                        ) : (
-                          <div className="flex flex-col items-center">
-                            <div className="flex items-center gap-2">
-                              <span className="font-heading text-2xl font-black text-dark-bg">{m.score_a ?? 0}</span>
-                              <span className="text-surface-border">-</span>
-                              <span className="font-heading text-2xl font-black text-dark-bg">{m.score_b ?? 0}</span>
-                            </div>
-                            {m.status === 'LIVE' || m.status === 'HALF_TIME' ? (
-                              <span className="badge badge-live mt-1 flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-white animate-ping"/> {getMatchLiveClock(m).display}</span>
-                            ) : (
-                              <span className="badge badge-completed mt-1 flex items-center gap-1"><TickSquare set="bold" className="w-3 h-3"/> Full Time</span>
-                            )}
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Away Team */}
-                      <div className="flex-1 flex flex-col sm:flex-row items-center justify-start gap-2 sm:gap-3 text-center sm:text-left">
-                        {renderTeamFlag(m.team_b_name, m.team_b_country, m.team_b_logo, "w-8 h-8")}
-                        <span className="text-sm font-bold text-dark-bg">{m.team_b_name}</span>
-                      </div>
-                    </div>
-
-                    {/* Meta Info */}
-                    <div className="hidden sm:flex sm:w-1/6 flex-col items-end justify-center text-xs text-dark-muted font-bold">
-                      {m.venue && <span>{m.venue}</span>}
-                      {m.group_name && <span className="uppercase tracking-wider mt-1">{m.group_name}</span>}
-                    </div>
-                  </motion.div>
+                  <MatchListItem key={m.id} match={m} onClick={() => setSelectedMatchId(m.id)} />
                 ))
               ) : (
                 <div className="p-12 text-center text-dark-muted border-dashed border-surface-border border m-4 rounded">No matches found for the selected filter.</div>
@@ -211,43 +137,7 @@ export const FixturesResultsPage: React.FC = () => {
             ) : (
               <motion.div variants={staggerContainer} initial="initial" animate="animate" className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {standings.map((groupData) => (
-                  <motion.div variants={fadeUp} key={groupData.group.id} className="data-card overflow-hidden">
-                    {/* Group Header */}
-                    <div className="bg-surface-bg px-4 py-3 border-b border-surface-border flex justify-between items-center">
-                      <h3 className="font-heading text-lg font-black text-dark-bg uppercase tracking-tight">{groupData.group.name}</h3>
-                    </div>
-
-                    {/* Table Header */}
-                    <div className="grid grid-cols-12 gap-2 p-3 border-b border-surface-border bg-surface-bg text-[10px] font-bold text-dark-muted uppercase tracking-wider">
-                      <div className="col-span-1 text-center">#</div>
-                      <div className="col-span-5">Team</div>
-                      <div className="col-span-1 text-center" title="Played">P</div>
-                      <div className="col-span-1 text-center" title="Won">W</div>
-                      <div className="col-span-1 text-center" title="Drawn">D</div>
-                      <div className="col-span-1 text-center" title="Lost">L</div>
-                      <div className="col-span-1 text-center" title="Goal Difference">GD</div>
-                      <div className="col-span-1 text-center text-dark-bg">PTS</div>
-                    </div>
-
-                    {/* Table Rows */}
-                    <div className="bg-surface-card">
-                      {groupData.table.map((team: any, idx: number) => (
-                        <div key={team.team_id} className={`grid grid-cols-12 gap-2 p-3 items-center border-b border-surface-border last:border-0 hover:bg-surface-hover transition-colors \${idx < 2 ? 'border-l-4 border-l-status-completed' : 'border-l-4 border-l-transparent'}`}>
-                          <div className="col-span-1 text-center text-xs font-bold text-dark-muted">{idx + 1}</div>
-                          <div className="col-span-5 flex items-center gap-2">
-                            {renderTeamFlag(team.team_name, team.team_country, team.team_logo, "w-5 h-5")}
-                            <span className="text-xs font-bold text-dark-bg truncate">{team.team_name}</span>
-                          </div>
-                          <div className="col-span-1 text-center text-xs text-dark-surface font-medium">{team.played}</div>
-                          <div className="col-span-1 text-center text-xs text-dark-surface font-medium">{team.won}</div>
-                          <div className="col-span-1 text-center text-xs text-dark-surface font-medium">{team.drawn}</div>
-                          <div className="col-span-1 text-center text-xs text-dark-surface font-medium">{team.lost}</div>
-                          <div className="col-span-1 text-center text-xs text-dark-surface font-medium">{team.goals_for - team.goals_against}</div>
-                          <div className="col-span-1 text-center text-xs font-black text-brand">{team.points}</div>
-                        </div>
-                      ))}
-                    </div>
-                  </motion.div>
+                  <StandingsTable key={groupData.group.id} groupData={groupData} />
                 ))}
               </motion.div>
             )}
@@ -257,7 +147,10 @@ export const FixturesResultsPage: React.FC = () => {
 
       <AnimatePresence>
         {selectedMatchId && (
-          <MatchDetailModal matchId={selectedMatchId} onClose={() => setSelectedMatchId(null)} />
+          <MatchDetailModal 
+            matchId={selectedMatchId} 
+            onClose={() => setSelectedMatchId(null)} 
+          />
         )}
       </AnimatePresence>
     </motion.div>

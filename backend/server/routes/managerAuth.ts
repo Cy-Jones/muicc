@@ -6,7 +6,8 @@ import { db } from '../db.js';
 import { authenticateManager, AuthenticatedRequest } from '../middleware/auth.js';
 import { asyncRouter } from '../middleware/asyncRouter.js';
 import { getJwtSecret } from '../config.js';
-
+import QRCode from 'qrcode';
+import { generatePlayerId } from './players.js';
 const router = asyncRouter();
 
 router.post('/login', async (req, res) => {
@@ -146,19 +147,30 @@ router.post('/players', authenticateManager, async (req: AuthenticatedRequest, r
     const id = crypto.randomUUID();
     const playerNationality = nationality || team.country;
     const playerUniversity = team.university;
+    const isCoach = position === 'Coach';
+    const initialStatus = isCoach ? 'APPROVED' : 'SUBMITTED';
+    const playerId = initialStatus === 'APPROVED' ? await generatePlayerId(isCoach) : null;
 
     await db.prepare(`
       INSERT INTO players (
         id, team_id, full_name, photo_url, dob, nationality, student_id, university, 
         position, jersey_number, preferred_foot, course, medical_conditions, 
-        emergency_contact_name, emergency_contact_phone, status
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'SUBMITTED')
+        emergency_contact_name, emergency_contact_phone, status, player_id
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       id, team.id, full_name, photo_url || '', dob || '', playerNationality, 
       student_id || '', playerUniversity, position, jersey_number, 
       preferred_foot || 'Right', course || '', medical_conditions || '', 
-      emergency_contact_name || '', emergency_contact_phone || ''
+      emergency_contact_name || '', emergency_contact_phone || '', initialStatus, playerId
     );
+
+    if (initialStatus === 'APPROVED' && playerId) {
+      const qrDataUrl = await QRCode.toDataURL(`https://miucc2026.org/player/${playerId}`);
+      await db.prepare(`
+        INSERT INTO player_cards (id, player_id, qr_code_url, card_data)
+        VALUES (?, ?, ?, ?)
+      `).run(crypto.randomUUID(), playerId, qrDataUrl, JSON.stringify({ verified: true, player_id: playerId }));
+    }
 
     return res.json({ success: true, message: 'Player added successfully' });
   } catch (err: any) {
