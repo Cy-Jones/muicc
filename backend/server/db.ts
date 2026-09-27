@@ -172,7 +172,84 @@ export async function initDatabase() {
     try { await getClient().execute(sql); } catch { /* column already exists */ }
   }
 
+  await fixCoachIds();
+  await ensureCoachesExist();
   await seedDatabase();
+}
+
+async function ensureCoachesExist() {
+  const teams = await db.prepare("SELECT id, coach_name, country, university FROM teams WHERE status = 'APPROVED'").all() as any[];
+  for (const team of teams) {
+    if (!team.coach_name) continue;
+    
+    const existing = await db.prepare("SELECT id FROM players WHERE team_id = ? AND position = 'Coach'").get(team.id);
+    if (!existing) {
+      console.log(`Adding missing coach for team ${team.id}: ${team.coach_name}`);
+      const newId = crypto.randomUUID();
+      
+      const countRow = (await db.prepare("SELECT COUNT(*) as count FROM players WHERE player_id IS NOT NULL AND player_id LIKE 'MULSU-COACH-%'").get() as any)?.count || 0;
+      const seq = (countRow + 1).toString().padStart(4, '0');
+      let candidate = `MULSU-COACH-${seq}`;
+      
+      let existingId = await db.prepare('SELECT id FROM players WHERE player_id = ?').get(candidate);
+      let offset = 1;
+      while (existingId) {
+        candidate = `MULSU-COACH-${(countRow + 1 + offset).toString().padStart(4, '0')}`;
+        existingId = await db.prepare('SELECT id FROM players WHERE player_id = ?').get(candidate);
+        offset++;
+      }
+
+      await db.prepare(`
+        INSERT INTO players (id, player_id, team_id, full_name, photo_url, dob, nationality, student_id, university, position, jersey_number, preferred_foot, emergency_contact, status)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `).run(newId, candidate, team.id, team.coach_name, null, '1980-01-01', team.country, 'N/A', team.university, 'Coach', 0, 'Right', 'N/A', 'APPROVED');
+      
+      try {
+        const QRCode = (await import('qrcode')).default;
+        const qrDataUrl = await QRCode.toDataURL(`https://miucc2026.org/player/${candidate}`);
+        await db.prepare(`
+          INSERT OR REPLACE INTO player_cards (id, player_id, qr_code_url, card_data)
+          VALUES (?, ?, ?, ?)
+        `).run(crypto.randomUUID(), candidate, qrDataUrl, JSON.stringify({ verified: true, player_id: candidate }));
+      } catch (e) {
+        console.error('Failed to update QR for coach', e);
+      }
+    }
+  }
+}
+
+async function fixCoachIds() {
+  const coaches = await db.prepare("SELECT id FROM players WHERE position = 'Coach' AND player_id LIKE 'MULSU-PLY-%'").all() as any[];
+  if (coaches.length > 0) {
+    console.log(`Fixing ${coaches.length} coach IDs...`);
+    for (const coach of coaches) {
+      const countRow = (await db.prepare("SELECT COUNT(*) as count FROM players WHERE player_id IS NOT NULL AND player_id LIKE 'MULSU-COACH-%'").get() as any)?.count || 0;
+      const seq = (countRow + 1).toString().padStart(4, '0');
+      let candidate = `MULSU-COACH-${seq}`;
+      
+      let existing = await db.prepare('SELECT id FROM players WHERE player_id = ?').get(candidate);
+      let offset = 1;
+      while (existing) {
+        candidate = `MULSU-COACH-${(countRow + 1 + offset).toString().padStart(4, '0')}`;
+        existing = await db.prepare('SELECT id FROM players WHERE player_id = ?').get(candidate);
+        offset++;
+      }
+      
+      await db.prepare('UPDATE players SET player_id = ? WHERE id = ?').run(candidate, coach.id);
+      
+      try {
+        const QRCode = (await import('qrcode')).default;
+        const crypto = (await import('crypto')).default;
+        const qrDataUrl = await QRCode.toDataURL(`https://miucc2026.org/player/${candidate}`);
+        await db.prepare(`
+          INSERT OR REPLACE INTO player_cards (id, player_id, qr_code_url, card_data)
+          VALUES (?, ?, ?, ?)
+        `).run(crypto.randomUUID(), candidate, qrDataUrl, JSON.stringify({ verified: true, player_id: candidate }));
+      } catch (e) {
+        console.error('Failed to update QR for coach', e);
+      }
+    }
+  }
 }
 
 async function isSeeded(): Promise<boolean> {

@@ -24,15 +24,16 @@ async function executeWithRetry<T>(operation: () => Promise<T>, maxRetries = 5):
   throw new Error('Operation failed after retries');
 }
 
-async function generatePlayerId(): Promise<string> {
-  const countRow = (await db.prepare("SELECT COUNT(*) as count FROM players WHERE player_id IS NOT NULL").get() as any)?.count || 0;
+async function generatePlayerId(isCoach = false): Promise<string> {
+  const prefix = isCoach ? 'MULSU-COACH-' : 'MULSU-PLY-';
+  const countRow = (await db.prepare("SELECT COUNT(*) as count FROM players WHERE player_id IS NOT NULL AND player_id LIKE ?").get(`${prefix}%`) as any)?.count || 0;
   const seq = (countRow + 1).toString().padStart(4, '0');
-  let candidate = `MULSU-PLY-${seq}`;
+  let candidate = `${prefix}${seq}`;
   
   let existing = await db.prepare('SELECT id FROM players WHERE player_id = ?').get(candidate);
   let offset = 1;
   while (existing) {
-    candidate = `MULSU-PLY-${(countRow + 1 + offset).toString().padStart(4, '0')}`;
+    candidate = `${prefix}${(countRow + 1 + offset).toString().padStart(4, '0')}`;
     existing = await db.prepare('SELECT id FROM players WHERE player_id = ?').get(candidate);
     offset++;
   }
@@ -146,7 +147,7 @@ router.post('/admin/save', authenticateAdmin, async (req, res) => {
 
     await executeWithRetry(async () => {
       if (targetStatus === 'APPROVED' && !existing.player_id) {
-        playerId = await generatePlayerId();
+        playerId = await generatePlayerId(existing.position === 'Coach' || position === 'Coach');
       }
 
       await db.prepare(`
@@ -170,7 +171,7 @@ router.post('/admin/save', authenticateAdmin, async (req, res) => {
     const newId = crypto.randomUUID();
     let playerId: string | null = null;
     await executeWithRetry(async () => {
-      playerId = targetStatus === 'APPROVED' ? await generatePlayerId() : null;
+      playerId = targetStatus === 'APPROVED' ? await generatePlayerId(position === 'Coach') : null;
 
       await db.prepare(`
         INSERT INTO players (id, player_id, team_id, full_name, photo_url, dob, nationality, student_id, university, position, jersey_number, preferred_foot, emergency_contact, status)
@@ -204,7 +205,7 @@ router.put('/admin/:id/status', authenticateAdmin, async (req, res) => {
   let playerId = player.player_id;
   await executeWithRetry(async () => {
     if (status === 'APPROVED' && !player.player_id) {
-      playerId = await generatePlayerId();
+      playerId = await generatePlayerId(player.position === 'Coach');
     }
 
     await db.prepare('UPDATE players SET status = ?, player_id = ? WHERE id = ?').run(status, playerId, req.params.id);
