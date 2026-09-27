@@ -33,7 +33,7 @@ const ToastMessage = ({ message, onClose }: { message: string, onClose: () => vo
 
 export const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'OVERVIEW' | 'MATCHES' | 'LINEUPS' | 'DRAW' | 'TEAMS' | 'PLAYERS' | 'NEWS' | 'GALLERY' | 'SPONSORS' | 'PREDICTIONS' | 'MANAGERS' | 'EXPORTS'>('OVERVIEW');
+  const [activeTab, setActiveTab] = useState<'OVERVIEW' | 'MATCHES' | 'LINEUPS' | 'DRAW' | 'TEAMS' | 'PLAYERS' | 'COACHES' | 'NEWS' | 'GALLERY' | 'SPONSORS' | 'PREDICTIONS' | 'MANAGERS' | 'EXPORTS'>('OVERVIEW');
 
   const [stats, setStats] = useState<any>(null);
   const [teams, setTeams] = useState<any[]>([]);
