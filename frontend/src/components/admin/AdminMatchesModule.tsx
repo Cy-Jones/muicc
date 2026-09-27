@@ -235,7 +235,7 @@ export const AdminMatchesModule: React.FC<AdminMatchesModuleProps> = ({ matches,
                     <button onClick={async () => {
                       try {
                         const details = await api.getMatchDetail(m.id);
-                        setEditingMatch(details);
+                        setEditingMatch(details.match);
                       } catch (err: any) { alert(err.message); }
                     }} className="action-btn bg-surface-border text-dark-bg hover:bg-surface-border border-surface-border"><Edit set="bold" className="w-3.5 h-3.5" /> Edit</button>
                     
