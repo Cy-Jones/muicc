@@ -25,14 +25,14 @@ export const FixturesResultsPage: React.FC = () => {
   useEffect(() => {
     async function loadData() {
       try {
-        const [matchesData, standingsData, settingsData] = await Promise.all([
+        const [matchesData, standingsData, settingsData] = await Promise.allSettled([
           api.getMatches(),
           api.getStandings(),
           api.getSettings()
         ]);
-        setMatches(matchesData || []);
-        setStandings(standingsData?.standings || []);
-        if (settingsData?.nations) setSystemNations(settingsData.nations);
+        if (matchesData.status === 'fulfilled') setMatches(matchesData.value || []);
+        if (standingsData.status === 'fulfilled') setStandings(standingsData.value?.standings || []);
+        if (settingsData.status === 'fulfilled' && settingsData.value?.nations) setSystemNations(settingsData.value.nations);
       } catch (err) {
         console.error(err);
       } finally {

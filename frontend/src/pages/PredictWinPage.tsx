@@ -31,14 +31,22 @@ export const PredictWinPage: React.FC = () => {
   useEffect(() => {
     async function init() {
       try {
-        const [days, teamsData] = await Promise.all([
+        const [days, teamsData] = await Promise.allSettled([
           api.getMatchDays(),
           api.getTeams()
         ]);
-        setMatchDays(days);
-        setTeams(teamsData);
-        if (days.length > 0) {
-          setSelectedMatchDayId(days[0].id);
+        
+        let loadedDays: any[] = [];
+        if (days.status === 'fulfilled') {
+          loadedDays = days.value;
+          setMatchDays(loadedDays);
+        }
+        if (teamsData.status === 'fulfilled') {
+          setTeams(teamsData.value);
+        }
+
+        if (loadedDays.length > 0) {
+          setSelectedMatchDayId(loadedDays[0].id);
         }
       } catch (err) {
         console.error(err);

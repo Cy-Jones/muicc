@@ -21,17 +21,19 @@ export const HomePage: React.FC = () => {
   useEffect(() => {
     async function loadData() {
       try {
-        const [sumRes, setRes, matchesRes, sponRes] = await Promise.all([
+        const [sumRes, setRes, matchesRes, sponRes] = await Promise.allSettled([
           api.getSummary(),
           api.getSettings(),
           api.getMatches(),
           api.getSponsors()
         ]);
-        setSummary(sumRes);
-        setSettings(setRes.settings);
-        if (setRes.nations) setSystemNations(setRes.nations);
-        setMatches(matchesRes || []);
-        setSponsors(sponRes || []);
+        if (sumRes.status === 'fulfilled') setSummary(sumRes.value);
+        if (setRes.status === 'fulfilled') {
+          setSettings(setRes.value.settings);
+          if (setRes.value.nations) setSystemNations(setRes.value.nations);
+        }
+        if (matchesRes.status === 'fulfilled') setMatches(matchesRes.value || []);
+        if (sponRes.status === 'fulfilled') setSponsors(sponRes.value || []);
       } catch (err) {
         console.error('Error loading homepage data:', err);
       }

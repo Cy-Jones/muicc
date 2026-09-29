@@ -25,12 +25,12 @@ export const PlayersPage: React.FC = () => {
   useEffect(() => {
     async function loadData() {
       try {
-        const [playersData, teamsData] = await Promise.all([
+        const [playersData, teamsData] = await Promise.allSettled([
           api.getPlayers({ search, team_id: teamId, position }),
           api.getTeams()
         ]);
-        setPlayers(playersData);
-        setTeams(teamsData);
+        if (playersData.status === 'fulfilled') setPlayers(playersData.value || []);
+        if (teamsData.status === 'fulfilled') setTeams(teamsData.value || []);
       } catch (err) {
         console.error(err);
       } finally {

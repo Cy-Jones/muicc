@@ -81,7 +81,7 @@ export const AdminDashboard: React.FC = () => {
   async function loadAllAdminData() {
     setLoading(true);
     try {
-      const [statsRes, teamsRes, playersRes, matchesRes, predsRes, sponRes, newsRes, galRes, drawRes] = await Promise.all([
+      const [statsRes, teamsRes, playersRes, matchesRes, predsRes, sponRes, newsRes, galRes, drawRes] = await Promise.allSettled([
         api.adminGetDashboardStats(),
         api.adminGetTeams(),
         api.adminGetPlayers(),
@@ -93,17 +93,19 @@ export const AdminDashboard: React.FC = () => {
         api.getDraw()
       ]);
 
-      setStats(statsRes.metrics);
-      setTeams(teamsRes);
-      setPlayers(playersRes);
-      setMatches(matchesRes);
-      setPredictions(predsRes);
-      setSponsors(sponRes || []);
-      setNews(newsRes || []);
-      setGallery(galRes || []);
-      setDraw(drawRes.draw || []);
-      setBracket(drawRes.knockoutBracket || null);
-      setIsDrawLocked(drawRes.isLocked || false);
+      if (statsRes.status === 'fulfilled') setStats(statsRes.value.metrics);
+      if (teamsRes.status === 'fulfilled') setTeams(teamsRes.value);
+      if (playersRes.status === 'fulfilled') setPlayers(playersRes.value);
+      if (matchesRes.status === 'fulfilled') setMatches(matchesRes.value);
+      if (predsRes.status === 'fulfilled') setPredictions(predsRes.value);
+      if (sponRes.status === 'fulfilled') setSponsors(sponRes.value || []);
+      if (newsRes.status === 'fulfilled') setNews(newsRes.value || []);
+      if (galRes.status === 'fulfilled') setGallery(galRes.value || []);
+      if (drawRes.status === 'fulfilled') {
+        setDraw(drawRes.value.draw || []);
+        setBracket(drawRes.value.knockoutBracket || null);
+        setIsDrawLocked(drawRes.value.isLocked || false);
+      }
 
     } catch (err) {
       console.error(err);

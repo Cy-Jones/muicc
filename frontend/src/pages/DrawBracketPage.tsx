@@ -14,8 +14,21 @@ export const DrawBracketPage: React.FC = () => {
   const [message, setMessage] = useState<string | null>(null);
   const token = getAuthToken();
 
-
-
+  useEffect(() => {
+    async function load() {
+      try {
+        const data = await api.getDraw();
+        setDraw(data.groups || []);
+        setBracket(data.knockout || null);
+        setIsLocked(data.isLocked || false);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+  }, []);
   return (
     <motion.div variants={pageVariants} initial="initial" animate="animate" exit="exit" className="space-y-8 pb-12">
       
