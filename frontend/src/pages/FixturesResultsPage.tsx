@@ -149,32 +149,36 @@ export const FixturesResultsPage: React.FC = () => {
             </div>
 
             <div className="xl:col-span-1">
-              <div className="data-card sticky top-6">
-                <h3 className="text-xl font-heading font-black text-brand uppercase tracking-wider mb-4 pb-2 border-b border-surface-border">
-                  Top Scorers
-                </h3>
-                {loading ? (
-                  <div className="py-8 text-center text-dark-muted">Loading...</div>
-                ) : topScorers.length === 0 ? (
-                  <div className="py-8 text-center text-dark-muted text-sm">No goals scored yet.</div>
-                ) : (
-                  <div className="space-y-4">
-                    {topScorers.map((scorer, index) => (
-                      <div key={scorer.id} className="flex items-center gap-3">
-                        <div className="w-6 h-6 flex-shrink-0 flex items-center justify-center rounded-full bg-surface-bg border border-surface-border text-xs font-bold text-dark-muted">
-                          {index + 1}
+              <div className="data-card sticky top-6 overflow-hidden">
+                <div className="bg-surface-bg px-4 py-3 border-b border-surface-border">
+                  <h3 className="font-heading text-lg font-black text-brand uppercase tracking-tight">
+                    Top Scorers
+                  </h3>
+                </div>
+                <div className="bg-surface-card">
+                  {loading ? (
+                    <div className="p-8 text-center text-dark-muted">Loading...</div>
+                  ) : topScorers.length === 0 ? (
+                    <div className="p-8 text-center text-dark-muted text-sm">No goals scored yet.</div>
+                  ) : (
+                    <div className="flex flex-col">
+                      {topScorers.map((scorer, index) => (
+                        <div key={scorer.id} className="flex items-center gap-3 p-3 border-b border-surface-border last:border-0 hover:bg-surface-hover transition-colors">
+                          <div className="w-6 text-center flex-shrink-0 text-xs font-bold text-dark-muted">
+                            {index + 1}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-bold text-sm text-dark-bg truncate">{scorer.full_name}</p>
+                            <p className="text-xs text-dark-muted truncate">{scorer.team_name}</p>
+                          </div>
+                          <div className="font-black text-base text-brand w-8 text-right pr-2">
+                            {scorer.goals}
+                          </div>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-bold text-sm text-dark-bg truncate">{scorer.full_name}</p>
-                          <p className="text-xs text-dark-muted truncate">{scorer.team_name}</p>
-                        </div>
-                        <div className="font-black text-lg text-brand w-8 text-right">
-                          {scorer.goals}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </motion.div>
