@@ -28,13 +28,12 @@ router.get('/', async (req, res) => {
     SELECT 
       p.id, p.player_id, p.full_name, p.photo_url, p.position, p.jersey_number,
       t.name as team_name, t.logo_url as team_logo, t.country as team_country,
-      SUM(CASE WHEN me.event_type = 'GOAL' AND me.is_own_goal = 0 THEN 1 ELSE 0 END) as goals,
-      COUNT(CASE WHEN me.event_type = 'ASSIST' THEN 1 END) as assists
+      (SELECT COUNT(*) FROM match_events WHERE player_id = p.id AND event_type = 'GOAL' AND is_own_goal = 0) as goals,
+      (SELECT COUNT(*) FROM match_events WHERE secondary_player_id = p.id AND event_type = 'GOAL') as assists
     FROM players p
     JOIN teams t ON p.team_id = t.id
-    LEFT JOIN match_events me ON me.player_id = p.id
     WHERE p.status = 'APPROVED'
-    GROUP BY p.id
+      AND (SELECT COUNT(*) FROM match_events WHERE player_id = p.id AND event_type = 'GOAL' AND is_own_goal = 0) > 0
     ORDER BY goals DESC, assists DESC, p.full_name ASC
     LIMIT 10
   `).all() as any[];
@@ -44,13 +43,12 @@ router.get('/', async (req, res) => {
     SELECT 
       p.id, p.player_id, p.full_name, p.photo_url, p.position, p.jersey_number,
       t.name as team_name, t.logo_url as team_logo, t.country as team_country,
-      COUNT(CASE WHEN me.event_type = 'ASSIST' THEN 1 END) as assists,
-      SUM(CASE WHEN me.event_type = 'GOAL' AND me.is_own_goal = 0 THEN 1 ELSE 0 END) as goals
+      (SELECT COUNT(*) FROM match_events WHERE player_id = p.id AND event_type = 'GOAL' AND is_own_goal = 0) as goals,
+      (SELECT COUNT(*) FROM match_events WHERE secondary_player_id = p.id AND event_type = 'GOAL') as assists
     FROM players p
     JOIN teams t ON p.team_id = t.id
-    LEFT JOIN match_events me ON me.player_id = p.id
     WHERE p.status = 'APPROVED'
-    GROUP BY p.id
+      AND (SELECT COUNT(*) FROM match_events WHERE secondary_player_id = p.id AND event_type = 'GOAL') > 0
     ORDER BY assists DESC, goals DESC, p.full_name ASC
     LIMIT 10
   `).all() as any[];

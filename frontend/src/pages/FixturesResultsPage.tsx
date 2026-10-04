@@ -135,14 +135,20 @@ export const FixturesResultsPage: React.FC = () => {
             </motion.div>
           </motion.div>
         ) : (
-          <motion.div key="standings" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-            <div className="xl:col-span-2 space-y-8">
+          <motion.div key="standings" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-12">
+            
+            {/* Standings Section */}
+            <div className="space-y-6">
+              <div className="flex items-center gap-3 border-b border-surface-border pb-2">
+                <h2 className="font-heading text-2xl font-black text-dark-bg uppercase tracking-tight">Group Standings</h2>
+              </div>
+              
               {loading ? (
                 <div className="p-12 text-center text-dark-muted data-card border-dashed">Loading standings...</div>
               ) : standings.length === 0 ? (
                 <div className="p-12 text-center text-dark-muted data-card border-dashed">No standings available.</div>
               ) : (
-                <motion.div variants={staggerContainer} initial="initial" animate="animate" className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <motion.div variants={staggerContainer} initial="initial" animate="animate" className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
                   {standings.map((groupData) => (
                     <StandingsTable key={groupData.group.id} groupData={groupData} />
                   ))}
@@ -150,71 +156,83 @@ export const FixturesResultsPage: React.FC = () => {
               )}
             </div>
 
-            <div className="xl:col-span-1">
-              <div className="data-card sticky top-6 overflow-hidden">
-                <div className="bg-surface-bg px-4 py-3 border-b border-surface-border">
-                  <h3 className="font-heading text-lg font-black text-brand uppercase tracking-tight">
-                    Top Scorers
-                  </h3>
-                </div>
-                <div className="bg-surface-card">
-                  {loading ? (
-                    <div className="p-8 text-center text-dark-muted">Loading...</div>
-                  ) : topScorers.length === 0 ? (
-                    <div className="p-8 text-center text-dark-muted text-sm">No goals scored yet.</div>
-                  ) : (
-                    <div className="flex flex-col">
-                      {topScorers.map((scorer, index) => (
-                        <div key={scorer.id} className="flex items-center gap-3 p-3 border-b border-surface-border last:border-0 hover:bg-surface-hover transition-colors">
-                          <div className="w-6 text-center flex-shrink-0 text-xs font-bold text-dark-muted">
-                            {index + 1}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="font-bold text-sm text-dark-bg truncate">{scorer.full_name}</p>
-                            <p className="text-xs text-dark-muted truncate">{scorer.team_name}</p>
-                          </div>
-                          <div className="font-black text-base text-brand w-8 text-right pr-2">
-                            {scorer.goals}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
+            {/* Statistics Section */}
+            <div className="space-y-6">
+              <div className="flex items-center gap-3 border-b border-surface-border pb-2">
+                <h2 className="font-heading text-2xl font-black text-dark-bg uppercase tracking-tight">Player Statistics</h2>
               </div>
 
-              <div className="data-card sticky top-[450px] overflow-hidden mt-6">
-                <div className="bg-surface-bg px-4 py-3 border-b border-surface-border">
-                  <h3 className="font-heading text-lg font-black text-brand uppercase tracking-tight">
-                    Top Assists
-                  </h3>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                
+                {/* Top Scorers */}
+                <div className="data-card overflow-hidden">
+                  <div className="bg-surface-bg px-4 py-3 border-b border-surface-border flex justify-between items-center">
+                    <h3 className="font-heading text-lg font-black text-brand uppercase tracking-tight">
+                      Top Scorers
+                    </h3>
+                  </div>
+                  <div className="bg-surface-card h-full">
+                    {loading ? (
+                      <div className="p-8 text-center text-dark-muted">Loading...</div>
+                    ) : topScorers.length === 0 ? (
+                      <div className="p-8 text-center text-dark-muted text-sm">No goals scored yet.</div>
+                    ) : (
+                      <div className="flex flex-col">
+                        {topScorers.map((scorer, index) => (
+                          <div key={scorer.id} className="flex items-center gap-3 p-3 border-b border-surface-border last:border-0 hover:bg-surface-hover transition-colors">
+                            <div className="w-6 text-center flex-shrink-0 text-xs font-bold text-dark-muted">
+                              {index + 1}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-bold text-sm text-dark-bg truncate">{scorer.full_name}</p>
+                              <p className="text-xs text-dark-muted truncate">{scorer.team_name}</p>
+                            </div>
+                            <div className="font-black text-base text-brand w-8 text-right pr-2">
+                              {scorer.goals}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <div className="bg-surface-card">
-                  {loading ? (
-                    <div className="p-8 text-center text-dark-muted">Loading...</div>
-                  ) : topAssists.length === 0 ? (
-                    <div className="p-8 text-center text-dark-muted text-sm">No assists yet.</div>
-                  ) : (
-                    <div className="flex flex-col">
-                      {topAssists.map((player, index) => (
-                        <div key={player.id} className="flex items-center gap-3 p-3 border-b border-surface-border last:border-0 hover:bg-surface-hover transition-colors">
-                          <div className="w-6 text-center flex-shrink-0 text-xs font-bold text-dark-muted">
-                            {index + 1}
+
+                {/* Top Assists */}
+                <div className="data-card overflow-hidden">
+                  <div className="bg-surface-bg px-4 py-3 border-b border-surface-border flex justify-between items-center">
+                    <h3 className="font-heading text-lg font-black text-brand uppercase tracking-tight">
+                      Top Assists
+                    </h3>
+                  </div>
+                  <div className="bg-surface-card h-full">
+                    {loading ? (
+                      <div className="p-8 text-center text-dark-muted">Loading...</div>
+                    ) : topAssists.length === 0 ? (
+                      <div className="p-8 text-center text-dark-muted text-sm">No assists yet.</div>
+                    ) : (
+                      <div className="flex flex-col">
+                        {topAssists.map((player, index) => (
+                          <div key={player.id} className="flex items-center gap-3 p-3 border-b border-surface-border last:border-0 hover:bg-surface-hover transition-colors">
+                            <div className="w-6 text-center flex-shrink-0 text-xs font-bold text-dark-muted">
+                              {index + 1}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-bold text-sm text-dark-bg truncate">{player.full_name}</p>
+                              <p className="text-xs text-dark-muted truncate">{player.team_name}</p>
+                            </div>
+                            <div className="font-black text-base text-brand w-8 text-right pr-2">
+                              {player.assists}
+                            </div>
                           </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="font-bold text-sm text-dark-bg truncate">{player.full_name}</p>
-                            <p className="text-xs text-dark-muted truncate">{player.team_name}</p>
-                          </div>
-                          <div className="font-black text-base text-brand w-8 text-right pr-2">
-                            {player.assists}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
+
               </div>
             </div>
+
           </motion.div>
         )}
       </AnimatePresence>
