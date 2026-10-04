@@ -80,7 +80,15 @@ export const Header: React.FC = () => {
 
   const handlePrev = () => setCurrentIndex((prev) => (prev - 1 + allMatches.length) % allMatches.length);
   const handleNext = () => setCurrentIndex((prev) => (prev + 1) % allMatches.length);
-  const currentMatch = allMatches[currentIndex] || allMatches[0];
+
+  const getVisibleMatches = () => {
+    if (allMatches.length <= 3) return allMatches;
+    const visible = [];
+    for (let i = 0; i < 3; i++) {
+      visible.push(allMatches[(currentIndex + i) % allMatches.length]);
+    }
+    return visible;
+  };
 
   const renderTeamFlag = (teamName: string, countryName?: string, logoUrl?: string) => {
     let flagSrc = logoUrl;
@@ -121,11 +129,11 @@ export const Header: React.FC = () => {
           {/* RIGHT/CENTER: Match Ticker or Timer */}
 
           {/* RIGHT/CENTER: Match Ticker or Title */}
-          <div className="flex-1 flex justify-end ml-4 overflow-hidden">
+          <div className="flex-1 flex overflow-hidden">
             {allMatches.length > 0 ? (
-              <div className="flex items-center justify-end w-full max-w-4xl gap-6 sm:gap-10 overflow-x-auto scrollbar-hide hide-scrollbar">
-                {allMatches.slice(0, 3).map((match, idx) => (
-                  <div key={idx} className="flex items-center gap-2 sm:gap-3 shrink-0">
+              <div className="ml-auto flex items-center justify-start w-full max-w-4xl gap-6 sm:gap-10 overflow-x-auto scrollbar-hide hide-scrollbar pr-4">
+                {getVisibleMatches().map((match, idx) => (
+                  <div key={`${match.id}-${idx}`} className="flex items-center gap-2 sm:gap-3 shrink-0">
                     {match.status === 'LIVE' || match.status === 'HALF_TIME' ? (
                       <span className="badge badge-live">
                         <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping mr-1" /> {getMatchLiveClock(match).isHalftime ? 'HT' : 'LIVE'}
