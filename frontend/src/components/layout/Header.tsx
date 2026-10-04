@@ -81,14 +81,7 @@ export const Header: React.FC = () => {
   const handlePrev = () => setCurrentIndex((prev) => (prev - 1 + allMatches.length) % allMatches.length);
   const handleNext = () => setCurrentIndex((prev) => (prev + 1) % allMatches.length);
 
-  const getVisibleMatches = () => {
-    if (allMatches.length <= 3) return allMatches;
-    const visible = [];
-    for (let i = 0; i < 3; i++) {
-      visible.push(allMatches[(currentIndex + i) % allMatches.length]);
-    }
-    return visible;
-  };
+  const activeMatches = allMatches.filter(m => m.status === 'LIVE' || m.status === 'HALF_TIME' || m.status === 'SCHEDULED');
 
   const renderTeamFlag = (teamName: string, countryName?: string, logoUrl?: string) => {
     let flagSrc = logoUrl;
@@ -122,18 +115,19 @@ export const Header: React.FC = () => {
       >
         <div className="w-full max-w-[96%] flex items-center justify-between mx-auto">
           {/* LEFT: Title */}
-          <div className="flex items-center text-[9px] sm:text-xs font-black text-dark-bg tracking-widest uppercase shrink-0 whitespace-nowrap">
-            <span>{allMatches.length > 0 ? "MULSU ICC '26 MATCHDAY CENTER" : "MULSU ICC '26 COUNTDOWN"}</span>
+          <div className="flex items-center text-[9px] sm:text-xs font-black text-dark-bg tracking-widest uppercase shrink-0 whitespace-nowrap z-10 bg-surface-bg pr-2">
+            <span>{activeMatches.length > 0 ? "MULSU ICC '26 MATCHDAY CENTER" : "MULSU ICC '26 COUNTDOWN"}</span>
           </div>
 
           {/* RIGHT/CENTER: Match Ticker or Timer */}
 
           {/* RIGHT/CENTER: Match Ticker or Title */}
-          <div className="flex-1 flex overflow-hidden">
-            {allMatches.length > 0 ? (
-              <div className="ml-auto flex items-center justify-start w-full max-w-4xl gap-6 sm:gap-10 overflow-x-auto scrollbar-hide hide-scrollbar pr-4">
-                {getVisibleMatches().map((match, idx) => (
-                  <div key={`${match.id}-${idx}`} className="flex items-center gap-2 sm:gap-3 shrink-0">
+          <div className="flex-1 flex overflow-hidden ml-4">
+            {activeMatches.length > 0 ? (
+              <div className="flex items-center w-full relative h-full">
+                <div className={`flex items-center gap-6 sm:gap-10 whitespace-nowrap will-change-transform ${!isHovered ? 'animate-marquee' : ''}`}>
+                  {activeMatches.map((match, idx) => (
+                    <div key={`${match.id}-${idx}`} className="flex items-center gap-2 sm:gap-3 shrink-0">
                     {match.status === 'LIVE' || match.status === 'HALF_TIME' ? (
                       <span className="badge badge-live">
                         <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping mr-1" /> {getMatchLiveClock(match).isHalftime ? 'HT' : 'LIVE'}
@@ -165,9 +159,10 @@ export const Header: React.FC = () => {
                     </div>
                   </div>
                 ))}
+                </div>
               </div>
             ) : (
-              <div className="flex items-center gap-1 text-xs font-bold text-dark-bg bg-surface-card px-3 py-1.5 rounded border border-surface-border">
+              <div className="ml-auto flex items-center gap-1 text-xs font-bold text-dark-bg bg-surface-card px-3 py-1.5 rounded border border-surface-border">
                 {timeLeft.days}d {timeLeft.hours}h {timeLeft.minutes}m {timeLeft.seconds}s
               </div>
             )}
