@@ -122,43 +122,82 @@ export const Header: React.FC = () => {
           {/* RIGHT/CENTER: Match Ticker or Timer */}
 
           {/* RIGHT/CENTER: Match Ticker or Title */}
-          <div className="flex-1 flex overflow-hidden ml-4">
+          <div className="flex-1 flex overflow-hidden ml-4 group">
             {activeMatches.length > 0 ? (
-              <div className="flex items-center w-full relative h-full">
-                <div className={`flex items-center gap-6 sm:gap-10 whitespace-nowrap will-change-transform ${!isHovered ? 'animate-marquee' : ''}`}>
-                  {activeMatches.map((match, idx) => (
-                    <div key={`${match.id}-${idx}`} className="flex items-center gap-2 sm:gap-3 shrink-0">
-                    {match.status === 'LIVE' || match.status === 'HALF_TIME' ? (
-                      <span className="badge badge-live">
-                        <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping mr-1" /> {getMatchLiveClock(match).isHalftime ? 'HT' : 'LIVE'}
-                      </span>
-                    ) : match.status === 'FULL_TIME' ? (
-                      <span className="badge badge-completed">
-                        <TickSquare set="bold" className="w-3 h-3 mr-1" /> FT
-                      </span>
-                    ) : (
-                      <span className="badge badge-upcoming">
-                        <TimeCircle set="bold" className="w-3 h-3 mr-1" /> NEXT
-                      </span>
-                    )}
+              <div className="flex items-center w-full h-full">
+                <div className="flex w-max animate-marquee group-hover:[animation-play-state:paused]">
+                  {/* First set of items */}
+                  <div className="flex items-center gap-6 sm:gap-10 px-3 sm:px-5">
+                    {activeMatches.map((match, idx) => (
+                      <div key={`set1-${match.id}-${idx}`} className="flex items-center gap-2 sm:gap-3 shrink-0">
+                        {match.status === 'LIVE' || match.status === 'HALF_TIME' ? (
+                          <span className="badge badge-live">
+                            <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping mr-1" /> {getMatchLiveClock(match).isHalftime ? 'HT' : 'LIVE'}
+                          </span>
+                        ) : match.status === 'FULL_TIME' ? (
+                          <span className="badge badge-completed">
+                            <TickSquare set="bold" className="w-3 h-3 mr-1" /> FT
+                          </span>
+                        ) : (
+                          <span className="badge badge-upcoming">
+                            <TimeCircle set="bold" className="w-3 h-3 mr-1" /> NEXT
+                          </span>
+                        )}
 
-                    <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs font-bold text-dark-bg">
-                      {renderTeamFlag(match.team_a_name, match.team_a_country, match.team_a_logo)}
-                      <span className="truncate max-w-[50px] sm:max-w-[80px] hidden md:block">{match.team_a_name}</span>
-                      <span className="text-brand font-black mx-1">
-                        {match.status === 'SCHEDULED' ? 'vs' : `${match.score_a ?? 0} - ${match.score_b ?? 0}`}
-                      </span>
-                      <span className="truncate max-w-[50px] sm:max-w-[80px] hidden md:block text-right">{match.team_b_name}</span>
-                      {renderTeamFlag(match.team_b_name, match.team_b_country, match.team_b_logo)}
-                      
-                      {match.status === 'LIVE' && (
-                        <span className="text-status-live animate-pulse ml-1 sm:ml-2">
-                          {getMatchLiveClock(match).display}
-                        </span>
-                      )}
-                    </div>
+                        <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs font-bold text-dark-bg">
+                          {renderTeamFlag(match.team_a_name, match.team_a_country, match.team_a_logo)}
+                          <span className="truncate max-w-[50px] sm:max-w-[80px] hidden md:block">{match.team_a_name}</span>
+                          <span className="text-brand font-black mx-1">
+                            {match.status === 'SCHEDULED' ? 'vs' : `${match.score_a ?? 0} - ${match.score_b ?? 0}`}
+                          </span>
+                          <span className="truncate max-w-[50px] sm:max-w-[80px] hidden md:block text-right">{match.team_b_name}</span>
+                          {renderTeamFlag(match.team_b_name, match.team_b_country, match.team_b_logo)}
+                          
+                          {match.status === 'LIVE' && (
+                            <span className="text-status-live animate-pulse ml-1 sm:ml-2">
+                              {getMatchLiveClock(match).display}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
+                  {/* Second set of items (duplicated for seamless looping) */}
+                  <div className="flex items-center gap-6 sm:gap-10 px-3 sm:px-5" aria-hidden="true">
+                    {activeMatches.map((match, idx) => (
+                      <div key={`set2-${match.id}-${idx}`} className="flex items-center gap-2 sm:gap-3 shrink-0">
+                        {match.status === 'LIVE' || match.status === 'HALF_TIME' ? (
+                          <span className="badge badge-live">
+                            <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping mr-1" /> {getMatchLiveClock(match).isHalftime ? 'HT' : 'LIVE'}
+                          </span>
+                        ) : match.status === 'FULL_TIME' ? (
+                          <span className="badge badge-completed">
+                            <TickSquare set="bold" className="w-3 h-3 mr-1" /> FT
+                          </span>
+                        ) : (
+                          <span className="badge badge-upcoming">
+                            <TimeCircle set="bold" className="w-3 h-3 mr-1" /> NEXT
+                          </span>
+                        )}
+
+                        <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs font-bold text-dark-bg">
+                          {renderTeamFlag(match.team_a_name, match.team_a_country, match.team_a_logo)}
+                          <span className="truncate max-w-[50px] sm:max-w-[80px] hidden md:block">{match.team_a_name}</span>
+                          <span className="text-brand font-black mx-1">
+                            {match.status === 'SCHEDULED' ? 'vs' : `${match.score_a ?? 0} - ${match.score_b ?? 0}`}
+                          </span>
+                          <span className="truncate max-w-[50px] sm:max-w-[80px] hidden md:block text-right">{match.team_b_name}</span>
+                          {renderTeamFlag(match.team_b_name, match.team_b_country, match.team_b_logo)}
+                          
+                          {match.status === 'LIVE' && (
+                            <span className="text-status-live animate-pulse ml-1 sm:ml-2">
+                              {getMatchLiveClock(match).display}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             ) : (
