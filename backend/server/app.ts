@@ -1,4 +1,5 @@
 import express from 'express';
+import helmet from 'helmet';
 import cors from 'cors';
 import path from 'path';
 import dotenv from 'dotenv';
@@ -23,28 +24,41 @@ dotenv.config();
 
 const app = express();
 
+app.use(helmet({
+  crossOriginResourcePolicy: false,
+  hsts: process.env.NODE_ENV === 'production' ? { maxAge: 31536000, includeSubDomains: true } : false,
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'none'"],
+      baseUri: ["'none'"],
+      fontSrc: ["'none'"],
+      formAction: ["'none'"],
+      frameAncestors: ["'none'"],
+      imgSrc: ["'self'", "data:"],
+      objectSrc: ["'none'"],
+      scriptSrc: ["'none'"],
+      styleSrc: ["'none'"],
+    }
+  }
+}));
 // Allowed browser origins come from FRONTEND_URL (comma-separated for
 // multiple, e.g. a custom domain alongside the Render URL). With none set,
 // fall back to permissive CORS so local development is unaffected.
-const allowedOrigins = (process.env.FRONTEND_URL || '')
+const allowedOrigins = (process.env.FRONTEND_URL || 'http://localhost:3000')
   .split(',')
   .map(o => o.trim().replace(/\/$/, ''))
   .filter(Boolean);
 
-app.use(cors(
-  allowedOrigins.length === 0
-    ? {}
-    : {
-        origin(origin, callback) {
-          // Same-origin and non-browser callers (curl, health checks) send no Origin.
-          if (!origin) return callback(null, true);
-          const normalized = origin.replace(/\/$/, '');
-          if (allowedOrigins.includes(normalized)) return callback(null, true);
-          return callback(new Error(`Origin ${origin} is not allowed by CORS.`));
-        },
-        credentials: true
-      }
-));
+app.use(cors({
+  origin(origin, callback) {
+    // Same-origin and non-browser callers (curl, health checks) send no Origin.
+    if (!origin) return callback(null, true);
+    const normalized = origin.replace(/\/$/, '');
+    if (allowedOrigins.includes(normalized)) return callback(null, true);
+    return callback(new Error(`Origin ${origin} is not allowed by CORS.`));
+  },
+  credentials: true
+}));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
@@ -57,6 +71,14 @@ app.use('/uploads', express.static(path.join(localPublic, 'uploads')));
 
 app.use('/logos', express.static(path.join(rootPublic, 'logos')));
 app.use('/logos', express.static(path.join(localPublic, 'logos')));
+
+// Prevent caching for all API responses
+app.use('/api', (req, res, next) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  next();
+});
 
 // Mount API Routes
 app.use('/api/auth', authRoutes);
@@ -99,7 +121,16 @@ app.get('/', (req, res) => {
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
   console.error(`[error] ${req.method} ${req.originalUrl}:`, err?.message ?? err);
   if (res.headersSent) return next(err);
-  res.status(err?.status || 500).json({ error: err?.message || 'Internal server error.' });
+  
+  const status = err?.status || 500;
+  let message = err?.message || 'Internal server error.';
+  
+  // Hide potentially sensitive 500 error details in production
+  if (status === 500 && process.env.NODE_ENV === 'production') {
+    message = 'Internal server error.';
+  }
+  
+  res.status(status).json({ error: message });
 });
 
 process.on('unhandledRejection', (reason) => {

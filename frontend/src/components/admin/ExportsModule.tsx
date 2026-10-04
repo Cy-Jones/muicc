@@ -27,14 +27,12 @@ export const ExportsModule: React.FC = () => {
               <h3 className="font-heading text-lg font-black text-dark-bg uppercase tracking-widest">{card.title}</h3>
               <p className="text-xs text-dark-muted mt-2 font-medium leading-relaxed flex-1">{card.description}</p>
               
-              <a 
-                href={api.getExportPdfUrl(card.type)} 
-                target="_blank" 
-                rel="noopener noreferrer"
+              <button 
+                onClick={() => api.downloadAdminPdf(card.type, `${card.type}_export.pdf`)}
                 className="mt-6 w-full btn-primary text-xs flex items-center justify-center gap-2"
               >
                 <Download set="bold" className="w-4 h-4" /> Download PDF
-              </a>
+              </button>
             </div>
           ))}
         </div>

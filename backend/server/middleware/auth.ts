@@ -19,8 +19,6 @@ export function authenticateAdmin(req: AuthenticatedRequest, res: Response, next
   
   if (authHeader && authHeader.startsWith('Bearer ')) {
     token = authHeader.split(' ')[1];
-  } else if (req.query.token && typeof req.query.token === 'string') {
-    token = req.query.token;
   }
 
   if (!token) {
@@ -45,8 +43,6 @@ export function authenticateManager(req: AuthenticatedRequest, res: Response, ne
   
   if (authHeader && authHeader.startsWith('Bearer ')) {
     token = authHeader.split(' ')[1];
-  } else if (req.query.token && typeof req.query.token === 'string') {
-    token = req.query.token;
   }
 
   if (!token) {

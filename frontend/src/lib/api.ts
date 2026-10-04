@@ -174,14 +174,34 @@ export const api = {
 
   adminGetDashboardStats: () => request<any>('/api/admin/dashboard-stats'),
   adminGetAuditLogs: () => request<any>('/api/admin/audit-logs'),
-  getExportPdfUrl: (type: string) => {
+  downloadAdminPdf: async (type: string, filename: string) => {
     const token = localStorage.getItem('miucc_admin_token') || '';
-    return `${API_BASE}/api/admin/export-pdf/${type}?token=${encodeURIComponent(token)}`;
+    const res = await fetch(`${API_BASE}/api/admin/export-pdf/${type}`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {}
+    });
+    if (!res.ok) throw new Error('Export failed');
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
   },
   getPublicTeamsExportPdfUrl: () => `${API_BASE}/api/teams/export-pdf`,
-  getTeamExportPdfUrl: (teamId: string) => {
+  downloadTeamPdf: async (teamId: string, filename: string) => {
     const token = localStorage.getItem('miucc_manager_token') || '';
-    return `${API_BASE}/api/teams/${teamId}/export-pdf?token=${encodeURIComponent(token)}`;
+    const res = await fetch(`${API_BASE}/api/teams/${teamId}/export-pdf`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {}
+    });
+    if (!res.ok) throw new Error('Export failed');
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
   },
 
   // File Upload

@@ -426,7 +426,7 @@ router.put('/lineups/:id/status', authenticateAdmin, async (req: AuthenticatedRe
   }
 });
 
-router.get('/force-reset-standings', async (req, res) => {
+router.get('/force-reset-standings', authenticateAdmin, async (req: AuthenticatedRequest, res: Response) => {
   try {
     await db.prepare("UPDATE matches SET confirmed_result = 0 WHERE status != 'FULL_TIME'").run();
     await db.prepare("UPDATE standings SET played=0, won=0, drawn=0, lost=0, goals_for=0, goals_against=0, goal_difference=0, points=0").run();
