@@ -97,7 +97,8 @@ router.get('/verify/:playerId', async (req, res) => {
   const stats = await db.prepare(`
     SELECT 
       COUNT(DISTINCT me.match_id) as appearances,
-      SUM(CASE WHEN me.event_type = 'GOAL' THEN 1 ELSE 0 END) as goals,
+      SUM(CASE WHEN me.event_type = 'GOAL' AND me.is_own_goal = 0 THEN 1 ELSE 0 END) as goals,
+      SUM(CASE WHEN me.event_type = 'GOAL' AND me.is_own_goal = 1 THEN 1 ELSE 0 END) as own_goals,
       SUM(CASE WHEN me.event_type = 'ASSIST' THEN 1 ELSE 0 END) as assists,
       SUM(CASE WHEN me.event_type = 'YELLOW_CARD' THEN 1 ELSE 0 END) as yellow_cards,
       SUM(CASE WHEN me.event_type = 'RED_CARD' THEN 1 ELSE 0 END) as red_cards
@@ -115,6 +116,7 @@ router.get('/verify/:playerId', async (req, res) => {
       stats: {
         appearances: stats?.appearances || 0,
         goals: stats?.goals || 0,
+        own_goals: stats?.own_goals || 0,
         assists: stats?.assists || 0,
         yellow_cards: stats?.yellow_cards || 0,
         red_cards: stats?.red_cards || 0,

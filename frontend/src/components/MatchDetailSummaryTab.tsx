@@ -72,7 +72,7 @@ export const MatchDetailSummaryTab: React.FC<MatchDetailSummaryTabProps> = ({ ma
                     {isTeamA && (
                       <div className="flex items-center gap-2 sm:gap-3 text-right">
                         <div className="flex flex-col">
-                          <span className="text-sm font-bold text-dark-bg">{ev.player_name || ev.player_id}</span>
+                          <span className="text-sm font-bold text-dark-bg">{ev.player_name || ev.player_id}{ev.is_own_goal ? ' (OG)' : ''}</span>
                           {ev.secondary_player_name && <span className="text-[10px] sm:text-xs text-dark-muted">{ev.event_type === 'SUBSTITUTION' ? 'in for ' : 'assisted by '}{ev.secondary_player_name}</span>}
                         </div>
                         {renderEventIcon(ev.event_type)}
@@ -89,7 +89,7 @@ export const MatchDetailSummaryTab: React.FC<MatchDetailSummaryTabProps> = ({ ma
                       <div className="flex items-center gap-2 sm:gap-3 text-left">
                         {renderEventIcon(ev.event_type)}
                         <div className="flex flex-col">
-                          <span className="text-sm font-bold text-dark-bg">{ev.player_name || ev.player_id}</span>
+                          <span className="text-sm font-bold text-dark-bg">{ev.player_name || ev.player_id}{ev.is_own_goal ? ' (OG)' : ''}</span>
                           {ev.secondary_player_name && <span className="text-[10px] sm:text-xs text-dark-muted">{ev.event_type === 'SUBSTITUTION' ? 'in for ' : 'assisted by '}{ev.secondary_player_name}</span>}
                         </div>
                       </div>

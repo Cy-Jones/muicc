@@ -122,6 +122,9 @@ export const PlayerVerificationPage: React.FC = () => {
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
               <div className="p-5 bg-dark-bg rounded-xl border border-dark-border"><p className="text-3xl font-black font-heading text-gold">{p.stats?.appearances || 0}</p><p className="text-[9px] uppercase font-bold tracking-widest text-dark-muted mt-2">Appearances</p></div>
               <div className="p-5 bg-dark-bg rounded-xl border border-dark-border"><p className="text-3xl font-black font-heading text-gold">{p.stats?.goals || 0}</p><p className="text-[9px] uppercase font-bold tracking-widest text-dark-muted mt-2">Goals</p></div>
+              {p.stats?.own_goals > 0 && (
+                <div className="p-5 bg-dark-bg rounded-xl border border-dark-border"><p className="text-3xl font-black font-heading text-status-error">{p.stats?.own_goals}</p><p className="text-[9px] uppercase font-bold tracking-widest text-dark-muted mt-2">Own Goals</p></div>
+              )}
               <div className="p-5 bg-dark-bg rounded-xl border border-dark-border"><p className="text-3xl font-black font-heading text-gold">{p.stats?.assists || 0}</p><p className="text-[9px] uppercase font-bold tracking-widest text-dark-muted mt-2">Assists</p></div>
               <div className="p-5 bg-dark-bg rounded-xl border border-dark-border"><p className="text-3xl font-black font-heading text-gold">{p.stats?.potm || 0}</p><p className="text-[9px] uppercase font-bold tracking-widest text-dark-muted mt-2">POTM</p></div>
             </div>

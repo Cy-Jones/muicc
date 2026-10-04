@@ -28,7 +28,7 @@ router.get('/', async (req, res) => {
     SELECT 
       p.id, p.player_id, p.full_name, p.photo_url, p.position, p.jersey_number,
       t.name as team_name, t.logo_url as team_logo, t.country as team_country,
-      COUNT(CASE WHEN me.event_type = 'GOAL' THEN 1 END) as goals,
+      SUM(CASE WHEN me.event_type = 'GOAL' AND me.is_own_goal = 0 THEN 1 ELSE 0 END) as goals,
       COUNT(CASE WHEN me.event_type = 'ASSIST' THEN 1 END) as assists
     FROM players p
     JOIN teams t ON p.team_id = t.id
@@ -45,7 +45,7 @@ router.get('/', async (req, res) => {
       p.id, p.player_id, p.full_name, p.photo_url, p.position, p.jersey_number,
       t.name as team_name, t.logo_url as team_logo, t.country as team_country,
       COUNT(CASE WHEN me.event_type = 'ASSIST' THEN 1 END) as assists,
-      COUNT(CASE WHEN me.event_type = 'GOAL' THEN 1 END) as goals
+      SUM(CASE WHEN me.event_type = 'GOAL' AND me.is_own_goal = 0 THEN 1 ELSE 0 END) as goals
     FROM players p
     JOIN teams t ON p.team_id = t.id
     LEFT JOIN match_events me ON me.player_id = p.id

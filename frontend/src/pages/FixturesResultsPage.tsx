@@ -9,6 +9,7 @@ import { StandingsTable } from './StandingsTable';
 export const FixturesResultsPage: React.FC = () => {
   const [matches, setMatches] = useState<any[]>([]);
   const [standings, setStandings] = useState<any[]>([]);
+  const [topScorers, setTopScorers] = useState<any[]>([]);
   const [systemNations, setSystemNations] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<'MATCHES' | 'STANDINGS'>('MATCHES');
   const [matchFilter, setMatchFilter] = useState<'ALL' | 'LIVE' | 'TODAY' | 'UPCOMING' | 'RESULTS'>('ALL');
@@ -31,7 +32,10 @@ export const FixturesResultsPage: React.FC = () => {
           api.getSettings()
         ]);
         if (matchesData.status === 'fulfilled') setMatches(matchesData.value || []);
-        if (standingsData.status === 'fulfilled') setStandings(standingsData.value?.standings || []);
+        if (standingsData.status === 'fulfilled') {
+          setStandings(standingsData.value?.standings || []);
+          setTopScorers(standingsData.value?.topScorers || []);
+        }
         if (settingsData.status === 'fulfilled' && settingsData.value?.nations) setSystemNations(settingsData.value.nations);
       } catch (err) {
         console.error(err);
@@ -129,18 +133,50 @@ export const FixturesResultsPage: React.FC = () => {
             </motion.div>
           </motion.div>
         ) : (
-          <motion.div key="standings" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-8">
-            {loading ? (
-              <div className="p-12 text-center text-dark-muted data-card border-dashed">Loading standings...</div>
-            ) : standings.length === 0 ? (
-              <div className="p-12 text-center text-dark-muted data-card border-dashed">No standings available.</div>
-            ) : (
-              <motion.div variants={staggerContainer} initial="initial" animate="animate" className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {standings.map((groupData) => (
-                  <StandingsTable key={groupData.group.id} groupData={groupData} />
-                ))}
-              </motion.div>
-            )}
+          <motion.div key="standings" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+            <div className="xl:col-span-2 space-y-8">
+              {loading ? (
+                <div className="p-12 text-center text-dark-muted data-card border-dashed">Loading standings...</div>
+              ) : standings.length === 0 ? (
+                <div className="p-12 text-center text-dark-muted data-card border-dashed">No standings available.</div>
+              ) : (
+                <motion.div variants={staggerContainer} initial="initial" animate="animate" className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {standings.map((groupData) => (
+                    <StandingsTable key={groupData.group.id} groupData={groupData} />
+                  ))}
+                </motion.div>
+              )}
+            </div>
+
+            <div className="xl:col-span-1">
+              <div className="data-card sticky top-6">
+                <h3 className="text-xl font-heading font-black text-brand uppercase tracking-wider mb-4 pb-2 border-b border-surface-border">
+                  Top Scorers
+                </h3>
+                {loading ? (
+                  <div className="py-8 text-center text-dark-muted">Loading...</div>
+                ) : topScorers.length === 0 ? (
+                  <div className="py-8 text-center text-dark-muted text-sm">No goals scored yet.</div>
+                ) : (
+                  <div className="space-y-4">
+                    {topScorers.map((scorer, index) => (
+                      <div key={scorer.id} className="flex items-center gap-3">
+                        <div className="w-6 h-6 flex-shrink-0 flex items-center justify-center rounded-full bg-surface-bg border border-surface-border text-xs font-bold text-dark-muted">
+                          {index + 1}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-bold text-sm text-dark-bg truncate">{scorer.full_name}</p>
+                          <p className="text-xs text-dark-muted truncate">{scorer.team_name}</p>
+                        </div>
+                        <div className="font-black text-lg text-brand w-8 text-right">
+                          {scorer.goals}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

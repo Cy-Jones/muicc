@@ -166,7 +166,8 @@ export async function initDatabase() {
     'ALTER TABLE matches ADD COLUMN stoppage_time_et1 INTEGER DEFAULT 0;',
     'ALTER TABLE matches ADD COLUMN stoppage_time_et2 INTEGER DEFAULT 0;',
     'ALTER TABLE matches ADD COLUMN is_test_mode INTEGER DEFAULT 0;',
-    'ALTER TABLE matches ADD COLUMN live_timer_is_paused INTEGER DEFAULT 0;'
+    'ALTER TABLE matches ADD COLUMN live_timer_is_paused INTEGER DEFAULT 0;',
+    'ALTER TABLE match_events ADD COLUMN is_own_goal INTEGER DEFAULT 0;'
   ];
   for (const sql of additions) {
     try { await getClient().execute(sql); } catch { /* column already exists */ }
@@ -200,9 +201,9 @@ async function ensureCoachesExist() {
       }
 
       await db.prepare(`
-        INSERT INTO players (id, player_id, team_id, full_name, photo_url, dob, nationality, student_id, university, position, jersey_number, preferred_foot, emergency_contact, status)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `).run(newId, candidate, team.id, team.coach_name, null, '1980-01-01', team.country, 'N/A', team.university, 'Coach', 0, 'Right', 'N/A', 'APPROVED');
+        INSERT INTO players (id, player_id, team_id, full_name, photo_url, dob, nationality, student_id, university, position, jersey_number, preferred_foot, emergency_contact_name, emergency_contact_phone, status)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `).run(newId, candidate, team.id, team.coach_name, null, '1980-01-01', team.country, 'N/A', team.university, 'Coach', 0, 'Right', 'N/A', 'N/A', 'APPROVED');
       
       try {
         const QRCode = (await import('qrcode')).default;

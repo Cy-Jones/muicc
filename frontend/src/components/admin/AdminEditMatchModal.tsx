@@ -23,6 +23,7 @@ export const AdminEditMatchModal: React.FC<AdminEditMatchModalProps> = ({ match,
   const [editEventTeam, setEditEventTeam] = useState('');
   const [editEventPlayer, setEditEventPlayer] = useState('');
   const [editEventSecondary, setEditEventSecondary] = useState('');
+  const [editIsOwnGoal, setEditIsOwnGoal] = useState(false);
   const [editMatchEvents, setEditMatchEvents] = useState<any[]>([]);
   const [isSavingEvent, setIsSavingEvent] = useState(false);
 
@@ -47,13 +48,15 @@ export const AdminEditMatchModal: React.FC<AdminEditMatchModalProps> = ({ match,
         player_id: editEventPlayer,
         event_type: editEventType,
         secondary_player_id: editEventSecondary || undefined,
-        minute: parseInt(editEventMinute, 10)
+        minute: parseInt(editEventMinute, 10),
+        is_own_goal: editIsOwnGoal ? 1 : 0
       });
       setMessage(`Recorded ${editEventType.replace('_', ' ')} successfully.`);
       const details = await api.getMatchDetail(match.id);
       setEditMatchEvents(details.events || []);
       setEditEventPlayer('');
       setEditEventSecondary('');
+      setEditIsOwnGoal(false);
     } catch (err: any) {
       alert(err.message);
     } finally {
@@ -169,9 +172,20 @@ export const AdminEditMatchModal: React.FC<AdminEditMatchModalProps> = ({ match,
                   <option value={match.team_b_id}>{match.team_b_name}</option>
                 </select>
               </div>
+              {editEventType === 'GOAL' && (
+                <div className="col-span-2 flex items-center mb-1">
+                  <input type="checkbox" id="own-goal" checked={editIsOwnGoal} onChange={e => {
+                    setEditIsOwnGoal(e.target.checked);
+                    setEditEventPlayer('');
+                  }} className="mr-2" />
+                  <label htmlFor="own-goal" className="text-sm font-bold text-dark-bg">Own Goal (Credit opponent)</label>
+                </div>
+              )}
               {editEventTeam && (
-                <div>
-                  <label className="block text-[10px] font-bold text-dark-muted uppercase mb-1">Primary Player</label>
+                <div className="col-span-2">
+                  <label className="block text-[10px] font-bold text-dark-muted uppercase mb-1">
+                    {editEventType === 'GOAL' && editIsOwnGoal ? 'Player (Defending Team)' : 'Primary Player'}
+                  </label>
                   <select className="admin-input" value={editEventPlayer} onChange={e => setEditEventPlayer(e.target.value)}>
                     <option value="">Select Player...</option>
                     {(editEventType === 'YELLOW_CARD' || editEventType === 'RED_CARD') && teams.find(t => t.id === editEventTeam)?.coach_name && (
@@ -179,7 +193,14 @@ export const AdminEditMatchModal: React.FC<AdminEditMatchModalProps> = ({ match,
                         Coach: {teams.find(t => t.id === editEventTeam)?.coach_name}
                       </option>
                     )}
-                    {players.filter(p => p.team_id === editEventTeam || p.team_name === (editEventTeam === match.team_a_id ? match.team_a_name : match.team_b_name)).map(p => (
+                    {players.filter(p => {
+                      if (editEventType === 'GOAL' && editIsOwnGoal) {
+                        const opponentTeamId = editEventTeam === match.team_a_id ? match.team_b_id : match.team_a_id;
+                        const opponentTeamName = opponentTeamId === match.team_a_id ? match.team_a_name : match.team_b_name;
+                        return p.team_id === opponentTeamId || p.team_name === opponentTeamName;
+                      }
+                      return p.team_id === editEventTeam || p.team_name === (editEventTeam === match.team_a_id ? match.team_a_name : match.team_b_name);
+                    }).map(p => (
                       <option key={p.id} value={p.id}>{p.full_name}</option>
                     ))}
                   </select>
@@ -221,7 +242,7 @@ export const AdminEditMatchModal: React.FC<AdminEditMatchModalProps> = ({ match,
                       <span className="mx-2 text-dark-muted">|</span>
                       <span className="font-medium text-dark-bg">{ev.player_name || ev.player_id}</span>
                       <span className="mx-2 text-dark-muted">|</span>
-                      <span className="text-dark-muted">{ev.event_type.replace('_', ' ')}</span>
+                      <span className="text-dark-muted">{ev.event_type.replace('_', ' ')}{ev.is_own_goal ? ' (Own Goal)' : ''}</span>
                     </div>
                     <button onClick={() => handleDeleteEvent(ev.id)} className="p-1 rounded bg-status-error/10 text-status-error hover:bg-status-error hover:text-dark-bg transition-colors" title="Delete Event">
                       <Delete set="bold" className="w-3.5 h-3.5" />

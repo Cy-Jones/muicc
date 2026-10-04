@@ -363,7 +363,7 @@ router.put('/admin/:id/live-clock', authenticateAdmin, async (req: Authenticated
 
 router.post('/admin/:id/events', authenticateAdmin, async (req: AuthenticatedRequest, res: Response) => {
   const matchId = req.params.id;
-  const { minute, team_id, player_id, event_type, secondary_player_id, details } = req.body;
+  const { minute, team_id, player_id, event_type, secondary_player_id, details, is_own_goal } = req.body;
 
   if (!team_id || !player_id || !event_type) {
     return res.status(400).json({ error: 'Team, player, and event type are required.' });
@@ -384,9 +384,9 @@ router.post('/admin/:id/events', authenticateAdmin, async (req: AuthenticatedReq
   const minVal = parseInt(minute || '1', 10);
 
   await db.prepare(`
-    INSERT INTO match_events (id, match_id, minute, team_id, player_id, event_type, secondary_player_id, details)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-  `).run(eventId, matchId, minVal, team_id, player_id, event_type, secondary_player_id || null, details || '');
+    INSERT INTO match_events (id, match_id, minute, team_id, player_id, event_type, is_own_goal, secondary_player_id, details)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(eventId, matchId, minVal, team_id, player_id, event_type, is_own_goal ? 1 : 0, secondary_player_id || null, details || '');
 
   if (event_type === 'GOAL') {
     const match = await db.prepare('SELECT * FROM matches WHERE id = ?').get(matchId) as any;

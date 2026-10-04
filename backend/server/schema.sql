@@ -151,6 +151,7 @@ CREATE TABLE IF NOT EXISTS match_events (
   team_id TEXT NOT NULL,
   player_id TEXT NOT NULL,
   event_type TEXT NOT NULL CHECK(event_type IN ('GOAL', 'ASSIST', 'YELLOW_CARD', 'RED_CARD', 'SUBSTITUTION', 'VAR')),
+  is_own_goal INTEGER DEFAULT 0,
   secondary_player_id TEXT,
   details TEXT,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
