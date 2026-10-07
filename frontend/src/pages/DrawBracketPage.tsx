@@ -18,8 +18,10 @@ export const DrawBracketPage: React.FC = () => {
     async function load() {
       try {
         const data = await api.getDraw();
-        setDraw(data.groups || []);
-        setBracket(data.knockout || null);
+        // /api/draw returns { draw, knockoutBracket, isLocked }.
+        // Keep a small compatibility fallback for older API payloads.
+        setDraw(data.draw || data.groups || []);
+        setBracket(data.knockoutBracket || data.knockout || null);
         setIsLocked(data.isLocked || false);
       } catch (err) {
         console.error(err);
