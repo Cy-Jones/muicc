@@ -44,69 +44,83 @@ router.get('/', async (req, res) => {
     });
   }
 
-  // 4-TEAM SEMI-FINAL KNOCKOUT BRACKET CALCULATION
-  const grpA = groups.find(g => g.name === 'Group A');
-  const grpB = groups.find(g => g.name === 'Group B');
-
+  // KNOCKOUT BRACKET: use the actual SEMI_FINAL match records as the source of truth.
+  // Do NOT derive the displayed semifinal pairings from current group standings once
+  // semifinal fixtures have been created in the Matches module.
   let knockoutBracket: any = null;
 
-  if (grpA && grpB) {
-    const getGroupStandings = async (groupId: string) => {
-      return await db.prepare(`
-        SELECT s.*, t.name as team_name, t.logo_url as team_logo, t.country as team_country
-        FROM standings s
-        JOIN teams t ON s.team_id = t.id
-        WHERE s.group_id = ?
-        ORDER BY s.points DESC, s.goal_difference DESC, s.goals_for DESC, t.name ASC
-      `).all(groupId) as any[];
-    };
+  const semifinalMatches = await db.prepare(`
+    SELECT
+      m.id,
+      m.match_code,
+      m.date,
+      m.time,
+      m.status,
+      m.score_a,
+      m.score_b,
+      ta.name as team_a_name,
+      ta.logo_url as team_a_logo,
+      ta.country as team_a_country,
+      tb.name as team_b_name,
+      tb.logo_url as team_b_logo,
+      tb.country as team_b_country
+    FROM matches m
+    JOIN teams ta ON m.team_a_id = ta.id
+    JOIN teams tb ON m.team_b_id = tb.id
+    WHERE m.stage = 'SEMI_FINAL'
+    ORDER BY m.date ASC, m.time ASC
+    LIMIT 2
+  `).all() as any[];
 
-    const stdA = await getGroupStandings(grpA.id) as any[];
-    const stdB = await getGroupStandings(grpB.id) as any[];
+  const formatMatch = (m: any) => m ? ({
+    matchCode: m.match_code,
+    team_a_name: m.team_a_name,
+    team_a_logo: m.team_a_logo,
+    team_a_country: m.team_a_country,
+    team_b_name: m.team_b_name,
+    team_b_logo: m.team_b_logo,
+    team_b_country: m.team_b_country,
+    score_a: m.score_a,
+    score_b: m.score_b,
+    status: m.status
+  }) : {
+    matchCode: null,
+    team_a_name: 'TBD',
+    team_b_name: 'TBD',
+    score_a: 0,
+    score_b: 0,
+    status: 'SCHEDULED'
+  };
 
-    // Top 2 Teams per Group (4 automatic qualifiers)
-    const a1 = stdA[0] || null;
-    const a2 = stdA[1] || null;
+  // The first two SEMI_FINAL fixtures are the two semifinal slots shown on
+  // the public bracket. Their team pairings come directly from the matches table.
+  const sf1 = formatMatch(semifinalMatches[0]);
+  const sf2 = formatMatch(semifinalMatches[1]);
 
-    const b1 = stdB[0] || null;
-    const b2 = stdB[1] || null;
+  // The final/third-place slots remain placeholders until the semifinal
+  // results are confirmed. This prevents the bracket from inventing winners.
+  const winnerName = (m: any, label: string) => {
+    if (m?.status === 'FULL_TIME' || m?.status === 'COMPLETED') {
+      if (Number(m.score_a) > Number(m.score_b)) return m.team_a_name;
+      if (Number(m.score_b) > Number(m.score_a)) return m.team_b_name;
+    }
+    return label;
+  };
 
-    const formatTeam = (teamObj: any, fallbackName: string, seedLabel: string) => {
-      if (teamObj) {
-        return {
-          name: teamObj.team_name,
-          logo: teamObj.team_logo,
-          country: teamObj.team_country,
-          seed: seedLabel
-        };
-      }
-      return { name: fallbackName, seed: seedLabel };
-    };
-
-    knockoutBracket = {
-      quarterFinals: [],
-      semiFinals: [
-        {
-          matchCode: 'MIUCC-SF1',
-          title: 'Semi-Final 1 (Group A Winner vs Group B Runner-Up)',
-          teamA: formatTeam(a1, 'Winner Group A (A1)', 'Group A 1st'),
-          teamB: formatTeam(b2, 'Runner-Up Group B (B2)', 'Group B 2nd')
-        },
-        {
-          matchCode: 'MIUCC-SF2',
-          title: 'Semi-Final 2 (Group B Winner vs Group A Runner-Up)',
-          teamA: formatTeam(b1, 'Winner Group B (B1)', 'Group B 1st'),
-          teamB: formatTeam(a2, 'Runner-Up Group A (A2)', 'Group A 2nd')
-        }
-      ],
-      final: {
-        matchCode: 'MIUCC-FNL',
-        title: 'Grand Final (Winner SF1 vs Winner SF2)',
-        teamA: { name: 'Winner Semi-Final 1', seed: 'SF1 Winner' },
-        teamB: { name: 'Winner Semi-Final 2', seed: 'SF2 Winner' }
-      }
-    };
-  }
+  knockoutBracket = {
+    quarterFinals: [],
+    semiFinals: [sf1, sf2],
+    final: {
+      matchCode: null,
+      title: 'Grand Final (Winner SF1 vs Winner SF2)',
+      team_a_name: winnerName(semifinalMatches[0], 'Semi-final Winner 1'),
+      team_a_country: null,
+      team_a_logo: null,
+      team_b_name: winnerName(semifinalMatches[1], 'Semi-final Winner 2'),
+      team_b_country: null,
+      team_b_logo: null
+    }
+  };
 
   const isLocked = ((await db.prepare("SELECT COUNT(*) as count FROM audit_logs WHERE action = 'CONFIRM_DRAW'").get() as any)?.count || 0) > 0;
 
