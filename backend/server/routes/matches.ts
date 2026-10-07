@@ -6,6 +6,33 @@ import { asyncRouter } from '../middleware/asyncRouter.js';
 
 const router = asyncRouter();
 
+async function generateMatchCode(runner: any = db): Promise<string> {
+  // COUNT(*) cannot safely determine the next code because deleted matches
+  // or gaps in the sequence can make COUNT(*) + 1 collide with an existing code.
+  const rows = await runner.prepare(
+    "SELECT match_code FROM matches WHERE match_code LIKE 'MIUCC-M%'"
+  ).all() as any[];
+
+  let nextNumber = 1;
+  for (const row of rows) {
+    const match = /^MIUCC-M(\d+)$/.exec(String(row.match_code || ''));
+    if (match) {
+      const number = parseInt(match[1], 10);
+      if (Number.isFinite(number)) nextNumber = Math.max(nextNumber, number + 1);
+    }
+  }
+
+  // Defensive collision check; existing match codes are never modified.
+  while (await runner.prepare(
+    "SELECT id FROM matches WHERE match_code = ?"
+  ).get(`MIUCC-M${nextNumber.toString().padStart(2, '0')}`)) {
+    nextNumber++;
+  }
+
+  return `MIUCC-M${nextNumber.toString().padStart(2, '0')}`;
+}
+
+
 async function updateAllStandings(tx: any) {
   await tx.prepare(`
     UPDATE standings
@@ -267,19 +294,22 @@ router.post('/admin/save', authenticateAdmin, async (req: AuthenticatedRequest, 
 
     return res.json({ success: true, message: 'Match updated successfully.' });
   } else {
-    const count = (((await db.prepare('SELECT COUNT(*) as count FROM matches').get() as any)?.count || 0) + 1);
-    const matchCode = `MIUCC-M${count.toString().padStart(2, '0')}`;
-    const newId = crypto.randomUUID();
+    const result = await db.transaction(async (tx: any) => {
+      const matchCode = await generateMatchCode(tx);
+      const newId = crypto.randomUUID();
 
-    const liveStartTs = status === 'LIVE' ? now : null;
-    const livePeriod = status === 'LIVE' ? '1ST_HALF' : (status === 'FULL_TIME' ? 'FULL_TIME' : 'NONE');
+      const liveStartTs = status === 'LIVE' ? now : null;
+      const livePeriod = status === 'LIVE' ? '1ST_HALF' : (status === 'FULL_TIME' ? 'FULL_TIME' : 'NONE');
 
-    await db.prepare(`
-      INSERT INTO matches (id, match_code, match_day_id, group_id, stage, team_a_id, team_b_id, date, time, venue, status, score_a, score_b, minute_text, live_start_timestamp, live_period, confirmed_result)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(newId, matchCode, match_day_id, group_id || null, stage, team_a_id, team_b_id, date, time, venue, status, valScoreA, valScoreB, minute_text || '', liveStartTs, livePeriod, status === 'FULL_TIME' ? 1 : 0);
+      await tx.prepare(`
+        INSERT INTO matches (id, match_code, match_day_id, group_id, stage, team_a_id, team_b_id, date, time, venue, status, score_a, score_b, minute_text, live_start_timestamp, live_period, confirmed_result)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `).run(newId, matchCode, match_day_id, group_id || null, stage, team_a_id, team_b_id, date, time, venue, status, valScoreA, valScoreB, minute_text || '', liveStartTs, livePeriod, status === 'FULL_TIME' ? 1 : 0);
 
-    return res.json({ success: true, message: `Match created successfully as ${status}.`, match_code: matchCode });
+      return { matchCode };
+    });
+
+    return res.json({ success: true, message: `Match created successfully as ${status}.`, match_code: result.matchCode });
   }
 });
 
