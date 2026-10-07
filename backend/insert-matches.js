@@ -78,8 +78,8 @@ async function run() {
     { teamA: teams.SWZ, teamB: teams.UGA, md: 'md-5', date: '2026-10-04', time: '17:00', group: 'grp-b', stage: 'GROUP' },
     { teamA: teams.SSD, teamB: teams.TZA, md: 'md-6', date: '2026-10-05', time: '17:00', group: 'grp-a', stage: 'GROUP' },
     { teamA: teams.LBR, teamB: teams.NGA, md: 'md-7', date: '2026-10-06', time: '17:00', group: 'grp-a', stage: 'GROUP' },
-    { teamA: tbdA1, teamB: tbdB2, md: 'md-8', date: '2026-10-08', time: '15:00', group: null, stage: 'SEMI_FINAL' },
-    { teamA: tbdB1, teamB: tbdA2, md: 'md-8', date: '2026-10-08', time: '17:00', group: null, stage: 'SEMI_FINAL' },
+    { teamA: teams.SSD, teamB: teams.UGA, md: 'md-8', date: '2026-10-08', time: '15:00', group: null, stage: 'SEMI_FINAL' },
+    { teamA: teams.LBR, teamB: teams.SWZ, md: 'md-8', date: '2026-10-08', time: '17:00', group: null, stage: 'SEMI_FINAL' },
     { teamA: tbdSF1, teamB: tbdSF2, md: 'md-9', date: '2026-10-10', time: '15:00', group: null, stage: 'THIRD_PLACE' },
     { teamA: tbdSFW1, teamB: tbdSFW2, md: 'md-9', date: '2026-10-10', time: '16:45', group: null, stage: 'FINAL' }
   ];

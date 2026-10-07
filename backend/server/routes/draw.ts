@@ -88,15 +88,15 @@ router.get('/', async (req, res) => {
       semiFinals: [
         {
           matchCode: 'MIUCC-SF1',
-          title: 'Semi-Final 1 (Group A Winner vs Group B Runner-Up)',
-          teamA: formatTeam(a1, 'Winner Group A (A1)', 'Group A 1st'),
-          teamB: formatTeam(b2, 'Runner-Up Group B (B2)', 'Group B 2nd')
+          title: 'Semi-Final 1 (South Sudan vs USAMU)',
+          teamA: formatTeam(a1, 'South Sudan (A1)', 'Group A 1st'),
+          teamB: formatTeam(b2, 'USAMU (B2)', 'Group B 2nd')
         },
         {
           matchCode: 'MIUCC-SF2',
-          title: 'Semi-Final 2 (Group B Winner vs Group A Runner-Up)',
-          teamA: formatTeam(b1, 'Winner Group B (B1)', 'Group B 1st'),
-          teamB: formatTeam(a2, 'Runner-Up Group A (A2)', 'Group A 2nd')
+          title: 'Semi-Final 2 (MULSU vs Eswatini FC)',
+          teamA: formatTeam(b1, 'MULSU (B1)', 'Group B 1st'),
+          teamB: formatTeam(a2, 'Eswatini FC (A2)', 'Group A 2nd')
         }
       ],
       final: {

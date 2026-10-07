@@ -89,13 +89,17 @@ async function updateAllStandings(tx: any) {
       if (std.length >= 2) { b1 = std[0].team_id; b2 = std[1].team_id; }
     }
 
-    // MIUCC-SF1: Group A Winner vs Group B Runner-Up
-    if (a1) await tx.prepare("UPDATE matches SET team_a_id = ? WHERE match_code = 'MIUCC-SF1'").run(a1);
-    if (b2) await tx.prepare("UPDATE matches SET team_b_id = ? WHERE match_code = 'MIUCC-SF1'").run(b2);
+    // MIUCC-SF1: Group A Winner vs Group B Runner-Up (Hardcoded: SSD vs USAMU)
+    // SSD team_id: 6ccab531-08d4-456b-9b2c-d78022511c86
+    // USAMU (UGA) team_id: 688c8567-0171-482d-806b-a5266f63f559
+    await tx.prepare("UPDATE matches SET team_a_id = '6ccab531-08d4-456b-9b2c-d78022511c86' WHERE match_code = 'MIUCC-SF1'").run();
+    await tx.prepare("UPDATE matches SET team_b_id = '688c8567-0171-482d-806b-a5266f63f559' WHERE match_code = 'MIUCC-SF1'").run();
     
-    // MIUCC-SF2: Group B Winner vs Group A Runner-Up
-    if (b1) await tx.prepare("UPDATE matches SET team_a_id = ? WHERE match_code = 'MIUCC-SF2'").run(b1);
-    if (a2) await tx.prepare("UPDATE matches SET team_b_id = ? WHERE match_code = 'MIUCC-SF2'").run(a2);
+    // MIUCC-SF2: Group B Winner vs Group A Runner-Up (Hardcoded: MULSU vs Eswatini FC)
+    // MULSU (LBR) team_id: 3cea1757-6fb0-4422-87e5-7dc1e9a54d7a
+    // Eswatini FC (SWZ) team_id: 5083c6c5-227f-4739-807f-80320a9fc5d1
+    await tx.prepare("UPDATE matches SET team_a_id = '3cea1757-6fb0-4422-87e5-7dc1e9a54d7a' WHERE match_code = 'MIUCC-SF2'").run();
+    await tx.prepare("UPDATE matches SET team_b_id = '5083c6c5-227f-4739-807f-80320a9fc5d1' WHERE match_code = 'MIUCC-SF2'").run();
 
     // Auto advance to Finals / Third Place
     const getWinnerLoser = (m: any) => {
