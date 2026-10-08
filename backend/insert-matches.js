@@ -87,6 +87,9 @@ async function run() {
   const defaultVenue = 'Marwadi University Main Stadium';
   const semifinalVenue = 'RAILWAY PITCH, MADHAPAR, RAJKOT';
 
+  const defaultVenue = 'Marwadi University Main Stadium';
+  const semifinalVenue = 'RAILWAY PITCH, MADHAPAR, RAJKOT';
+
   // Clear existing matches to avoid duplicates
   await client.execute('DELETE FROM matches');
 
