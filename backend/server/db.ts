@@ -116,6 +116,29 @@ export const db = {
 };
 
 /** Fails fast with a clear message rather than surfacing as a confusing 500 later. */
+
+async function migrateSemifinalVenue() {
+  const migrationKey = 'semifinal_venue_railway_pitch_madhapar_rajkot_v1';
+  const existing = await db.prepare('SELECT value FROM system_meta WHERE key = ?').get(migrationKey);
+  if (existing) return;
+
+  const result = await db.prepare(
+    "UPDATE matches SET venue = ? WHERE stage = 'SEMI_FINAL'"
+  ).run('RAILWAY PITCH, MADHAPAR, RAJKOT');
+
+  await db.prepare(
+    'INSERT INTO system_meta (key, value) VALUES (?, ?)'
+  ).run(migrationKey, JSON.stringify({
+    venue: 'RAILWAY PITCH, MADHAPAR, RAJKOT',
+    updated_rows: result.changes,
+    migrated_at: new Date().toISOString()
+  }));
+
+  console.log(
+    `Semifinal venue migration complete: ${result.changes} match(es) set to RAILWAY PITCH, MADHAPAR, RAJKOT.`
+  );
+}
+
 async function assertConnectivity() {
   try {
     await getClient().execute('SELECT 1');
@@ -173,6 +196,7 @@ export async function initDatabase() {
     try { await getClient().execute(sql); } catch { /* column already exists */ }
   }
 
+  await migrateSemifinalVenue();
   await fixCoachIds();
   await ensureCoachesExist();
   await seedDatabase();
