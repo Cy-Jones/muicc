@@ -19,7 +19,7 @@ export const AdminCreateMatchModal: React.FC<AdminCreateMatchModalProps> = ({ te
   const [scoreB, setScoreB] = useState('0');
   const [matchDate, setMatchDate] = useState('2026-09-26');
   const [matchTime, setMatchTime] = useState('16:00');
-  const [matchVenue, setMatchVenue] = useState('Marwadi University Main Stadium');
+  const [matchVenue, setMatchVenue] = useState('RAILWAY PITCH, MADHAPAR, RAJKOT');
 
   const handleCreateMatchSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
