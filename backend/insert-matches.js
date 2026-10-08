@@ -84,8 +84,7 @@ async function run() {
     { teamA: tbdSFW1, teamB: tbdSFW2, md: 'md-9', date: '2026-10-10', time: '16:45', group: null, stage: 'FINAL' }
   ];
 
-  const defaultVenue = 'Marwadi University Main Stadium';
-  const semifinalVenue = 'RAILWAY PITCH, MADHAPAR, RAJKOT';
+  const defaultVenue = 'RAILWAY PITCH, MADHAPAR, RAJKOT';
 
   // Clear existing matches to avoid duplicates
   await client.execute('DELETE FROM matches');
@@ -99,7 +98,7 @@ async function run() {
         INSERT INTO matches (id, match_code, match_day_id, group_id, stage, team_a_id, team_b_id, date, time, venue, status, score_a, score_b, minute_text, confirmed_result)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'SCHEDULED', 0, 0, '', 0)
       `,
-      args: [newId, matchCode, m.md, m.group, m.stage, m.teamA, m.teamB, m.date, m.time, m.stage === 'SEMI_FINAL' ? semifinalVenue : defaultVenue]
+      args: [newId, matchCode, m.md, m.group, m.stage, m.teamA, m.teamB, m.date, m.time, defaultVenue]
     });
     count++;
   }
