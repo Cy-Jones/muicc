@@ -257,7 +257,7 @@ router.post('/admin/save', authenticateAdmin, async (req: AuthenticatedRequest, 
   if (!stage) stage = 'Group Stage';
   if (!date) date = '2026-09-26';
   if (!time) time = '16:00';
-  if (!venue) venue = 'Marwadi University Main Stadium';
+  if (!venue) venue = 'RAILWAY PITCH, MADHAPAR, RAJKOT';
   if (!status) status = 'SCHEDULED';
 
   const valScoreA = parseInt(score_a || '0', 10);
