@@ -330,7 +330,22 @@ router.put('/admin/:id/live-clock', authenticateAdmin, async (req: Authenticated
 
   const now = Date.now();
 
-  if (action === 'START_1ST_HALF') {
+  if (action === 'REOPEN_AT_HALF_TIME') {
+    // Recover a match accidentally ended before the second half.
+    await db.prepare(`
+      UPDATE matches
+      SET status = 'HALF_TIME',
+          live_period = 'HALF_TIME',
+          minute_text = 'HT',
+          confirmed_result = 0,
+          live_start_timestamp = NULL,
+          live_pause_elapsed_seconds = 0,
+          live_timer_is_paused = 0
+      WHERE id = ?
+    `).run(matchId);
+    await updateAllStandings(db);
+    return res.json({ success: true, message: 'Match reopened at half-time. You can now start the second half.' });
+  } else if (action === 'START_1ST_HALF') {
     await db.prepare(`UPDATE matches SET status = 'LIVE', live_period = 'FIRST_HALF', live_start_timestamp = ?, live_pause_elapsed_seconds = 0, minute_text = '0''' WHERE id = ?`).run(now, matchId);
     return res.json({ success: true, message: 'First Half Started!' });
   } else if (action === 'END_1ST_HALF' || action === 'PAUSE_HALF_TIME') {
