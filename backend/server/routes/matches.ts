@@ -41,7 +41,7 @@ async function updateAllStandings(tx: any) {
 
   const allMatches = await tx.prepare(`
     SELECT * FROM matches
-    WHERE confirmed_result = 1 AND status = 'FULL_TIME'
+    WHERE confirmed_result = 1 AND status = 'FULL_TIME' AND group_id IS NOT NULL AND COALESCE(is_test_mode, 0) = 0
   `).all() as any[];
 
   for (const m of allMatches) {

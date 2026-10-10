@@ -23,17 +23,16 @@ router.get('/', async (req, res) => {
     });
   }
 
-  // Top Goalscorers (sorted by goals DESC, then assists DESC)
   const topScorers = await db.prepare(`
     SELECT 
       p.id, p.player_id, p.full_name, p.photo_url, p.position, p.jersey_number,
       t.name as team_name, t.logo_url as team_logo, t.country as team_country,
-      (SELECT COUNT(*) FROM match_events WHERE player_id = p.id AND event_type = 'GOAL' AND is_own_goal = 0) as goals,
-      (SELECT COUNT(*) FROM match_events WHERE secondary_player_id = p.id AND event_type = 'GOAL' AND is_own_goal = 0) as assists
+      (SELECT COUNT(*) FROM match_events me JOIN matches m ON me.match_id = m.id WHERE me.player_id = p.id AND me.event_type = 'GOAL' AND me.is_own_goal = 0 AND COALESCE(m.is_test_mode, 0) = 0) as goals,
+      (SELECT COUNT(*) FROM match_events me JOIN matches m ON me.match_id = m.id WHERE me.secondary_player_id = p.id AND me.event_type = 'GOAL' AND me.is_own_goal = 0 AND COALESCE(m.is_test_mode, 0) = 0) as assists
     FROM players p
     JOIN teams t ON p.team_id = t.id
     WHERE p.status = 'APPROVED'
-      AND (SELECT COUNT(*) FROM match_events WHERE player_id = p.id AND event_type = 'GOAL' AND is_own_goal = 0) > 0
+      AND (SELECT COUNT(*) FROM match_events me JOIN matches m ON me.match_id = m.id WHERE me.player_id = p.id AND me.event_type = 'GOAL' AND me.is_own_goal = 0 AND COALESCE(m.is_test_mode, 0) = 0) > 0
     ORDER BY goals DESC, assists DESC, p.full_name ASC
     LIMIT 10
   `).all() as any[];
@@ -43,12 +42,12 @@ router.get('/', async (req, res) => {
     SELECT 
       p.id, p.player_id, p.full_name, p.photo_url, p.position, p.jersey_number,
       t.name as team_name, t.logo_url as team_logo, t.country as team_country,
-      (SELECT COUNT(*) FROM match_events WHERE player_id = p.id AND event_type = 'GOAL' AND is_own_goal = 0) as goals,
-      (SELECT COUNT(*) FROM match_events WHERE secondary_player_id = p.id AND event_type = 'GOAL' AND is_own_goal = 0) as assists
+      (SELECT COUNT(*) FROM match_events me JOIN matches m ON me.match_id = m.id WHERE me.player_id = p.id AND me.event_type = 'GOAL' AND me.is_own_goal = 0 AND COALESCE(m.is_test_mode, 0) = 0) as goals,
+      (SELECT COUNT(*) FROM match_events me JOIN matches m ON me.match_id = m.id WHERE me.secondary_player_id = p.id AND me.event_type = 'GOAL' AND me.is_own_goal = 0 AND COALESCE(m.is_test_mode, 0) = 0) as assists
     FROM players p
     JOIN teams t ON p.team_id = t.id
     WHERE p.status = 'APPROVED'
-      AND (SELECT COUNT(*) FROM match_events WHERE secondary_player_id = p.id AND event_type = 'GOAL' AND is_own_goal = 0) > 0
+      AND (SELECT COUNT(*) FROM match_events me JOIN matches m ON me.match_id = m.id WHERE me.secondary_player_id = p.id AND me.event_type = 'GOAL' AND me.is_own_goal = 0 AND COALESCE(m.is_test_mode, 0) = 0) > 0
     ORDER BY assists DESC, goals DESC, p.full_name ASC
     LIMIT 10
   `).all() as any[];
