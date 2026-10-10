@@ -65,6 +65,14 @@ export const AdminMatchesModule: React.FC<AdminMatchesModuleProps> = ({ matches,
     } catch (err: any) { alert(err.message); }
   };
 
+  const handleReopenAtHalfTime = async (matchId: string, matchCode: string) => {
+    if (!window.confirm('Reopen ' + matchCode + ' at half-time so the second half can be started? This will undo the accidental full-time completion.')) return;
+    try {
+      const res = await api.adminControlLiveClock(matchId, { action: 'REOPEN_AT_HALF_TIME' });
+      setMessage(res.message);
+      onRefresh();
+    } catch (err: any) { alert(err.message); }
+  };
   const handleLiveClockControl = async (matchId: string, action: string, stoppageTime?: number) => {
     try {
       const res = await api.adminControlLiveClock(matchId, { action, stoppage_time: stoppageTime });
@@ -164,6 +172,15 @@ export const AdminMatchesModule: React.FC<AdminMatchesModuleProps> = ({ matches,
 
                 <div className="p-3 bg-surface-bg border-t border-surface-border flex flex-wrap items-center justify-between gap-3">
                   <div className="flex flex-wrap items-center gap-2">
+                    {m.status === 'FULL_TIME' && liveClock.phase === 'COMPLETED' && (
+                      <button
+                        onClick={() => handleReopenAtHalfTime(m.id, m.match_code)}
+                        className="action-btn bg-status-warning/10 text-status-warning border-status-warning/30"
+                        title="Undo an accidental full-time ending and return this match to half-time"
+                      >
+                        <Play set="bold" className="w-3.5 h-3.5" /> Reopen at HT
+                      </button>
+                    )}
                     {m.confirmed_result !== 1 && (
                       <>
                         {liveClock.phase === 'PRE_MATCH' && <button onClick={() => handleLiveClockControl(m.id, 'START_1ST_HALF')} className="action-btn bg-status-completed/10 text-status-completed border-status-completed/30"><Play set="bold" className="w-3.5 h-3.5" /> Start 1st Half</button>}
