@@ -55,6 +55,7 @@ export const AdminDashboard: React.FC = () => {
   const [isDrawLocked, setIsDrawLocked] = useState(false);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
+  const [loadError, setLoadError] = useState('');
 
   
 
@@ -80,42 +81,72 @@ export const AdminDashboard: React.FC = () => {
 
   async function loadAllAdminData() {
     setLoading(true);
-    try {
-      const [statsRes, teamsRes, playersRes, matchesRes, predsRes, sponRes, newsRes, galRes, drawRes] = await Promise.allSettled([
-        api.adminGetDashboardStats(),
-        api.adminGetTeams(),
-        api.adminGetPlayers(),
-        api.getMatches(),
-        api.adminGetPredictions(),
-        api.getSponsors(),
-        api.getNews(),
-        api.getGallery(),
-        api.getDraw()
-      ]);
+    setLoadError('');
 
-      if (statsRes.status === 'fulfilled') setStats(statsRes.value.metrics);
-      if (teamsRes.status === 'fulfilled') setTeams(teamsRes.value);
-      if (playersRes.status === 'fulfilled') setPlayers(playersRes.value);
-      if (matchesRes.status === 'fulfilled') setMatches(matchesRes.value);
-      if (predsRes.status === 'fulfilled') setPredictions(predsRes.value);
-      if (sponRes.status === 'fulfilled') setSponsors(sponRes.value || []);
-      if (newsRes.status === 'fulfilled') setNews(newsRes.value || []);
-      if (galRes.status === 'fulfilled') setGallery(galRes.value || []);
-      if (drawRes.status === 'fulfilled') {
-        setDraw(drawRes.value.draw || []);
-        setBracket(drawRes.value.knockoutBracket || null);
-        setIsDrawLocked(drawRes.value.isLocked || false);
+    const requests = [
+      ['dashboard stats', api.adminGetDashboardStats()],
+      ['teams', api.adminGetTeams()],
+      ['players', api.adminGetPlayers()],
+      ['matches', api.getMatches()],
+      ['predictions', api.adminGetPredictions()],
+      ['sponsors', api.getSponsors()],
+      ['news', api.getNews()],
+      ['gallery', api.getGallery()],
+      ['tournament draw', api.getDraw()]
+    ] as const;
+
+    try {
+      const results = await Promise.allSettled(requests.map(([, request]) => request));
+      const failures: string[] = [];
+      let unauthorized = false;
+
+      results.forEach((result, index) => {
+        const label = requests[index][0];
+        if (result.status === 'rejected') {
+          const error = result.reason;
+          const message = error instanceof Error ? error.message : String(error);
+          failures.push(`${label}: ${message}`);
+          if (/401|unauthorized|invalid or expired admin token/i.test(message)) unauthorized = true;
+          console.error(`[AdminDashboard] Failed to load ${label}`, error);
+          return;
+        }
+
+        const value: any = result.value;
+        switch (index) {
+          case 0: setStats(value?.metrics ?? null); break;
+          case 1: setTeams(Array.isArray(value) ? value : value?.teams ?? []); break;
+          case 2: setPlayers(Array.isArray(value) ? value : value?.players ?? []); break;
+          case 3: setMatches(Array.isArray(value) ? value : value?.matches ?? []); break;
+          case 4: setPredictions(Array.isArray(value) ? value : value?.predictions ?? []); break;
+          case 5: setSponsors(Array.isArray(value) ? value : value?.sponsors ?? []); break;
+          case 6: setNews(Array.isArray(value) ? value : value?.news ?? []); break;
+          case 7: setGallery(Array.isArray(value) ? value : value?.gallery ?? []); break;
+          case 8:
+            setDraw(value?.draw ?? []);
+            setBracket(value?.knockoutBracket ?? null);
+            setIsDrawLocked(Boolean(value?.isLocked));
+            break;
+        }
+      });
+
+      if (unauthorized) {
+        removeAuthToken();
+        navigate('/admin/login', { replace: true, state: { message: 'Your admin session expired. Please sign in again.' } });
+        return;
       }
 
+      if (failures.length) {
+        setLoadError(
+          `Some admin data could not be loaded: ${failures.join(' | ')}. Check the frontend VITE_API_URL setting and backend service health on Render, then refresh.`
+        );
+      }
     } catch (err) {
-      console.error(err);
-      removeAuthToken();
-      navigate('/admin/login');
+      console.error('[AdminDashboard] Unexpected data loading failure:', err);
+      setLoadError(err instanceof Error ? err.message : 'Unexpected error loading admin data.');
     } finally {
       setLoading(false);
     }
   }
-
 
 
 
@@ -173,6 +204,14 @@ export const AdminDashboard: React.FC = () => {
           );
         })}
       </div>
+
+      {loadError && !loading && (
+        <div role="alert" className="rounded-lg border border-status-error/40 bg-status-error/10 p-4 text-sm text-status-error">
+          <p className="font-black uppercase tracking-wide">Admin data connection problem</p>
+          <p className="mt-2 break-words">{loadError}</p>
+          <button onClick={loadAllAdminData} className="mt-3 rounded-md border border-status-error/40 px-3 py-2 font-bold hover:bg-status-error/10">Retry loading data</button>
+        </div>
+      )}
 
       {loading ? (
         <div className="py-20 flex flex-col items-center justify-center space-y-4">
