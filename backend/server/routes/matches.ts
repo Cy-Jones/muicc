@@ -437,9 +437,17 @@ router.post('/admin/:id/events', authenticateAdmin, async (req: AuthenticatedReq
     const match = await db.prepare('SELECT * FROM matches WHERE id = ?').get(matchId) as any;
     if (match) {
       if (team_id === match.team_a_id) {
-        await db.prepare('UPDATE matches SET score_a = score_a + 1 WHERE id = ?').run(matchId);
+        if (is_own_goal) {
+          await db.prepare('UPDATE matches SET score_b = score_b + 1 WHERE id = ?').run(matchId);
+        } else {
+          await db.prepare('UPDATE matches SET score_a = score_a + 1 WHERE id = ?').run(matchId);
+        }
       } else if (team_id === match.team_b_id) {
-        await db.prepare('UPDATE matches SET score_b = score_b + 1 WHERE id = ?').run(matchId);
+        if (is_own_goal) {
+          await db.prepare('UPDATE matches SET score_a = score_a + 1 WHERE id = ?').run(matchId);
+        } else {
+          await db.prepare('UPDATE matches SET score_b = score_b + 1 WHERE id = ?').run(matchId);
+        }
       }
     }
   }
@@ -462,9 +470,17 @@ router.delete('/admin/:matchId/events/:eventId', authenticateAdmin, async (req: 
     const match = await db.prepare('SELECT * FROM matches WHERE id = ?').get(matchId) as any;
     if (match) {
       if (event.team_id === match.team_a_id) {
-        await db.prepare('UPDATE matches SET score_a = MAX(0, score_a - 1) WHERE id = ?').run(matchId);
+        if (event.is_own_goal) {
+          await db.prepare('UPDATE matches SET score_b = MAX(0, score_b - 1) WHERE id = ?').run(matchId);
+        } else {
+          await db.prepare('UPDATE matches SET score_a = MAX(0, score_a - 1) WHERE id = ?').run(matchId);
+        }
       } else if (event.team_id === match.team_b_id) {
-        await db.prepare('UPDATE matches SET score_b = MAX(0, score_b - 1) WHERE id = ?').run(matchId);
+        if (event.is_own_goal) {
+          await db.prepare('UPDATE matches SET score_a = MAX(0, score_a - 1) WHERE id = ?').run(matchId);
+        } else {
+          await db.prepare('UPDATE matches SET score_b = MAX(0, score_b - 1) WHERE id = ?').run(matchId);
+        }
       }
     }
   }
