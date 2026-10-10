@@ -34,7 +34,6 @@ router.get('/', async (req, res) => {
     WHERE p.status = 'APPROVED'
       AND (SELECT COUNT(*) FROM match_events me JOIN matches m ON me.match_id = m.id WHERE me.player_id = p.id AND me.event_type = 'GOAL' AND me.is_own_goal = 0 AND COALESCE(m.is_test_mode, 0) = 0) > 0
     ORDER BY goals DESC, assists DESC, p.full_name ASC
-    LIMIT 10
   `).all() as any[];
 
   // Top Playmakers / Assists (sorted by assists DESC, then goals DESC)
@@ -49,7 +48,6 @@ router.get('/', async (req, res) => {
     WHERE p.status = 'APPROVED'
       AND (SELECT COUNT(*) FROM match_events me JOIN matches m ON me.match_id = m.id WHERE me.secondary_player_id = p.id AND me.event_type = 'GOAL' AND me.is_own_goal = 0 AND COALESCE(m.is_test_mode, 0) = 0) > 0
     ORDER BY assists DESC, goals DESC, p.full_name ASC
-    LIMIT 10
   `).all() as any[];
 
   return res.json({
