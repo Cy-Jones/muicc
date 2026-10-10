@@ -53,7 +53,7 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
   if (contentType.includes('application/json')) {
     data = await res.json();
   } else {
-    const body = await res.text();
+    await res.text();
     const base = API_BASE || window.location.origin;
     throw new Error(
       `API returned non-JSON content (HTTP ${res.status}) from ${base}${endpoint}. The production VITE_API_URL may be missing or pointing to the frontend instead of the backend API.`
