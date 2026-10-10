@@ -48,9 +48,19 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
     headers,
   });
 
-  const data = await res.json();
+  const contentType = res.headers.get('content-type') || '';
+  let data: any;
+  if (contentType.includes('application/json')) {
+    data = await res.json();
+  } else {
+    const body = await res.text();
+    const base = API_BASE || window.location.origin;
+    throw new Error(
+      `API returned non-JSON content (HTTP ${res.status}) from ${base}${endpoint}. The production VITE_API_URL may be missing or pointing to the frontend instead of the backend API.`
+    );
+  }
   if (!res.ok) {
-    throw new Error(data.error || 'An unexpected server error occurred.');
+    throw new Error(data?.error || `API request failed with HTTP ${res.status}.`);
   }
 
   return data as T;
