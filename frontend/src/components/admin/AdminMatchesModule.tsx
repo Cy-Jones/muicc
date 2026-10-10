@@ -172,7 +172,7 @@ export const AdminMatchesModule: React.FC<AdminMatchesModuleProps> = ({ matches,
 
                 <div className="p-3 bg-surface-bg border-t border-surface-border flex flex-wrap items-center justify-between gap-3">
                   <div className="flex flex-wrap items-center gap-2">
-                    {m.status === 'FULL_TIME' && liveClock.phase === 'COMPLETED' && (
+                    {m.match_code === 'MIUCC-M15' && liveClock.phase === 'COMPLETED' && (
                       <button
                         onClick={() => handleReopenAtHalfTime(m.id, m.match_code)}
                         className="action-btn bg-status-warning/10 text-status-warning border-status-warning/30"
