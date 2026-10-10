@@ -11,6 +11,7 @@ export const FixturesResultsPage: React.FC = () => {
   const [standings, setStandings] = useState<any[]>([]);
   const [topScorers, setTopScorers] = useState<any[]>([]);
   const [topAssists, setTopAssists] = useState<any[]>([]);
+  const [semiFinalScorers, setSemiFinalScorers] = useState<any[]>([]);
   const [systemNations, setSystemNations] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<'MATCHES' | 'STANDINGS'>('MATCHES');
   const [matchFilter, setMatchFilter] = useState<'ALL' | 'LIVE' | 'TODAY' | 'UPCOMING' | 'RESULTS'>('ALL');
@@ -37,6 +38,7 @@ export const FixturesResultsPage: React.FC = () => {
           setStandings(standingsData.value?.standings || []);
           setTopScorers(standingsData.value?.topScorers || []);
           setTopAssists(standingsData.value?.topAssists || []);
+          setSemiFinalScorers(standingsData.value?.semiFinalScorers || []);
         }
         if (settingsData.status === 'fulfilled' && settingsData.value?.nations) setSystemNations(settingsData.value.nations);
       } catch (err) {
@@ -230,6 +232,41 @@ export const FixturesResultsPage: React.FC = () => {
                   </div>
                 </div>
 
+              </div>
+
+              {/* Semi-Final Scorers */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+                <div className="data-card overflow-hidden">
+                  <div className="bg-surface-bg px-4 py-3 border-b border-surface-border flex justify-between items-center">
+                    <h3 className="font-heading text-lg font-black text-brand uppercase tracking-tight">
+                      Semi-Final Scorers
+                    </h3>
+                  </div>
+                  <div className="bg-surface-card h-full">
+                    {loading ? (
+                      <div className="p-8 text-center text-dark-muted">Loading...</div>
+                    ) : semiFinalScorers.length === 0 ? (
+                      <div className="p-8 text-center text-dark-muted text-sm">No goals scored yet.</div>
+                    ) : (
+                      <div className="flex flex-col">
+                        {semiFinalScorers.map((scorer, index) => (
+                          <div key={scorer.id} className="flex items-center gap-3 p-3 border-b border-surface-border last:border-0 hover:bg-surface-hover transition-colors">
+                            <div className="w-6 text-center flex-shrink-0 text-xs font-bold text-dark-muted">
+                              {index + 1}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-bold text-sm text-dark-bg truncate">{scorer.full_name}</p>
+                              <p className="text-xs text-dark-muted truncate">{scorer.team_name}</p>
+                            </div>
+                            <div className="font-black text-base text-brand w-8 text-right pr-2">
+                              {scorer.goals}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
 

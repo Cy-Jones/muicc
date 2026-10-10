@@ -50,10 +50,24 @@ router.get('/', async (req, res) => {
     ORDER BY assists DESC, goals DESC, p.full_name ASC
   `).all() as any[];
 
+  // Semi-Final Scorers
+  const semiFinalScorers = await db.prepare(`
+    SELECT 
+      p.id, p.player_id, p.full_name, p.photo_url, p.position, p.jersey_number,
+      t.name as team_name, t.logo_url as team_logo, t.country as team_country,
+      (SELECT COUNT(*) FROM match_events me JOIN matches m ON me.match_id = m.id WHERE me.player_id = p.id AND me.event_type = 'GOAL' AND me.is_own_goal = 0 AND m.stage = 'SEMI_FINAL') as goals
+    FROM players p
+    JOIN teams t ON p.team_id = t.id
+    WHERE p.status = 'APPROVED'
+      AND (SELECT COUNT(*) FROM match_events me JOIN matches m ON me.match_id = m.id WHERE me.player_id = p.id AND me.event_type = 'GOAL' AND me.is_own_goal = 0 AND m.stage = 'SEMI_FINAL') > 0
+    ORDER BY goals DESC, p.full_name ASC
+  `).all() as any[];
+
   return res.json({
     standings: standingsByGroup,
     topScorers,
-    topAssists
+    topAssists,
+    semiFinalScorers
   });
 });
 
