@@ -98,14 +98,23 @@ export const HomePageMatchPanel: React.FC<HomePageMatchPanelProps> = ({ matches 
                       {m.status === 'SCHEDULED' ? (
                         <span className="font-heading text-sm text-dark-muted bg-surface-bg px-2 py-1 rounded border border-surface-border">{m.time}</span>
                       ) : (
-                        <div className="flex items-center gap-2">
-                          <span className="font-heading text-xl font-bold text-dark-bg">{m.score_a ?? 0}</span>
-                          <span className="text-surface-border font-bold">-</span>
-                          <span className="font-heading text-xl font-bold text-dark-bg">{m.score_b ?? 0}</span>
+                        <div className="flex flex-col items-center">
+                          <div className="flex items-center gap-2">
+                            <span className="font-heading text-xl font-bold text-dark-bg">{m.score_a ?? 0}</span>
+                            <span className="text-surface-border font-bold">-</span>
+                            <span className="font-heading text-xl font-bold text-dark-bg">{m.score_b ?? 0}</span>
+                          </div>
+                          {m.penalty_a !== null && m.penalty_a !== undefined && m.penalty_b !== null && m.penalty_b !== undefined && (
+                            <span className="text-[10px] font-black text-brand tracking-wide">
+                              ({m.penalty_a}-{m.penalty_b} pens)
+                            </span>
+                          )}
                         </div>
                       )}
                       <span className={`text-[9px] font-bold uppercase mt-1 tracking-wider ${m.status === 'LIVE' || m.status === 'HALF_TIME' ? 'text-status-live animate-pulse' : 'text-dark-muted'}`}>
-                        {m.status === 'LIVE' || m.status === 'HALF_TIME' ? getMatchLiveClock(m).display : m.status.replace(/_/g, ' ')}
+                        {m.status === 'LIVE' || m.status === 'HALF_TIME' 
+                          ? getMatchLiveClock(m).display 
+                          : (m.penalty_a != null ? 'FT (Pens)' : m.status.replace(/_/g, ' '))}
                       </span>
                     </div>
 

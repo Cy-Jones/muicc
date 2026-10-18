@@ -72,11 +72,12 @@ app.use('/uploads', express.static(path.join(localPublic, 'uploads')));
 app.use('/logos', express.static(path.join(rootPublic, 'logos')));
 app.use('/logos', express.static(path.join(localPublic, 'logos')));
 
-// Prevent caching for all API responses
+// Default cache policy: strictly no-store for mutations and auth, allow public GET endpoints to specify caching
 app.use('/api', (req, res, next) => {
-  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-  res.setHeader('Pragma', 'no-cache');
-  res.setHeader('Expires', '0');
+  if (req.method !== 'GET' || req.path.startsWith('/auth') || req.path.startsWith('/admin')) {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+  }
   next();
 });
 

@@ -22,23 +22,46 @@ export const PlayersPage: React.FC = () => {
   const [scanInput, setScanInput] = useState('');
   const [scanError, setScanError] = useState('');
 
+  const [debouncedSearch, setDebouncedSearch] = useState(search);
+
+  // Debounce search input by 300ms to avoid querying on every keystroke
   useEffect(() => {
-    async function loadData() {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 300);
+    return () => clearTimeout(handler);
+  }, [search]);
+
+  // Load teams list once on mount
+  useEffect(() => {
+    api.getTeams()
+      .then(teamsData => {
+        if (Array.isArray(teamsData)) setTeams(teamsData);
+      })
+      .catch(err => console.error('Error loading teams:', err));
+  }, []);
+
+  // Fetch filtered players whenever debouncedSearch, teamId, or position change
+  useEffect(() => {
+    let isCancelled = false;
+    async function loadPlayers() {
       try {
-        const [playersData, teamsData] = await Promise.allSettled([
-          api.getPlayers({ search, team_id: teamId, position }),
-          api.getTeams()
-        ]);
-        if (playersData.status === 'fulfilled') setPlayers(playersData.value || []);
-        if (teamsData.status === 'fulfilled') setTeams(teamsData.value || []);
+        setLoading(true);
+        const playersData = await api.getPlayers({ search: debouncedSearch, team_id: teamId, position });
+        if (!isCancelled && Array.isArray(playersData)) {
+          setPlayers(playersData);
+        }
       } catch (err) {
-        console.error(err);
+        if (!isCancelled) console.error('Error loading players:', err);
       } finally {
-        setLoading(false);
+        if (!isCancelled) setLoading(false);
       }
     }
-    loadData();
-  }, [search, teamId, position]);
+    loadPlayers();
+    return () => {
+      isCancelled = true;
+    };
+  }, [debouncedSearch, teamId, position]);
 
   const handleScanSubmit = (e: React.FormEvent) => {
     e.preventDefault();

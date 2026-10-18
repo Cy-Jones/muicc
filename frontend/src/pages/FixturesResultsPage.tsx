@@ -12,6 +12,7 @@ export const FixturesResultsPage: React.FC = () => {
   const [topScorers, setTopScorers] = useState<any[]>([]);
   const [topAssists, setTopAssists] = useState<any[]>([]);
   const [semiFinalScorers, setSemiFinalScorers] = useState<any[]>([]);
+  const [finalsMatches, setFinalsMatches] = useState<any[]>([]);
   const [systemNations, setSystemNations] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<'MATCHES' | 'STANDINGS'>('MATCHES');
   const [matchFilter, setMatchFilter] = useState<'ALL' | 'LIVE' | 'TODAY' | 'UPCOMING' | 'RESULTS'>('ALL');
@@ -26,12 +27,17 @@ export const FixturesResultsPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function loadData() {
+    // Fetch static settings/nations once on mount
+    api.getSettings().then(settingsData => {
+      if (settingsData?.nations) setSystemNations(settingsData.nations);
+    }).catch(err => console.error(err));
+
+    async function loadMatchesAndStandings() {
+      if (document.hidden) return;
       try {
-        const [matchesData, standingsData, settingsData] = await Promise.allSettled([
+        const [matchesData, standingsData] = await Promise.allSettled([
           api.getMatches(),
-          api.getStandings(),
-          api.getSettings()
+          api.getStandings()
         ]);
         if (matchesData.status === 'fulfilled') setMatches(matchesData.value || []);
         if (standingsData.status === 'fulfilled') {
@@ -39,17 +45,30 @@ export const FixturesResultsPage: React.FC = () => {
           setTopScorers(standingsData.value?.topScorers || []);
           setTopAssists(standingsData.value?.topAssists || []);
           setSemiFinalScorers(standingsData.value?.semiFinalScorers || []);
+          setFinalsMatches(standingsData.value?.finalsMatches || []);
         }
-        if (settingsData.status === 'fulfilled' && settingsData.value?.nations) setSystemNations(settingsData.value.nations);
       } catch (err) {
         console.error(err);
       } finally {
         setLoading(false);
       }
     }
-    loadData();
-    const interval = setInterval(loadData, 10000); // refresh every 10s
-    return () => clearInterval(interval);
+
+    loadMatchesAndStandings();
+    // Poll matches and standings every 30 seconds instead of every 10 seconds
+    const interval = setInterval(loadMatchesAndStandings, 30000);
+
+    const onVisibilityChange = () => {
+      if (!document.hidden) {
+        loadMatchesAndStandings();
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibilityChange);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+    };
   }, []);
 
   const getFilteredMatches = () => {
@@ -158,14 +177,72 @@ export const FixturesResultsPage: React.FC = () => {
               )}
             </div>
 
-            {/* Statistics Section */}
+            {/* Finals & Third Place Section */}
+            <div className="space-y-6">
+              <div className="flex items-center gap-3 border-b border-surface-border pb-2">
+                <h2 className="font-heading text-2xl font-black text-dark-bg uppercase tracking-tight">Finals & Third Place</h2>
+              </div>
+              <div className="data-card divide-y divide-surface-border">
+                {loading ? (
+                  <div className="p-12 text-center text-dark-muted">Loading matches...</div>
+                ) : finalsMatches.length > 0 ? (
+                  finalsMatches.map(m => (
+                    <MatchListItem key={m.id} match={m} onClick={() => setSelectedMatchId(m.id)} />
+                  ))
+                ) : (
+                  <div className="p-12 text-center text-dark-muted border-dashed border-surface-border border m-4 rounded">No final matches available.</div>
+                )}
+              </div>
+            </div>
+
+            {/* Semi-Final Scorers */}
+            <div className="space-y-6">
+              <div className="flex items-center gap-3 border-b border-surface-border pb-2">
+                <h2 className="font-heading text-2xl font-black text-dark-bg uppercase tracking-tight">Semi-Final Scorers</h2>
+              </div>
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="data-card overflow-hidden">
+                  <div className="bg-surface-bg px-4 py-3 border-b border-surface-border flex justify-between items-center">
+                    <h3 className="font-heading text-lg font-black text-brand uppercase tracking-tight">
+                      Goals
+                    </h3>
+                  </div>
+                  <div className="bg-surface-card h-full">
+                    {loading ? (
+                      <div className="p-8 text-center text-dark-muted">Loading...</div>
+                    ) : semiFinalScorers.length === 0 ? (
+                      <div className="p-8 text-center text-dark-muted text-sm">No goals scored yet.</div>
+                    ) : (
+                      <div className="flex flex-col">
+                        {semiFinalScorers.map((scorer, index) => (
+                          <div key={scorer.id} className="flex items-center gap-3 p-3 border-b border-surface-border last:border-0 hover:bg-surface-hover transition-colors">
+                            <div className="w-6 text-center flex-shrink-0 text-xs font-bold text-dark-muted">
+                              {index + 1}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-bold text-sm text-dark-bg truncate">{scorer.full_name}</p>
+                              <p className="text-xs text-dark-muted truncate">{scorer.team_name}</p>
+                            </div>
+                            <div className="font-black text-base text-brand w-8 text-right pr-2">
+                              {scorer.goals}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Player Statistics Section */}
             <div className="space-y-6">
               <div className="flex items-center gap-3 border-b border-surface-border pb-2">
                 <h2 className="font-heading text-2xl font-black text-dark-bg uppercase tracking-tight">Player Statistics</h2>
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                
+
                 {/* Top Scorers */}
                 <div className="data-card overflow-hidden">
                   <div className="bg-surface-bg px-4 py-3 border-b border-surface-border flex justify-between items-center">
@@ -232,41 +309,6 @@ export const FixturesResultsPage: React.FC = () => {
                   </div>
                 </div>
 
-              </div>
-
-              {/* Semi-Final Scorers */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-                <div className="data-card overflow-hidden">
-                  <div className="bg-surface-bg px-4 py-3 border-b border-surface-border flex justify-between items-center">
-                    <h3 className="font-heading text-lg font-black text-brand uppercase tracking-tight">
-                      Semi-Final Scorers
-                    </h3>
-                  </div>
-                  <div className="bg-surface-card h-full">
-                    {loading ? (
-                      <div className="p-8 text-center text-dark-muted">Loading...</div>
-                    ) : semiFinalScorers.length === 0 ? (
-                      <div className="p-8 text-center text-dark-muted text-sm">No goals scored yet.</div>
-                    ) : (
-                      <div className="flex flex-col">
-                        {semiFinalScorers.map((scorer, index) => (
-                          <div key={scorer.id} className="flex items-center gap-3 p-3 border-b border-surface-border last:border-0 hover:bg-surface-hover transition-colors">
-                            <div className="w-6 text-center flex-shrink-0 text-xs font-bold text-dark-muted">
-                              {index + 1}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="font-bold text-sm text-dark-bg truncate">{scorer.full_name}</p>
-                              <p className="text-xs text-dark-muted truncate">{scorer.team_name}</p>
-                            </div>
-                            <div className="font-black text-base text-brand w-8 text-right pr-2">
-                              {scorer.goals}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
               </div>
             </div>
 

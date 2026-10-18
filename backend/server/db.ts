@@ -191,10 +191,24 @@ export async function initDatabase() {
     'ALTER TABLE matches ADD COLUMN stoppage_time_et2 INTEGER DEFAULT 0;',
     'ALTER TABLE matches ADD COLUMN is_test_mode INTEGER DEFAULT 0;',
     'ALTER TABLE matches ADD COLUMN live_timer_is_paused INTEGER DEFAULT 0;',
+    'ALTER TABLE matches ADD COLUMN penalty_details TEXT;',
     'ALTER TABLE match_events ADD COLUMN is_own_goal INTEGER DEFAULT 0;'
   ];
   for (const sql of additions) {
     try { await getClient().execute(sql); } catch { /* column already exists */ }
+  }
+
+  // Ensure high-traffic indexes exist to prevent full-table scans
+  const performanceIndexes = [
+    'CREATE INDEX IF NOT EXISTS idx_match_events_player ON match_events(player_id);',
+    'CREATE INDEX IF NOT EXISTS idx_match_events_secondary ON match_events(secondary_player_id);',
+    'CREATE INDEX IF NOT EXISTS idx_match_events_match ON match_events(match_id);',
+    'CREATE INDEX IF NOT EXISTS idx_matches_stage_status ON matches(stage, status);',
+    'CREATE INDEX IF NOT EXISTS idx_players_status ON players(status);',
+    'CREATE INDEX IF NOT EXISTS idx_standings_group ON standings(group_id);'
+  ];
+  for (const sql of performanceIndexes) {
+    try { await getClient().execute(sql); } catch { /* index already exists */ }
   }
 
   await migrateSemifinalVenue();

@@ -3,8 +3,23 @@ import crypto from 'crypto';
 import { db } from '../db.js';
 import { authenticateAdmin, AuthenticatedRequest } from '../middleware/auth.js';
 import { asyncRouter } from '../middleware/asyncRouter.js';
+import { memoryCache, clearCache } from '../middleware/memoryCache.js';
 
 const router = asyncRouter();
+
+// Invalidate caches whenever matches or match events are mutated
+router.use((req, res, next) => {
+  if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(req.method)) {
+    res.on('finish', () => {
+      if (res.statusCode < 400) {
+        clearCache('matches');
+        clearCache('standings');
+        clearCache('tournament-summary');
+      }
+    });
+  }
+  next();
+});
 
 async function generateMatchCode(runner: any = db): Promise<string> {
   // COUNT(*) cannot safely determine the next code because deleted matches
@@ -41,7 +56,7 @@ async function updateAllStandings(tx: any) {
 
   const allMatches = await tx.prepare(`
     SELECT * FROM matches
-    WHERE confirmed_result = 1 AND status = 'FULL_TIME' AND group_id IS NOT NULL AND COALESCE(is_test_mode, 0) = 0
+    WHERE confirmed_result = 1 AND status = 'FULL_TIME' AND COALESCE(is_test_mode, 0) = 0
   `).all() as any[];
 
   for (const m of allMatches) {
@@ -49,6 +64,7 @@ async function updateAllStandings(tx: any) {
     const teamB = m.team_b_id;
     const scoreA = m.score_a;
     const scoreB = m.score_b;
+    const isGroup = m.group_id !== null;
 
     let pointsA = 0, pointsB = 0, wonA = 0, wonB = 0, drawnA = 0, drawnB = 0, lostA = 0, lostB = 0;
     if (scoreA > scoreB) {
@@ -59,21 +75,37 @@ async function updateAllStandings(tx: any) {
       drawnA = 1; pointsA = 1; drawnB = 1; pointsB = 1;
     }
 
-    await tx.prepare(`
-      UPDATE standings
-      SET played = played + 1, won = won + ?, drawn = drawn + ?, lost = lost + ?,
-          goals_for = goals_for + ?, goals_against = goals_against + ?,
-          goal_difference = goal_difference + ?, points = points + ?
-      WHERE team_id = ?
-    `).run(wonA, drawnA, lostA, scoreA, scoreB, (scoreA - scoreB), pointsA, teamA);
+    if (isGroup) {
+      await tx.prepare(`
+        UPDATE standings
+        SET played = played + 1, won = won + ?, drawn = drawn + ?, lost = lost + ?,
+            goals_for = goals_for + ?, goals_against = goals_against + ?,
+            goal_difference = goal_difference + ?, points = points + ?
+        WHERE team_id = ?
+      `).run(wonA, drawnA, lostA, scoreA, scoreB, (scoreA - scoreB), pointsA, teamA);
 
-    await tx.prepare(`
-      UPDATE standings
-      SET played = played + 1, won = won + ?, drawn = drawn + ?, lost = lost + ?,
-          goals_for = goals_for + ?, goals_against = goals_against + ?,
-          goal_difference = goal_difference + ?, points = points + ?
-      WHERE team_id = ?
-    `).run(wonB, drawnB, lostB, scoreB, scoreA, (scoreB - scoreA), pointsB, teamB);
+      await tx.prepare(`
+        UPDATE standings
+        SET played = played + 1, won = won + ?, drawn = drawn + ?, lost = lost + ?,
+            goals_for = goals_for + ?, goals_against = goals_against + ?,
+            goal_difference = goal_difference + ?, points = points + ?
+        WHERE team_id = ?
+      `).run(wonB, drawnB, lostB, scoreB, scoreA, (scoreB - scoreA), pointsB, teamB);
+    } else {
+      await tx.prepare(`
+        UPDATE standings
+        SET goals_for = goals_for + ?, goals_against = goals_against + ?,
+            goal_difference = goal_difference + ?
+        WHERE team_id = ?
+      `).run(scoreA, scoreB, (scoreA - scoreB), teamA);
+
+      await tx.prepare(`
+        UPDATE standings
+        SET goals_for = goals_for + ?, goals_against = goals_against + ?,
+            goal_difference = goal_difference + ?
+        WHERE team_id = ?
+      `).run(scoreB, scoreA, (scoreB - scoreA), teamB);
+    }
   }
 
   const groups = await tx.prepare('SELECT id FROM groups').all() as any[];
@@ -152,12 +184,12 @@ async function updateAllStandings(tx: any) {
 }
 
 
-router.get('/days', async (req, res) => {
+router.get('/days', memoryCache(300, 'match-days'), async (req, res) => {
   const days = await db.prepare('SELECT * FROM match_days ORDER BY number ASC').all();
   return res.json(days);
 });
 
-router.get('/', async (req, res) => {
+router.get('/', memoryCache(10, 'matches'), async (req, res) => {
   const { match_day_id, status, stage } = req.query;
 
   let sql = `
@@ -243,7 +275,7 @@ router.get('/:id', async (req, res) => {
 });
 
 router.post('/admin/save', authenticateAdmin, async (req: AuthenticatedRequest, res: Response) => {
-  let { id, match_day_id, group_id, stage, team_a_id, team_b_id, date, time, venue, status, score_a, score_b, minute_text } = req.body;
+  let { id, match_day_id, group_id, stage, team_a_id, team_b_id, date, time, venue, status, score_a, score_b, penalty_a, penalty_b, penalty_details, minute_text } = req.body;
 
   if (!team_a_id || !team_b_id) {
     return res.status(400).json({ error: 'Both Team A and Team B are required.' });
@@ -257,19 +289,22 @@ router.post('/admin/save', authenticateAdmin, async (req: AuthenticatedRequest, 
   if (!stage) stage = 'Group Stage';
   if (!date) date = '2026-09-26';
   if (!time) time = '16:00';
-  if (!venue) venue = 'RAILWAY PITCH, MADHAPAR, RAJKOT';
+  if (!venue) venue = 'Railway Pitch, Madhapar, Rajkot';
   if (!status) status = 'SCHEDULED';
 
   const valScoreA = parseInt(score_a || '0', 10);
   const valScoreB = parseInt(score_b || '0', 10);
+  const valPenaltyA = penalty_a !== undefined && penalty_a !== null && penalty_a !== '' ? parseInt(penalty_a, 10) : null;
+  const valPenaltyB = penalty_b !== undefined && penalty_b !== null && penalty_b !== '' ? parseInt(penalty_b, 10) : null;
+  const valPenaltyDetails = typeof penalty_details === 'object' ? JSON.stringify(penalty_details) : (penalty_details || null);
   const now = Date.now();
 
   if (id) {
     await db.prepare(`
       UPDATE matches
-      SET match_day_id = ?, group_id = ?, stage = ?, team_a_id = ?, team_b_id = ?, date = ?, time = ?, venue = ?, status = ?, score_a = ?, score_b = ?, minute_text = ?
+      SET match_day_id = ?, group_id = ?, stage = ?, team_a_id = ?, team_b_id = ?, date = ?, time = ?, venue = ?, status = ?, score_a = ?, score_b = ?, penalty_a = ?, penalty_b = ?, penalty_details = COALESCE(?, penalty_details), minute_text = ?
       WHERE id = ?
-    `).run(match_day_id, group_id || null, stage, team_a_id, team_b_id, date, time, venue, status, valScoreA, valScoreB, minute_text || '', id);
+    `).run(match_day_id, group_id || null, stage, team_a_id, team_b_id, date, time, venue, status, valScoreA, valScoreB, valPenaltyA, valPenaltyB, valPenaltyDetails, minute_text || '', id);
 
     if (status === 'LIVE') {
       const existing = await db.prepare('SELECT live_start_timestamp FROM matches WHERE id = ?').get(id) as any;
@@ -489,20 +524,39 @@ router.delete('/admin/:matchId/events/:eventId', authenticateAdmin, async (req: 
 });
 
 router.put('/admin/:id/status', authenticateAdmin, async (req: AuthenticatedRequest, res: Response) => {
-  const { status, score_a, score_b, potm_player_id, minute_text, date, time } = req.body;
+  const { status, score_a, score_b, penalty_a, penalty_b, penalty_details, potm_player_id, minute_text, date, time } = req.body;
   
+  const valPenaltyA = penalty_a !== undefined ? (penalty_a !== null && penalty_a !== '' ? parseInt(penalty_a, 10) : null) : undefined;
+  const valPenaltyB = penalty_b !== undefined ? (penalty_b !== null && penalty_b !== '' ? parseInt(penalty_b, 10) : null) : undefined;
+  const valPenaltyDetails = typeof penalty_details === 'object' ? JSON.stringify(penalty_details) : (penalty_details !== undefined ? penalty_details : undefined);
+
   const match = await db.prepare('SELECT group_id FROM matches WHERE id = ?').get(req.params.id) as any;
   await db.prepare(`
     UPDATE matches
     SET status = ?, 
         score_a = COALESCE(?, score_a), 
         score_b = COALESCE(?, score_b), 
+        penalty_a = CASE WHEN ? IS NOT NULL THEN ? ELSE penalty_a END,
+        penalty_b = CASE WHEN ? IS NOT NULL THEN ? ELSE penalty_b END,
+        penalty_details = CASE WHEN ? IS NOT NULL THEN ? ELSE penalty_details END,
         potm_player_id = COALESCE(?, potm_player_id), 
         minute_text = COALESCE(?, minute_text),
         date = COALESCE(?, date),
         time = COALESCE(?, time)
     WHERE id = ?
-  `).run(status, score_a, score_b, potm_player_id, minute_text, date, time, req.params.id);
+  `).run(
+    status, 
+    score_a, 
+    score_b, 
+    valPenaltyA !== undefined ? 1 : null, valPenaltyA !== undefined ? valPenaltyA : null,
+    valPenaltyB !== undefined ? 1 : null, valPenaltyB !== undefined ? valPenaltyB : null,
+    valPenaltyDetails !== undefined ? 1 : null, valPenaltyDetails !== undefined ? valPenaltyDetails : null,
+    potm_player_id, 
+    minute_text, 
+    date, 
+    time, 
+    req.params.id
+  );
 
   if (status === 'FULL_TIME' && match && match.group_id) {
     await db.prepare("UPDATE matches SET confirmed_result = 1 WHERE id = ?").run(req.params.id);

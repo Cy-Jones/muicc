@@ -79,8 +79,15 @@ export const MatchDetailHeader: React.FC<MatchDetailHeaderProps> = ({ matchData,
                   <span className="text-dark-muted text-3xl sm:text-5xl">:</span>
                   <span>{matchData.score_b ?? 0}</span>
                 </div>
+                {matchData.penalty_a !== null && matchData.penalty_a !== undefined && matchData.penalty_b !== null && matchData.penalty_b !== undefined && (
+                  <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand/10 border border-brand/25 text-xs sm:text-sm font-black text-brand tracking-wider shadow-sm">
+                    <span>({matchData.penalty_a} - {matchData.penalty_b} pens)</span>
+                  </div>
+                )}
                 <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-widest text-dark-muted">
-                  {matchData.status === 'LIVE' ? 'Live Now' : matchData.status?.replace('_', ' ')}
+                  {matchData.status === 'LIVE' 
+                    ? (matchData.live_period === 'PENALTY_SHOOTOUT' ? 'Penalties Live' : 'Live Now') 
+                    : (matchData.penalty_a !== null && matchData.penalty_a !== undefined ? 'Ended (Pens)' : matchData.status?.replace('_', ' '))}
                 </span>
               </div>
             )}

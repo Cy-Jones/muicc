@@ -131,6 +131,7 @@ CREATE TABLE IF NOT EXISTS matches (
   score_b INTEGER DEFAULT 0,
   penalty_a INTEGER,
   penalty_b INTEGER,
+  penalty_details TEXT,
   date TEXT NOT NULL,
   time TEXT NOT NULL,
   venue TEXT NOT NULL,
@@ -238,7 +239,13 @@ CREATE TABLE IF NOT EXISTS audit_logs (
 
 CREATE INDEX IF NOT EXISTS idx_players_team ON players(team_id);
 CREATE INDEX IF NOT EXISTS idx_players_player_id ON players(player_id);
+CREATE INDEX IF NOT EXISTS idx_players_status ON players(status);
 CREATE INDEX IF NOT EXISTS idx_matches_match_day ON matches(match_day_id);
+CREATE INDEX IF NOT EXISTS idx_matches_stage_status ON matches(stage, status);
+CREATE INDEX IF NOT EXISTS idx_match_events_player ON match_events(player_id);
+CREATE INDEX IF NOT EXISTS idx_match_events_secondary ON match_events(secondary_player_id);
+CREATE INDEX IF NOT EXISTS idx_match_events_match ON match_events(match_id);
+CREATE INDEX IF NOT EXISTS idx_standings_group ON standings(group_id);
 CREATE INDEX IF NOT EXISTS idx_predictions_match_day ON predictions(match_day_id);
 CREATE INDEX IF NOT EXISTS idx_predictions_email ON predictions(email_normalized);
 

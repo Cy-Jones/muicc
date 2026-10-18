@@ -63,10 +63,15 @@ export const MatchListItem: React.FC<MatchListItemProps> = ({ match: m, onClick 
                 <span className="text-surface-border">-</span>
                 <span className="font-heading text-2xl font-black text-dark-bg">{m.score_b ?? 0}</span>
               </div>
+              {m.penalty_a !== null && m.penalty_a !== undefined && m.penalty_b !== null && m.penalty_b !== undefined && (
+                <span className="text-[11px] font-black text-brand tracking-wider -mt-0.5 mb-0.5">
+                  ({m.penalty_a} - {m.penalty_b} pens)
+                </span>
+              )}
               {m.status === 'LIVE' || m.status === 'HALF_TIME' ? (
                 <span className="badge badge-live mt-1 flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-white animate-ping"/> {getMatchLiveClock(m).display}</span>
               ) : (
-                <span className="badge badge-completed mt-1 flex items-center gap-1"><TickSquare set="bold" className="w-3 h-3"/> Full Time</span>
+                <span className="badge badge-completed mt-1 flex items-center gap-1"><TickSquare set="bold" className="w-3 h-3"/> {m.penalty_a != null ? 'FT (Pens)' : 'Full Time'}</span>
               )}
             </div>
           )}

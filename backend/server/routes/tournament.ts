@@ -1,16 +1,17 @@
 import { db } from '../db.js';
 import { authenticateAdmin } from '../middleware/auth.js';
 import { asyncRouter } from '../middleware/asyncRouter.js';
+import { memoryCache, clearCache } from '../middleware/memoryCache.js';
 
 const router = asyncRouter();
 
-router.get('/settings', async (req, res) => {
+router.get('/settings', memoryCache(300, 'tournament-settings'), async (req, res) => {
   const settings = await db.prepare('SELECT * FROM tournament_settings LIMIT 1').get();
   const nations = await db.prepare('SELECT * FROM participating_nations ORDER BY display_order ASC').all();
   return res.json({ settings, nations });
 });
 
-router.get('/summary', async (req, res) => {
+router.get('/summary', memoryCache(30, 'tournament-summary'), async (req, res) => {
   const teamsCount = (await db.prepare("SELECT COUNT(*) as count FROM teams WHERE status = 'APPROVED' AND country != 'TBD'").get() as any)?.count || 0;
   const playersCount = (await db.prepare("SELECT COUNT(*) as count FROM players WHERE status = 'APPROVED'").get() as any)?.count || 0;
   const matchesCount = (await db.prepare("SELECT COUNT(*) as count FROM matches").get() as any)?.count || 0;
@@ -73,6 +74,7 @@ router.put('/settings', authenticateAdmin, async (req, res) => {
     return res.status(500).json({ error: 'Tournament settings could not be updated.' });
   }
 
+  clearCache('tournament');
   return res.json({ success: true, message: 'Tournament settings updated successfully.' });
 });
 

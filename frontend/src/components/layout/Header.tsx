@@ -45,14 +45,15 @@ export const Header: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    async function loadData() {
-      try {
-        const [matches, settingsData] = await Promise.all([
-          api.getMatches(),
-          api.getSettings()
-        ]);
-        if (settingsData?.nations) setSystemNations(settingsData.nations);
+    // Fetch static settings/nations once on mount
+    api.getSettings().then(settingsData => {
+      if (settingsData?.nations) setSystemNations(settingsData.nations);
+    }).catch(err => console.error('Error loading settings in header:', err));
 
+    async function loadMatches() {
+      if (document.hidden) return;
+      try {
+        const matches = await api.getMatches();
         if (Array.isArray(matches) && matches.length > 0) {
           const live = matches.filter((m: any) => m.status === 'LIVE' || m.status === 'HALF_TIME');
           const finished = matches.filter((m: any) => m.status === 'FULL_TIME');
@@ -62,12 +63,25 @@ export const Header: React.FC = () => {
           setAllMatches([]);
         }
       } catch (err) {
-        console.error('Error loading header data:', err);
+        console.error('Error loading header matches:', err);
       }
     }
-    loadData();
-    const interval = setInterval(loadData, 10000);
-    return () => clearInterval(interval);
+
+    loadMatches();
+    // Poll matches every 30 seconds instead of every 10 seconds
+    const interval = setInterval(loadMatches, 30000);
+
+    const onVisibilityChange = () => {
+      if (!document.hidden) {
+        loadMatches();
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibilityChange);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+    };
   }, []);
 
   useEffect(() => {
@@ -148,7 +162,7 @@ export const Header: React.FC = () => {
                           {renderTeamFlag(match.team_a_name, match.team_a_country, match.team_a_logo)}
                           <span className="truncate max-w-[50px] sm:max-w-[80px] hidden md:block">{match.team_a_name}</span>
                           <span className="text-brand font-black mx-1">
-                            {match.status === 'SCHEDULED' ? 'vs' : `${match.score_a ?? 0} - ${match.score_b ?? 0}`}
+                            {match.status === 'SCHEDULED' ? 'vs' : `${match.score_a ?? 0} - ${match.score_b ?? 0}${match.penalty_a != null && match.penalty_b != null ? ` (${match.penalty_a}-${match.penalty_b}p)` : ''}`}
                           </span>
                           <span className="truncate max-w-[50px] sm:max-w-[80px] hidden md:block text-right">{match.team_b_name}</span>
                           {renderTeamFlag(match.team_b_name, match.team_b_country, match.team_b_logo)}
@@ -172,7 +186,7 @@ export const Header: React.FC = () => {
                           </span>
                         ) : match.status === 'FULL_TIME' ? (
                           <span className="badge badge-completed">
-                            <TickSquare set="bold" className="w-3 h-3 mr-1" /> FT
+                            <TickSquare set="bold" className="w-3 h-3 mr-1" /> {match.penalty_a != null ? 'FT (P)' : 'FT'}
                           </span>
                         ) : (
                           <span className="badge badge-upcoming">
@@ -184,7 +198,7 @@ export const Header: React.FC = () => {
                           {renderTeamFlag(match.team_a_name, match.team_a_country, match.team_a_logo)}
                           <span className="truncate max-w-[50px] sm:max-w-[80px] hidden md:block">{match.team_a_name}</span>
                           <span className="text-brand font-black mx-1">
-                            {match.status === 'SCHEDULED' ? 'vs' : `${match.score_a ?? 0} - ${match.score_b ?? 0}`}
+                            {match.status === 'SCHEDULED' ? 'vs' : `${match.score_a ?? 0} - ${match.score_b ?? 0}${match.penalty_a != null && match.penalty_b != null ? ` (${match.penalty_a}-${match.penalty_b}p)` : ''}`}
                           </span>
                           <span className="truncate max-w-[50px] sm:max-w-[80px] hidden md:block text-right">{match.team_b_name}</span>
                           {renderTeamFlag(match.team_b_name, match.team_b_country, match.team_b_logo)}

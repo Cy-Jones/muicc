@@ -15,6 +15,14 @@ export const AdminEditMatchModal: React.FC<AdminEditMatchModalProps> = ({ match,
   const [editMatchStatus, setEditMatchStatus] = useState<'SCHEDULED' | 'LIVE' | 'HALF_TIME' | 'FULL_TIME' | 'POSTPONED' | 'CANCELLED'>(match.status || 'SCHEDULED');
   const [editScoreA, setEditScoreA] = useState(match.score_a?.toString() || '0');
   const [editScoreB, setEditScoreB] = useState(match.score_b?.toString() || '0');
+  const [editPenaltyA, setEditPenaltyA] = useState(match.penalty_a !== null && match.penalty_a !== undefined ? match.penalty_a.toString() : '');
+  const [editPenaltyB, setEditPenaltyB] = useState(match.penalty_b !== null && match.penalty_b !== undefined ? match.penalty_b.toString() : '');
+  const [editPenaltyDetails, setEditPenaltyDetails] = useState(
+    typeof match.penalty_details === 'object' 
+      ? JSON.stringify(match.penalty_details, null, 2) 
+      : (match.penalty_details || '')
+  );
+  const [showPenaltySection, setShowPenaltySection] = useState(Boolean(match.penalty_a != null || match.penalty_details));
   const [editMatchDate, setEditMatchDate] = useState(match.date?.split('T')[0] || '');
   const [editMatchTime, setEditMatchTime] = useState(match.time || '');
   
@@ -78,11 +86,15 @@ export const AdminEditMatchModal: React.FC<AdminEditMatchModalProps> = ({ match,
 
   const handleSaveMatch = async () => {
     try {
+      const isPens = editPenaltyA !== '' && editPenaltyB !== '';
       await api.adminUpdateMatchStatus(match.id, {
         status: editMatchStatus,
         score_a: parseInt(editScoreA, 10),
         score_b: parseInt(editScoreB, 10),
-        minute_text: match.minute_text,
+        penalty_a: editPenaltyA !== '' ? parseInt(editPenaltyA, 10) : null,
+        penalty_b: editPenaltyB !== '' ? parseInt(editPenaltyB, 10) : null,
+        penalty_details: editPenaltyDetails.trim() ? editPenaltyDetails.trim() : null,
+        minute_text: isPens && editMatchStatus === 'FULL_TIME' ? 'FT (Pens)' : match.minute_text,
         date: editMatchDate,
         time: editMatchTime
       });
@@ -127,6 +139,72 @@ export const AdminEditMatchModal: React.FC<AdminEditMatchModalProps> = ({ match,
               <label className="block text-xs font-bold text-dark-muted uppercase tracking-widest mb-1.5">{match.team_b_name} Score</label>
               <input type="number" min="0" className="admin-input" value={editScoreB} onChange={e => setEditScoreB(e.target.value)} />
             </div>
+          </div>
+
+          {/* Penalty Shootout section */}
+          <div className="bg-surface-bg p-3.5 rounded-lg border border-surface-border">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-bold text-dark-bg uppercase tracking-widest flex items-center gap-2">
+                <span>🎯 Penalty Shootout</span>
+                {(editPenaltyA !== '' || editPenaltyB !== '') && (
+                  <span className="text-[10px] text-brand bg-brand/10 px-2 py-0.5 rounded font-black">
+                    {editPenaltyA || 0} - {editPenaltyB || 0}
+                  </span>
+                )}
+              </label>
+              <button 
+                type="button"
+                onClick={() => setShowPenaltySection(!showPenaltySection)}
+                className="text-xs font-bold text-brand hover:underline"
+              >
+                {showPenaltySection ? 'Hide' : 'Edit Shootout'}
+              </button>
+            </div>
+
+            {showPenaltySection && (
+              <div className="mt-3 space-y-3 pt-3 border-t border-surface-border">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[10px] font-bold text-dark-muted uppercase mb-1">{match.team_a_name} Pens</label>
+                    <input 
+                      type="number" 
+                      min="0" 
+                      placeholder="e.g. 11" 
+                      className="admin-input" 
+                      value={editPenaltyA} 
+                      onChange={e => setEditPenaltyA(e.target.value)} 
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-dark-muted uppercase mb-1">{match.team_b_name} Pens</label>
+                    <input 
+                      type="number" 
+                      min="0" 
+                      placeholder="e.g. 10" 
+                      className="admin-input" 
+                      value={editPenaltyB} 
+                      onChange={e => setEditPenaltyB(e.target.value)} 
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-bold text-dark-muted uppercase mb-1">
+                    Shootout Breakdown (JSON array of rounds)
+                  </label>
+                  <textarea 
+                    rows={4}
+                    placeholder='[{"round": 1, "team_a": {"player_name": "Nduwayo Benjamin", "scored": true}, "team_b": {"player_name": "Akol Akol", "scored": true}}]'
+                    className="admin-input font-mono text-[11px]" 
+                    value={editPenaltyDetails}
+                    onChange={e => setEditPenaltyDetails(e.target.value)}
+                  />
+                  <p className="text-[10px] text-dark-muted mt-1">
+                    Tip: Enter structured rounds to display each kick in the match summary modal.
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
