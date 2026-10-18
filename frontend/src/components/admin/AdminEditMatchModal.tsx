@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { api } from '../../lib/api';
 import { CloseSquare, Edit, Delete } from 'react-iconly';
 
+import { AdminPenaltyShootoutEditor } from './AdminPenaltyShootoutEditor';
+
 interface AdminEditMatchModalProps {
   match: any;
   teams: any[];
@@ -22,7 +24,7 @@ export const AdminEditMatchModal: React.FC<AdminEditMatchModalProps> = ({ match,
       ? JSON.stringify(match.penalty_details, null, 2) 
       : (match.penalty_details || '')
   );
-  const [showPenaltySection, setShowPenaltySection] = useState(Boolean(match.penalty_a != null || match.penalty_details));
+  const [showPenaltySection, setShowPenaltySection] = useState(Boolean(match._openPensImmediately || match.penalty_a != null || match.penalty_details));
   const [editMatchDate, setEditMatchDate] = useState(match.date?.split('T')[0] || '');
   const [editMatchTime, setEditMatchTime] = useState(match.time || '');
   
@@ -107,7 +109,7 @@ export const AdminEditMatchModal: React.FC<AdminEditMatchModalProps> = ({ match,
 
   return (
     <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center p-4">
-      <div className="bg-surface-card w-full max-w-lg p-6 rounded-xl border border-surface-border shadow-2xl animate-fade-in space-y-6 max-h-[90vh] overflow-y-auto">
+      <div className={`bg-surface-card w-full ${showPenaltySection ? 'max-w-2xl' : 'max-w-lg'} p-6 rounded-xl border border-surface-border shadow-2xl animate-fade-in space-y-6 max-h-[90vh] overflow-y-auto transition-all`}>
         <div className="flex justify-between items-center border-b border-surface-border pb-3">
           <h3 className="font-heading text-lg font-black text-dark-bg uppercase tracking-widest flex items-center gap-2">
             <Edit set="bold" className="w-5 h-5 text-brand" /> Edit Match
@@ -162,47 +164,22 @@ export const AdminEditMatchModal: React.FC<AdminEditMatchModalProps> = ({ match,
             </div>
 
             {showPenaltySection && (
-              <div className="mt-3 space-y-3 pt-3 border-t border-surface-border">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-[10px] font-bold text-dark-muted uppercase mb-1">{match.team_a_name} Pens</label>
-                    <input 
-                      type="number" 
-                      min="0" 
-                      placeholder="e.g. 11" 
-                      className="admin-input" 
-                      value={editPenaltyA} 
-                      onChange={e => setEditPenaltyA(e.target.value)} 
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-bold text-dark-muted uppercase mb-1">{match.team_b_name} Pens</label>
-                    <input 
-                      type="number" 
-                      min="0" 
-                      placeholder="e.g. 10" 
-                      className="admin-input" 
-                      value={editPenaltyB} 
-                      onChange={e => setEditPenaltyB(e.target.value)} 
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-[10px] font-bold text-dark-muted uppercase mb-1">
-                    Shootout Breakdown (JSON array of rounds)
-                  </label>
-                  <textarea 
-                    rows={4}
-                    placeholder='[{"round": 1, "team_a": {"player_name": "Nduwayo Benjamin", "scored": true}, "team_b": {"player_name": "Akol Akol", "scored": true}}]'
-                    className="admin-input font-mono text-[11px]" 
-                    value={editPenaltyDetails}
-                    onChange={e => setEditPenaltyDetails(e.target.value)}
-                  />
-                  <p className="text-[10px] text-dark-muted mt-1">
-                    Tip: Enter structured rounds to display each kick in the match summary modal.
-                  </p>
-                </div>
+              <div className="mt-3 pt-3 border-t border-surface-border">
+                <AdminPenaltyShootoutEditor
+                  teamAName={match.team_a_name}
+                  teamBName={match.team_b_name}
+                  teamAId={match.team_a_id}
+                  teamBId={match.team_b_id}
+                  players={players}
+                  penaltyA={editPenaltyA}
+                  penaltyB={editPenaltyB}
+                  penaltyDetails={editPenaltyDetails}
+                  onUpdate={({ penalty_a, penalty_b, penalty_details }) => {
+                    setEditPenaltyA(penalty_a);
+                    setEditPenaltyB(penalty_b);
+                    setEditPenaltyDetails(penalty_details);
+                  }}
+                />
               </div>
             )}
           </div>

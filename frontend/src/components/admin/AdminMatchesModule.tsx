@@ -249,6 +249,21 @@ export const AdminMatchesModule: React.FC<AdminMatchesModuleProps> = ({ matches,
                   </div>
 
                   <div className="flex items-center gap-2">
+                    {(m.penalty_a !== null && m.penalty_a !== undefined || liveClock.phase === 'PENALTY_SHOOTOUT' || m.stage !== 'GROUP_STAGE') && (
+                      <button 
+                        onClick={async () => {
+                          try {
+                            const details = await api.getMatchDetail(m.id);
+                            setEditingMatch({ ...details.match, _openPensImmediately: true });
+                          } catch (err: any) { alert(err.message); }
+                        }} 
+                        className={`action-btn ${m.penalty_a !== null && m.penalty_a !== undefined ? 'bg-brand/10 text-brand border-brand/30 hover:bg-brand/20' : 'bg-purple-500/10 text-purple-400 border-purple-500/30 hover:bg-purple-500/20'}`}
+                        title="Edit Penalty Shootout"
+                      >
+                        <span>🎯</span> {m.penalty_a !== null && m.penalty_a !== undefined ? `Pens (${m.penalty_a}-${m.penalty_b})` : 'Pens'}
+                      </button>
+                    )}
+
                     <button onClick={async () => {
                       try {
                         const details = await api.getMatchDetail(m.id);
